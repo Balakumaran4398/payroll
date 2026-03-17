@@ -1,0 +1,104 @@
+import { NgModule } from '@angular/core';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
+import { RoleGuard } from './core/guards/role.guard';
+import { AuthGuard } from './core/guards/auth.guard';
+
+const routes: Routes = [
+  { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
+  {
+    path: 'auth',
+    loadChildren: () =>
+      import('./features/auth/auth.module').then((m) => m.AuthModule),
+  },
+  {
+    path: 'app',
+    component: MainLayoutComponent,
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: 'dashboard',
+        loadChildren: () =>
+          import('./features/dashboard/dashboard.module').then(
+            (m) => m.DashboardModule
+          ),
+      },
+      {
+        path: 'users',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN'] },
+        loadChildren: () =>
+          import('./features/users/users.module').then((m) => m.UsersModule),
+      },
+      {
+        path: 'company',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY'] },
+        loadChildren: () =>
+          import('./features/company/company.module').then((m) => m.CompanyModule),
+      },
+      {
+        path: 'employee',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE'] },
+        loadChildren: () =>
+          import('./features/employee/employee.module').then(
+            (m) => m.EmployeeModule
+          ),
+      },
+      {
+        path: 'attendance',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        loadChildren: () =>
+          import('./features/attendance/attendance.module').then(
+            (m) => m.AttendanceModule
+          ),
+      },
+      {
+        path: 'reports',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        loadChildren: () =>
+          import('./features/reports/reports.module').then(
+            (m) => m.ReportsModule
+          ),
+      },
+      {
+        path: 'settings',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        loadChildren: () =>
+          import('./features/settings/settings.module').then(
+            (m) => m.SettingsModule
+          ),
+      },
+      {
+        path: 'themes',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        loadChildren: () =>
+          import('./features/themes/themes.module').then((m) => m.ThemesModule),
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    ],
+  },
+  { path: '**', redirectTo: '/auth/login' },
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes, {
+      preloadingStrategy: PreloadAllModules,
+    }),
+  ],
+  exports: [RouterModule],
+})
+export class AppRoutingModule { }

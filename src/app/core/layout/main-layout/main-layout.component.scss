@@ -1,0 +1,44 @@
+.shell {
+  min-height: 100vh;
+  background: var(--theme-page-bg);
+  color: var(--theme-text-primary);
+  overflow-x: hidden;
+}
+
+.shell__content {
+  margin-left: 260px;
+  transition: margin-left 0.25s ease;
+  min-height: 100vh;
+}
+
+.shell__content--expanded {
+  margin-left: 90px;
+}
+
+.page-content {
+  padding: 1.25rem;
+  min-height: calc(100vh - 64px);
+}
+
+.mobile-backdrop {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 17, 44, 0.45);
+  z-index: 17;
+}
+
+@media (max-width: 767px) {
+  .shell__content,
+  .shell__content--expanded {
+    margin-left: 0;
+    padding-top: 64px;
+  }
+
+  .page-content {
+    padding: 1rem;
+    min-height: calc(100vh - 64px);
+  }
+}

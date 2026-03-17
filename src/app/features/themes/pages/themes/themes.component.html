@@ -1,0 +1,40 @@
+<section class="themes-page">
+  <div class="themes-head">
+    <h2>Theme Selection</h2>
+    <p>Choose a dashboard style and apply it globally.</p>
+  </div>
+
+  <div class="themes-grid">
+    <article
+      class="theme-card"
+      *ngFor="let card of themeCards"
+      [class.theme-card--active]="activeThemeId === card.id"
+      [class.theme-card--selected]="selectedThemeId === card.id"
+      (click)="selectTheme(card.id)"
+    >
+      <div class="theme-card__preview" [ngStyle]="{ background: card.preview }">
+        <span class="mode-chip">{{ card.mode === 'dark' ? 'Dark' : 'Light' }}</span>
+      </div>
+
+      <div class="theme-card__content">
+        <h3>{{ card.label }}</h3>
+        <p>{{ card.description }}</p>
+      </div>
+
+      <div class="theme-card__actions">
+        <button
+          class="theme-card__confirm"
+          [class.theme-card__confirm--visible]="selectedThemeId === card.id"
+          (click)="applySelectedTheme(card.id); $event.stopPropagation()"
+          [disabled]="selectedThemeId !== card.id || applyingThemeId === card.id"
+        >
+          <span *ngIf="applyingThemeId !== card.id">Confirm</span>
+          <span class="loading" *ngIf="applyingThemeId === card.id">
+            <span class="loading__dot"></span>
+            Applying...
+          </span>
+        </button>
+      </div>
+    </article>
+  </div>
+</section>

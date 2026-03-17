@@ -1,0 +1,38 @@
+<aside class="sidebar" [class.sidebar--collapsed]="collapsed" [class.sidebar--mobile]="isMobile"
+  [class.sidebar--mobile-open]="isMobile && mobileOpen" [class]="'sidebar--' + userRoleClass">
+  <div class="brand">
+    <img class="brand__logo" src="assets/logo/hr.png" alt="HR Logo" />
+    <span *ngIf="shouldShowLabels()">{{ userRole }}</span>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <nav class="menu">
+    <ng-container *ngFor="let item of visibleMenu">
+      <a *ngIf="!item.children" mat-button [routerLink]="item.route" routerLinkActive="menu__item--active"
+        class="menu__item" [matTooltip]="shouldShowLabels() ? '' : item.label" matTooltipPosition="right"
+        (click)="handleMenuNavigate()">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span *ngIf="shouldShowLabels()">{{ item.label }}</span>
+      </a>
+
+      <div *ngIf="item.children" class="menu-group" [class.menu-group--active]="isGroupActive(item)">
+        <button type="button" class="menu__item menu__item--group" [matTooltip]="shouldShowLabels() ? '' : item.label"
+          matTooltipPosition="right" (click)="toggleGroup(item)">
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span *ngIf="shouldShowLabels()">{{ item.label }}</span>
+          <mat-icon class="menu__chevron" *ngIf="shouldShowLabels()">
+            {{ isGroupExpanded(item) ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
+        </button>
+
+        <div class="submenu" [class.submenu--open]="isGroupExpanded(item)" *ngIf="shouldShowSubmenu(item)">
+          <a *ngFor="let child of item.children" mat-button class="submenu__item" [routerLink]="child.route"
+            routerLinkActive="submenu__item--active" (click)="handleMenuNavigate()">
+            <span>{{ child.label }}</span>
+          </a>
+        </div>
+      </div>
+    </ng-container>
+  </nav>
+</aside>

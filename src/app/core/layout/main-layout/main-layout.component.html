@@ -1,0 +1,21 @@
+<div class="shell" [class.shell--mobile]="isMobile" [class.shell--tablet]="isTablet">
+  <app-sidebar
+    [collapsed]="collapsed"
+    [isMobile]="isMobile"
+    [mobileOpen]="mobileMenuOpen"
+    (menuNavigate)="closeMobileMenu()"
+  ></app-sidebar>
+
+  <div class="mobile-backdrop" *ngIf="isMobile && mobileMenuOpen" (click)="closeMobileMenu()"></div>
+
+  <div class="shell__content" [class.shell__content--expanded]="collapsed">
+    <app-header
+      [collapsed]="collapsed"
+      (toggleSidebar)="toggleSidebar()"
+    ></app-header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

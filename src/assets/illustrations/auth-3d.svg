@@ -1,0 +1,69 @@
+<svg width="900" height="620" viewBox="0 0 900 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="aquaTop" x1="160" y1="110" x2="680" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B3F4FF"/>
+      <stop offset="0.5" stop-color="#78DBF7"/>
+      <stop offset="1" stop-color="#3F9FD9"/>
+    </linearGradient>
+
+    <linearGradient id="violetTop" x1="170" y1="160" x2="690" y2="280" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A995FF"/>
+      <stop offset="0.6" stop-color="#7B62EE"/>
+      <stop offset="1" stop-color="#4D38B6"/>
+    </linearGradient>
+
+    <linearGradient id="deepBlue" x1="120" y1="200" x2="720" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0E5577"/>
+      <stop offset="0.45" stop-color="#062F48"/>
+      <stop offset="1" stop-color="#020A28"/>
+    </linearGradient>
+
+    <linearGradient id="aquaBottom" x1="120" y1="250" x2="700" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9DE9FF"/>
+      <stop offset="0.5" stop-color="#66CDE8"/>
+      <stop offset="1" stop-color="#337DBE"/>
+    </linearGradient>
+
+    <linearGradient id="violetBottom" x1="120" y1="330" x2="700" y2="460" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8E79FD"/>
+      <stop offset="0.5" stop-color="#6B4CE0"/>
+      <stop offset="1" stop-color="#3C2A96"/>
+    </linearGradient>
+
+    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(320 148) rotate(18) scale(300 120)">
+      <stop offset="0" stop-color="white" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="innerGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(418 286) rotate(90) scale(190 370)">
+      <stop offset="0" stop-color="#58DBFF" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#58DBFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="softDrop" x="20" y="30" width="860" height="560" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#071740" flood-opacity="0.42"/>
+    </filter>
+
+    <filter id="blurShadow" x="100" y="80" width="740" height="460" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="440" cy="430" rx="300" ry="52" fill="#081739" fill-opacity="0.35" filter="url(#blurShadow)"/>
+
+  <g filter="url(#softDrop)">
+    <path d="M162 136C212 82 350 63 492 72C608 79 700 112 714 158C727 205 665 243 556 260C412 283 236 276 160 229C126 208 126 174 162 136Z" fill="url(#aquaTop)"/>
+
+    <path d="M122 182C172 130 316 105 468 113C598 120 702 155 718 205C733 254 667 296 547 314C392 337 212 324 128 272C90 249 87 217 122 182Z" fill="url(#violetTop)"/>
+
+    <path d="M82 232C135 176 292 146 457 156C606 165 724 204 742 260C759 314 688 360 550 380C380 406 180 388 90 330C50 304 46 269 82 232Z" fill="url(#deepBlue)"/>
+
+    <path d="M104 300C156 248 305 223 462 233C594 241 700 274 717 321C734 369 671 409 553 427C399 450 219 438 133 391C95 370 92 334 104 300Z" fill="url(#aquaBottom)"/>
+
+    <path d="M118 356C166 309 309 286 460 294C586 301 688 332 706 374C724 415 667 449 556 465C410 486 238 478 155 438C116 420 109 389 118 356Z" fill="url(#violetBottom)"/>
+
+    <path d="M182 136C254 86 466 74 614 110C682 126 721 157 713 181C702 214 623 234 532 244C390 260 220 255 155 226C136 218 128 206 132 192C140 171 154 155 182 136Z" fill="url(#shine)"/>
+
+    <ellipse cx="432" cy="286" rx="360" ry="170" fill="url(#innerGlow)"/>
+  </g>
+</svg>
