@@ -8,13 +8,13 @@
 
   <div class="mobile-backdrop" *ngIf="isMobile && mobileMenuOpen" (click)="closeMobileMenu()"></div>
 
-  <div class="shell__content" [class.shell__content--expanded]="collapsed">
+  <div class="shell__content" [class.shell__content--expanded]="collapsed" #contentOverlayHost>
     <app-header
       [collapsed]="collapsed"
       (toggleSidebar)="toggleSidebar()"
     ></app-header>
 
-    <main class="page-content">
+    <main class="page-content" [@routeAnimations]="prepareRoute()">
       <router-outlet></router-outlet>
     </main>
   </div>

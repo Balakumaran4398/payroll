@@ -1,4 +1,26 @@
-<mat-card>
-  <h2>Attendance</h2>
-  <p>Track employee attendance, check-ins, and daily working hours.</p>
-</mat-card>
+<section class="attendance-workspace">
+  <div class="attendance-workspace__hero">
+    <div>
+      <p class="attendance-workspace__eyebrow">Attendance Workspace</p>
+      <h1>Choose an attendance action</h1>
+      <p>Open leave, permission, OD, regularization, and support request pages from one place.</p>
+    </div>
+
+    <div class="attendance-workspace__hero-icon">
+      <mat-icon>fact_check</mat-icon>
+    </div>
+  </div>
+
+  <div class="attendance-action-grid">
+    <a class="attendance-action-card" *ngFor="let action of actions" [routerLink]="action.route">
+      <span class="attendance-action-card__icon">
+        <mat-icon>{{ action.icon }}</mat-icon>
+      </span>
+      <div class="attendance-action-card__copy">
+        <h2>{{ action.title }}</h2>
+        <p>{{ action.subtitle }}</p>
+      </div>
+      <mat-icon class="attendance-action-card__arrow">arrow_forward</mat-icon>
+    </a>
+  </div>
+</section>

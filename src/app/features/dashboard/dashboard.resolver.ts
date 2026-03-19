@@ -17,6 +17,7 @@ export class DashboardResolver implements Resolve<string> {
       case 'ROLE_ADMIN':
         return of('admin');
       case 'ROLE_COMPANY':
+      case 'ROLE_MANAGER':
         return of('company');
       case 'ROLE_EMPLOYEE':
         return of('employee');

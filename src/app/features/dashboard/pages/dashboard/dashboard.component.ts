@@ -10,9 +10,7 @@ export class DashboardComponent implements OnInit {
   userRole: AppRole | null = null;
 
   constructor(public authService: AuthService) {
-    this.userRole = this.authService.getRole() || 'ROLE_ADMIN';
-    console.log("ROLE  =", this.userRole);
-
+    this.userRole = this.authService.getRole();
   }
 
   ngOnInit(): void {

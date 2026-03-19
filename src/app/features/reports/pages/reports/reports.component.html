@@ -1,4 +1,103 @@
-<mat-card>
-  <h2>Reports</h2>
-  <p>View performance reports, exports, and analytics summaries.</p>
-</mat-card>
+<section class="reports-page">
+  <header class="reports-hero">
+    <div>
+      <p class="reports-hero__eyebrow">Attendance Report</p>
+      <h1>Attendance summary and monthly insights</h1>
+      <p>Review attendance consistency, punch timing, and weekly effort distribution in one place.</p>
+    </div>
+
+    <div class="reports-hero__filter">
+      <span>Month</span>
+      <strong>{{ selectedMonth }}</strong>
+    </div>
+  </header>
+
+  <div class="reports-metrics">
+    <article class="reports-metric-card" *ngFor="let metric of reportMetrics" [class]="'reports-metric-card reports-metric-card--' + metric.tone">
+      <span>{{ metric.label }}</span>
+      <strong>{{ metric.value }}</strong>
+      <small>{{ metric.trend }}</small>
+    </article>
+  </div>
+
+  <div class="reports-grid">
+    <mat-card class="reports-card">
+      <div class="reports-card__head">
+        <div>
+          <h2>Weekly Hours Breakdown</h2>
+          <p>Hours logged by week for the selected month</p>
+        </div>
+      </div>
+
+      <div class="weekly-chart">
+        <div class="weekly-chart__row" *ngFor="let week of weeklyHours">
+          <span>{{ week.label }}</span>
+          <div class="weekly-chart__track">
+            <div class="weekly-chart__bar" [style.width.%]="getWeeklyBarWidth(week.hours)"></div>
+          </div>
+          <strong>{{ week.hours }}h</strong>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="reports-card">
+      <div class="reports-card__head">
+        <div>
+          <h2>Quick Notes</h2>
+          <p>Highlights from this month’s attendance pattern</p>
+        </div>
+      </div>
+
+      <div class="notes-list">
+        <div class="note-card">
+          <strong>Strong attendance consistency</strong>
+          <p>You maintained strong presence across the month with only a few irregular entries.</p>
+        </div>
+        <div class="note-card">
+          <strong>Late entries reduced</strong>
+          <p>Late check-ins are lower than the previous month, which improved punctuality trends.</p>
+        </div>
+        <div class="note-card">
+          <strong>One punch needs review</strong>
+          <p>There is still one missed swipe that may need regularization for complete reporting.</p>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="reports-card reports-card--table">
+    <div class="reports-card__head">
+      <div>
+        <h2>Attendance Log</h2>
+        <p>Day-by-day attendance status for the selected period</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="attendance-report-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Total Hours</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of reportRows">
+            <td>{{ row.date }}</td>
+            <td>
+              <span class="status-pill" [class]="'status-pill status-pill--' + row.status.toLowerCase().replace(' ', '-')">
+                {{ row.status }}
+              </span>
+            </td>
+            <td>{{ row.checkIn }}</td>
+            <td>{{ row.checkOut }}</td>
+            <td>{{ row.totalHours }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</section>

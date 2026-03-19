@@ -1,4 +1,259 @@
-<mat-card>
-  <h2>Employee Module</h2>
-  <p>Employee workspace with assigned tasks and updates.</p>
-</mat-card>
+<div class="employee-container">
+  <div class="employee-shell">
+
+
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading employees...</p>
+    </div>
+
+    <mat-card *ngIf="!loading" class="table-card">
+      <mat-card-header>
+        <div class="table-heading">
+          <div class="table-heading__copy">
+            <mat-card-title>Employee Directory</mat-card-title>
+            <!-- <mat-card-subtitle>{{ filteredEmployees.length }} of {{ employees.length }} employees
+              visible</mat-card-subtitle> -->
+          </div>
+          <div class="table-summary">
+            <mat-icon>insights</mat-icon>
+            <span>Modern responsive employee table</span>
+          </div>
+        </div>
+      </mat-card-header>
+
+      <div class="table-toolbar">
+        <div class="table-toolbar__top">
+          <div class="table-toolbar__copy">
+            <p class="table-toolbar__label">Employee management</p>
+            <p class="table-toolbar__text">Search employees, filter by status, and manage records from one responsive table card.</p>
+          </div>
+
+          <button mat-flat-button class="add-employee-btn" (click)="openAddEmployeeDialog()">
+            <mat-icon>add</mat-icon>
+            Add Employee
+          </button>
+        </div>
+
+        <div class="search-section search-section--compact">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search employees</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()"
+              placeholder="Search by name, email, department, or position" #searchInput>
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <div class="filter-buttons">
+            <button mat-stroked-button [class.active]="statusFilter === 'all'" (click)="setStatusFilter('all')">
+              All ({{ totalEmployees }})
+            </button>
+            <button mat-stroked-button [class.active]="statusFilter === 'active'" (click)="setStatusFilter('active')">
+              Active ({{ activeEmployees }})
+            </button>
+            <button mat-stroked-button [class.active]="statusFilter === 'inactive'" (click)="setStatusFilter('inactive')">
+              Inactive ({{ inactiveEmployees }})
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <mat-card-content>
+        <div *ngIf="hasVisibleEmployees" class="table-container desktop-table">
+          <table mat-table [dataSource]="pagedEmployees" class="employee-table" matSort [matSortActive]="sortActive"
+            [matSortDirection]="sortDirection" matSortDisableClear (matSortChange)="onSortChange($event)">
+            <ng-container matColumnDef="profile">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="profile">Profile</th>
+              <td mat-cell *matCellDef="let employee">
+                <div class="profile-cell">
+                  <button type="button" class="profile-image-button" (click)="openProfileDialog(employee)"
+                    matTooltip="Open employee profile">
+                    <img [src]="getEmployeeImage(employee)" [alt]="employee.firstname + ' ' + employee.lastname"
+                      class="profile-image" (error)="onImageError($event, employee)">
+                  </button>
+                  <div class="profile-info">
+                    <div class="employee-name">{{ employee.firstname }} {{ employee.lastname }}</div>
+                    <div class="employee-id">Employee ID #{{ employee.id }}</div>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="contact">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="contact">Contact</th>
+              <td mat-cell *matCellDef="let employee">
+                <div class="contact-info">
+                  <div class="email">{{ employee.email }}</div>
+                  <div class="mobile">{{ employee.mobile }}</div>
+                  <div class="alternate-email" *ngIf="employee.alternate_email">{{ employee.alternate_email }}</div>
+                  <div class="skype" *ngIf="employee.skypeid">Skype ID: {{ employee.skypeid }}</div>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="department">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="department">Department & Position</th>
+              <td mat-cell *matCellDef="let employee">
+                <div class="dept-position">
+                  <div class="department">{{ employee.department_name }}</div>
+                  <div class="position">{{ employee.position }}</div>
+                  <!-- <div class="shift-chip">Shift {{ employee.shift_type }}</div> -->
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="personal">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="personal">Personal Info</th>
+              <td mat-cell *matCellDef="let employee">
+                <div class="personal-info">
+                  <!-- <div class="dob">DOB: {{ formatDate(employee.date_of_birth) }}</div> -->
+                  <!-- <div class="gender">{{ employee.gender }}</div> -->
+                  <div class="blood-group" *ngIf="employee.blood_group">Blood group: {{ employee.blood_group }}</div>
+                  <!-- <div class="marital">{{ employee.marital_status }}</div> -->
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="employment">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="employment">Employment</th>
+              <td mat-cell *matCellDef="let employee">
+                <div class="employment-info">
+                  <!-- <div class="joining">Joined: {{ formatDate(employee.joining_date) }}</div> -->
+                  <!-- <div class="manager" *ngIf="employee.managerid">Manager ID: {{ employee.managerid }}</div> -->
+                  <!-- <div class="wfh" *ngIf="employee.wfh">WFH: {{ employee.wfh ? 'Yes' : 'No' }}</div> -->
+                  <div class="status" [class.active]="employee.isactive" [class.inactive]="!employee.isactive">
+                    {{ employee.isactive ? 'Active' : 'Inactive' }}
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let employee">
+                <div class="action-buttons">
+                  <button mat-icon-button matTooltip="View Details" (click)="viewEmployeeDetails(employee)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Edit Employee" (click)="editEmployee(employee)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Delete Employee" (click)="deleteEmployee(employee)"
+                    [disabled]="!employee.isactive">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+
+        <div *ngIf="hasVisibleEmployees" class="mobile-employee-list">
+          <article class="employee-mobile-card" *ngFor="let employee of pagedEmployees">
+            <div class="employee-mobile-card__head">
+              <button type="button" class="profile-image-button" (click)="openProfileDialog(employee)"
+                matTooltip="Open employee profile">
+                <img [src]="getEmployeeImage(employee)" [alt]="employee.firstname + ' ' + employee.lastname"
+                  class="profile-image" (error)="onImageError($event, employee)">
+              </button>
+
+              <div class="employee-mobile-card__intro">
+                <h3>{{ employee.firstname }} {{ employee.lastname }}</h3>
+                <p>{{ employee.position }} • {{ employee.department_name }}</p>
+                <span class="status" [class.active]="employee.isactive" [class.inactive]="!employee.isactive">
+                  {{ employee.isactive ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="employee-mobile-card__grid">
+              <div class="mobile-detail">
+                <span>Email</span>
+                <strong>{{ employee.email }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Mobile</span>
+                <strong>{{ employee.mobile }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Department</span>
+                <strong>{{ employee.department_name || 'Not available' }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Position</span>
+                <strong>{{ employee.position || 'Not available' }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Shift</span>
+                <strong>{{ employee.shift_type || 'Not available' }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Joined</span>
+                <strong>{{ formatDate(employee.joining_date) }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Date of birth</span>
+                <strong>{{ formatDate(employee.date_of_birth) }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Gender</span>
+                <strong>{{ employee.gender || 'Not available' }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Blood group</span>
+                <strong>{{ employee.blood_group || 'Not available' }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Manager ID</span>
+                <strong>{{ employee.managerid || 'Not available' }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Role</span>
+                <strong>{{ employee.role || 'Not available' }}</strong>
+              </div>
+              <div class="mobile-detail">
+                <span>Skype ID</span>
+                <strong>{{ employee.skypeid || 'Not available' }}</strong>
+              </div>
+            </div>
+
+            <div class="employee-mobile-card__actions">
+              <button mat-stroked-button (click)="openProfileDialog(employee)">
+                <mat-icon>visibility</mat-icon>
+                Profile
+              </button>
+              <button mat-stroked-button (click)="editEmployee(employee)">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+              <button mat-flat-button class="mobile-delete-btn" (click)="deleteEmployee(employee)">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <mat-paginator *ngIf="hasVisibleEmployees" class="table-paginator" [length]="filteredEmployees.length"
+          [pageSize]="pageSize" [pageIndex]="pageIndex" [pageSizeOptions]="pageSizeOptions"
+          [showFirstLastButtons]="true" (page)="onPageChange($event)">
+        </mat-paginator>
+
+        <div *ngIf="!hasVisibleEmployees" class="table-empty-state">
+          <mat-icon>{{ hasEmployees ? 'filter_alt_off' : 'groups' }}</mat-icon>
+          <h3>{{ hasEmployees ? 'No employees match the selected filter' : 'No employees available' }}</h3>
+          <p>
+            {{ hasEmployees
+            ? 'Keep the employee toolbar open and adjust the search or status filter to see records again.'
+            : 'Employee management stays available here. Refresh to load employee data when it is ready.' }}
+          </p>
+          <button mat-flat-button (click)="hasEmployees && isFilterApplied ? clearFilters() : refreshData()">
+            <mat-icon>{{ hasEmployees && isFilterApplied ? 'filter_alt_off' : 'refresh' }}</mat-icon>
+            {{ hasEmployees && isFilterApplied ? 'Clear Filters' : 'Refresh Table' }}
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>

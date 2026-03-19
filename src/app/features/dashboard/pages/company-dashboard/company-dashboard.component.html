@@ -1,79 +1,137 @@
 <section class="dashboard">
-  <h2>Company Dashboard</h2>
-  <p class="sub">Manage your company's employees and operations</p>
+  <div class="hero-card">
+    <div class="hero-card__identity">
+      <img class="hero-card__avatar" [src]="managerImageUrl" [alt]="managerName" loading="lazy" decoding="async" />
 
-  <div class="stats-grid">
-    <mat-card class="stat-card" *ngFor="let card of statCards">
       <div>
-        <p class="stat-card__label">{{ card.title }}</p>
-        <h3>{{ card.value }}</h3>
-        <small>{{ card.trend }}</small>
+        <p class="hero-card__date">{{ heroDate }}</p>
+        <h2>Manager Portal - {{ managerName }}</h2>
+        <p class="hero-card__meta">{{ teamName }} 
+          <!-- · {{ currentRoleLabel }} · {{ teamMembersCount }} team members -->
+        </p>
       </div>
-      <mat-icon>{{ card.icon }}</mat-icon>
+    </div>
+
+    <div class="hero-card__metric">
+      <span>Attendance Rate</span>
+      <strong>{{ attendanceRate }}%</strong>
+      <small>today</small>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <mat-card class="summary-card" *ngFor="let card of attendanceSummary" [class]="'summary-card summary-card--' + card.tone">
+      <div class="summary-card__icon">
+        <mat-icon>{{ card.icon }}</mat-icon>
+      </div>
+      <h3>{{ card.value }}</h3>
+      <p>{{ card.label }}</p>
     </mat-card>
   </div>
 
-  <div class="chart-grid">
-    <mat-card>
-      <h3>Weekly Attendance & Leave Trends</h3>
-      <div class="chart-wrap">
-        <canvas
-          baseChart
-          [datasets]="lineChartData"
-          [labels]="lineChartLabels"
-          [options]="lineChartOptions"
-          [chartType]="lineChartType"
-        ></canvas>
+  <div class="insight-grid">
+    <mat-card class="panel-card">
+      <div class="panel-card__header">
+        <div>
+          <h3>Team Attendance Today</h3>
+          <p>{{ panelDate }}</p>
+        </div>
+        <mat-icon>groups</mat-icon>
+      </div>
+
+      <div class="panel-card__body panel-card__body--center" *ngIf="!teamAttendance.length">
+        <div class="empty-state empty-state--attendance">
+          <mat-icon>group_off</mat-icon>
+          <p>No attendance data for today</p>
+        </div>
+      </div>
+
+      <div class="panel-card__body" *ngIf="teamAttendance.length">
+        <div class="attendance-row" *ngFor="let member of teamAttendance">
+          <div>
+            <strong>{{ member.name }}</strong>
+            <span>Updated today</span>
+          </div>
+          <span class="badge">{{ member.status }}</span>
+        </div>
       </div>
     </mat-card>
 
-    <mat-card>
-      <h3>Today's Attendance</h3>
-      <div class="chart-wrap">
-        <canvas
-          baseChart
-          [data]="doughnutChartData"
-          [labels]="doughnutChartLabels"
-          [options]="doughnutChartOptions"
-          [chartType]="doughnutChartType"
-        ></canvas>
+    <mat-card class="panel-card">
+      <div class="panel-card__header">
+        <div>
+          <h3>Pending Approvals</h3>
+          <p>Requires your action</p>
+        </div>
+        <mat-icon>notifications_none</mat-icon>
+      </div>
+
+      <div class="panel-card__body panel-card__body--center" *ngIf="!pendingApprovals.length">
+        <div class="empty-state empty-state--approval">
+          <mat-icon>check_circle</mat-icon>
+          <p>No pending approvals</p>
+        </div>
+      </div>
+
+      <div class="panel-card__body" *ngIf="pendingApprovals.length">
+        <div class="approval-row" *ngFor="let approval of pendingApprovals">
+          <div>
+            <strong>{{ approval.employee }}</strong>
+            <p>{{ approval.request }}</p>
+          </div>
+          <div class="approval-row__meta">
+            <span class="priority-chip" [class]="'priority-chip priority-chip--' + approval.priority.toLowerCase()">
+              {{ approval.priority }}
+            </span>
+            <small>{{ approval.submittedAt }}</small>
+          </div>
+        </div>
       </div>
     </mat-card>
   </div>
 
-  <mat-card>
-    <h3>Recent Company Activity</h3>
-    <div class="table-wrap">
-      <table mat-table [dataSource]="recentActivity" class="mat-elevation-z0">
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef>Action</th>
-          <td mat-cell *matCellDef="let row">{{ row.action }}</td>
-        </ng-container>
+  <mat-card class="employees-card">
+    <div class="employees-card__header">
+      <div>
+        <h3>All Employees</h3>
+        <p>{{ teamMembersCount }} team members</p>
+      </div>
+    </div>
 
-        <ng-container matColumnDef="user">
-          <th mat-header-cell *matHeaderCellDef>Employee</th>
-          <td mat-cell *matCellDef="let row">{{ row.user }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="module">
-          <th mat-header-cell *matHeaderCellDef>Module</th>
-          <td mat-cell *matCellDef="let row">{{ row.module }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="timestamp">
-          <th mat-header-cell *matHeaderCellDef>Timestamp</th>
-          <td mat-cell *matCellDef="let row">{{ row.timestamp }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let row">
-            <span class="status" [class]="'status--' + row.status.toLowerCase()">{{ row.status }}</span>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    <div class="employees-table-wrap">
+      <table class="employees-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th>Position</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let member of teamMembers">
+            <td>
+              <div class="employee-cell">
+                <img *ngIf="member.imageUrl; else memberInitialsAvatar" class="employee-avatar-image" [src]="member.imageUrl"
+                  [alt]="member.name" loading="lazy" decoding="async">
+                <ng-template #memberInitialsAvatar>
+                  <span class="employee-avatar">{{ member.initials }}</span>
+                </ng-template>
+                <div>
+                  <strong>{{ member.name }}</strong>
+                  <span>{{ member.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ member.department }}</td>
+            <td>{{ member.position }}</td>
+            <td>
+              <span class="member-status" [class]="'member-status member-status--' + member.status.toLowerCase().replace(' ', '-')">
+                {{ member.status }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </mat-card>

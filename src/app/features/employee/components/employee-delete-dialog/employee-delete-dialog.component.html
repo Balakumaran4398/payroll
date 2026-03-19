@@ -1,0 +1,31 @@
+<div class="delete-dialog">
+  <div class="delete-dialog__head">
+    <div class="delete-dialog__head-copy">
+      <p class="delete-dialog__eyebrow">Confirm action</p>
+      <h2>Delete {{ data.employee.firstname }} {{ data.employee.lastname }}?</h2>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close delete dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="delete-dialog__body">
+    <div class="delete-dialog__icon">
+      <mat-icon>delete_forever</mat-icon>
+    </div>
+
+    <p class="delete-dialog__copy">This removes the employee from the current list view. You can wire this dialog to a backend delete API later if needed.</p>
+
+    <div class="delete-dialog__meta">
+      <span>{{ data.employee.email }}</span>
+      <span>{{ data.employee.department_name }}</span>
+      <span>{{ data.employee.position }}</span>
+    </div>
+  </div>
+
+  <div class="delete-dialog__actions">
+    <button mat-stroked-button (click)="close()">Cancel</button>
+    <button mat-flat-button class="danger-action" (click)="confirm()">Delete</button>
+  </div>
+</div>

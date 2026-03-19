@@ -1,75 +1,214 @@
-<section class="dashboard">
-  <h2>Employee Dashboard</h2>
-  <p class="sub">Your personal workspace and attendance overview</p>
+<section class="employee-dashboard">
+  <div class="dashboard-hero">
+    <div class="dashboard-hero__content">
+      <p class="dashboard-hero__date">{{ heroDate }}</p>
+      <h1>Welcome, {{ greetingName }}!</h1>
+      <p class="dashboard-hero__subtitle">{{ heroSubtitle }}</p>
+    </div>
+
+    <div class="dashboard-hero__profile">
+      <img class="dashboard-hero__avatar" [src]="heroImageUrl" [alt]="greetingName" loading="lazy" decoding="async" />
+    </div>
+  </div>
 
   <div class="stats-grid">
-    <mat-card class="stat-card" *ngFor="let card of statCards">
-      <div>
-        <p class="stat-card__label">{{ card.title }}</p>
-        <h3>{{ card.value }}</h3>
-        <small>{{ card.trend }}</small>
+    <article
+      class="stat-card"
+      *ngFor="let card of statCards; trackBy: trackByTitle"
+      [ngClass]="'stat-card--' + card.tone"
+    >
+      <div class="stat-card__copy">
+        <span class="stat-card__label">{{ card.title }}</span>
+        <strong class="stat-card__value">{{ card.value }}</strong>
       </div>
-      <mat-icon>{{ card.icon }}</mat-icon>
-    </mat-card>
+      <span class="stat-card__icon">
+        <mat-icon>{{ card.icon }}</mat-icon>
+      </span>
+    </article>
   </div>
 
-  <div class="chart-grid">
-    <mat-card>
-      <h3>This Week's Working Hours</h3>
-      <div class="chart-wrap">
-        <canvas
-          baseChart
-          [datasets]="lineChartData"
-          [labels]="lineChartLabels"
-          [options]="lineChartOptions"
-          [chartType]="lineChartType"
-        ></canvas>
+  <div class="dashboard-grid">
+    <section class="dashboard-panel quick-actions-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-eyebrow">Actions</p>
+          <h2>Quick Actions</h2>
+        </div>
+        <span class="panel-chip">HR Self Service</span>
       </div>
-    </mat-card>
 
-    <mat-card>
-      <h3>This Month's Attendance</h3>
-      <div class="chart-wrap">
-        <canvas
-          baseChart
-          [data]="doughnutChartData"
-          [labels]="doughnutChartLabels"
-          [options]="doughnutChartOptions"
-          [chartType]="doughnutChartType"
-        ></canvas>
+      <div class="quick-actions-list">
+        <button
+          type="button"
+          class="quick-action"
+          *ngFor="let action of quickActions; trackBy: trackByTitle"
+          [ngClass]="'quick-action--' + action.tone"
+          (click)="openQuickAction(action)"
+        >
+          <span class="quick-action__icon">
+            <mat-icon>{{ action.icon }}</mat-icon>
+          </span>
+          <span class="quick-action__copy">
+            <strong>{{ action.title }}</strong>
+            <small>{{ action.subtitle }}</small>
+          </span>
+          <mat-icon class="quick-action__arrow">arrow_forward</mat-icon>
+        </button>
       </div>
-    </mat-card>
+
+      <div class="quick-actions-note">
+        <mat-icon>tips_and_updates</mat-icon>
+        <p>Use quick actions to handle leave, swipe correction, and attendance requests without leaving the dashboard.</p>
+      </div>
+    </section>
+
+    <section class="dashboard-panel calendar-panel">
+      <div class="panel-head panel-head--calendar">
+        <div>
+          <p class="panel-eyebrow">Attendance</p>
+          <h2>Monthly Calendar</h2>
+        </div>
+        <div class="calendar-toolbar">
+          <button type="button" class="calendar-nav" (click)="changeMonth(-1)" aria-label="Previous month">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="calendar-month">{{ monthLabel }}</span>
+          <button type="button" class="calendar-nav" (click)="changeMonth(1)" aria-label="Next month">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <button type="button" class="calendar-today" (click)="goToToday()">Today</button>
+        </div>
+      </div>
+
+      <div class="attendance-calendar">
+        <div class="calendar-weekdays">
+          <span *ngFor="let day of weekDays">{{ day }}</span>
+        </div>
+
+        <div class="calendar-grid">
+          <ng-container *ngFor="let week of calendarWeeks">
+            <button
+              type="button"
+              class="calendar-day"
+              *ngFor="let day of week"
+              [class.calendar-day--empty]="!day.day"
+              [class.calendar-day--present]="day.state === 'present'"
+              [class.calendar-day--absent]="day.state === 'absent'"
+              [class.calendar-day--late]="day.state === 'late'"
+              [class.calendar-day--half-day]="day.state === 'half-day'"
+              [class.calendar-day--leave]="day.state === 'leave'"
+              [class.calendar-day--weekend]="day.state === 'weekend'"
+              [class.calendar-day--holiday]="day.state === 'holiday'"
+              [class.calendar-day--upcoming]="day.state === 'upcoming'"
+              [class.calendar-day--today]="day.today"
+              [class.calendar-day--selected]="day.selected"
+              [disabled]="!day.day"
+              [attr.aria-label]="day.day ? getCalendarDayAriaLabel(day) : null"
+              [attr.title]="day.specialEvent ? day.tooltipLabel : null"
+              (click)="selectCalendarDay(day)"
+            >
+              <ng-container *ngIf="day.day">
+                <span class="calendar-day__number">{{ day.day }}</span>
+                <span class="calendar-day__event-chip" *ngIf="day.specialEvent">{{ day.specialEvent.badge }}</span>
+                <span class="calendar-day__marker" aria-hidden="true"></span>
+                <span class="calendar-day__tooltip" role="tooltip">{{ day.tooltipLabel }}</span>
+              </ng-container>
+            </button>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="calendar-legend">
+        <span class="legend-item" *ngFor="let item of attendanceLegend; trackBy: trackByState">
+          <span class="legend-indicator" [ngClass]="'legend-indicator--' + item.state" aria-hidden="true"></span>
+          <span class="legend-copy">
+            <strong>{{ item.label }}</strong>
+            <small>{{ item.description }}</small>
+          </span>
+        </span>
+      </div>
+    </section>
   </div>
-
-  <mat-card>
-    <h3>Your Recent Activity</h3>
-    <div class="table-wrap">
-      <table mat-table [dataSource]="recentActivity" class="mat-elevation-z0">
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef>Action</th>
-          <td mat-cell *matCellDef="let row">{{ row.action }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="module">
-          <th mat-header-cell *matHeaderCellDef>Module</th>
-          <td mat-cell *matCellDef="let row">{{ row.module }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="timestamp">
-          <th mat-header-cell *matHeaderCellDef>Timestamp</th>
-          <td mat-cell *matCellDef="let row">{{ row.timestamp }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let row">
-            <span class="status" [class]="'status--' + row.status.toLowerCase()">{{ row.status }}</span>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      </table>
-    </div>
-  </mat-card>
 </section>
+
+<ng-container *ngIf="selectedCalendarDay as activeDay">
+  <div class="attendance-dialog-backdrop" (click)="closeAttendanceDialog()">
+    <section
+      class="attendance-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="attendance-dialog-title"
+      (click)="onDialogContentClick($event)"
+    >
+      <div class="attendance-dialog__header">
+        <div>
+          <p class="panel-eyebrow">{{ activeDay.specialEvent ? 'Event highlight' : 'Attendance details' }}</p>
+          <h3 id="attendance-dialog-title">{{ selectedDialogTitle }}</h3>
+          <p class="attendance-dialog__subtitle">{{ selectedDialogSubtitle }}</p>
+        </div>
+        <button
+          type="button"
+          class="attendance-dialog__close"
+          (click)="closeAttendanceDialog()"
+          aria-label="Close attendance dialog"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="attendance-dialog__body">
+        <div class="attendance-dialog__status-card" [ngClass]="'attendance-dialog__status-card--' + activeDay.state">
+          <span class="attendance-dialog__status-indicator" [ngClass]="'attendance-dialog__status-indicator--' + activeDay.state"></span>
+          <div>
+            <strong>{{ activeDay.stateLabel }}</strong>
+            <p>{{ activeDay.details?.summary }}</p>
+          </div>
+        </div>
+
+        <div class="attendance-event-card" *ngIf="activeDay.specialEvent as event">
+          <img class="attendance-event-card__image" [src]="event.imageUrl" [alt]="event.title" loading="lazy" decoding="async" />
+          <div class="attendance-event-card__copy">
+            <span class="attendance-event-card__tag">{{ getEventTypeLabel(event.type) }}</span>
+            <strong>{{ event.title }}</strong>
+            <p>{{ event.description }}</p>
+          </div>
+        </div>
+
+        <div class="attendance-detail-grid">
+          <article class="attendance-detail-card" *ngFor="let detail of selectedAttendanceMetrics">
+            <span class="attendance-detail-card__icon">
+              <mat-icon>{{ detail.icon }}</mat-icon>
+            </span>
+            <div class="attendance-detail-card__copy">
+              <small>{{ detail.label }}</small>
+              <strong>{{ detail.value }}</strong>
+            </div>
+          </article>
+        </div>
+
+        <div class="attendance-dialog__note">
+          <mat-icon>info</mat-icon>
+          <p>{{ activeDay.details?.note }}</p>
+        </div>
+
+        <div class="calendar-action-grid">
+          <button
+            type="button"
+            class="calendar-action"
+            *ngFor="let action of calendarActions; trackBy: trackByTitle"
+            [ngClass]="'calendar-action--' + action.tone"
+            (click)="openCalendarAction(action)"
+          >
+            <span class="calendar-action__icon">
+              <mat-icon>{{ action.icon }}</mat-icon>
+            </span>
+            <span class="calendar-action__copy">
+              <strong>{{ action.title }}</strong>
+              <small>{{ action.subtitle }}</small>
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</ng-container>

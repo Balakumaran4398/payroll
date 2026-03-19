@@ -1,10 +1,16 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { EmployeeComponent } from './pages/employee/employee.component';
-import { EmployeeDetailsComponent } from './pages/employee-details/employee-details.component';
+import { EmployeeListResolver } from './employee-list.resolver';
 
-const routes: Routes = [{ path: '', component: EmployeeComponent },
-  { path: 'employee_details', component: EmployeeDetailsComponent }
+const routes: Routes = [
+  {
+    path: '',
+    component: EmployeeComponent,
+    resolve: {
+      employeeData: EmployeeListResolver
+    }
+  },
 ];
 
 @NgModule({
@@ -12,5 +18,5 @@ const routes: Routes = [{ path: '', component: EmployeeComponent },
   exports: [RouterModule],
 })
 export class EmployeeRoutingModule {
-  
+
 }

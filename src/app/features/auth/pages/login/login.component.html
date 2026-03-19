@@ -65,8 +65,8 @@
             </div>
             <small class="error-text" *ngIf="hasControlError(signInForm, 'password', 'required')">Password is
               required.</small>
-            <small class="error-text" *ngIf="hasControlError(signInForm, 'password', 'pattern')">Use at least 8
-              characters including a letter and number.</small>
+            <!-- <small class="error-text" *ngIf="hasControlError(signInForm, 'password', 'pattern')">Use at least 8
+              characters including a letter and number.</small> -->
 
             <div class="inline-row">
               <label class="remember">
@@ -79,7 +79,7 @@
             </div>
 
             <div class="action-row">
-              <button class="btn-secondary" type="button" (click)="resetSignInForm()" [disabled]="loading">
+              <button class="btn-secondary" tyae="button" (click)="resetSignInForm()" [disabled]="loading">
                 Clear
               </button>
               <button class="btn-primary" type="submit" [disabled]="loading">

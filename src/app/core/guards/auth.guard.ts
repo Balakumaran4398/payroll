@@ -11,38 +11,41 @@ import {
 } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { SecurityService } from '../services/security.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate, CanLoad {
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, private securityService: SecurityService) {}
 
   canActivate(
     _next: ActivatedRouteSnapshot,
-    _state: RouterStateSnapshot
+    state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return this.checkAuth();
+    return this.checkAuth(state.url);
   }
 
   canLoad(
-    _route: Route,
-    _segments: UrlSegment[]
-  ): Observable<boolean> | Promise<boolean> | boolean {
-    if (this.authService.isAuthenticated()) {
-      return true;
-    }
-    this.router.navigate(['/auth/login']);
-    return false;
+    route: Route,
+    segments: UrlSegment[]
+  ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    const targetUrl = `/${[route.path || '', ...segments.map((segment) => segment.path)].filter(Boolean).join('/')}`;
+    return this.checkAuth(targetUrl);
   }
 
-  private checkAuth(): boolean | UrlTree {
-    // Temporarily allow access for testing - REMOVE THIS IN PRODUCTION
-    console.log('Auth check - isAuthenticated:', this.authService.isAuthenticated());
-    return true;
-    // if (this.authService.isAuthenticated()) {
-    //   return true;
-    // }
-    // return this.router.parseUrl('/auth/login');
+  private checkAuth(returnUrl: string): boolean | UrlTree {
+    if (this.authService.isAuthenticated() && this.securityService.isSessionValid()) {
+      return true;
+    }
+
+    this.authService.clearSession();
+
+    return this.router.createUrlTree(['/auth/login'], {
+      queryParams: {
+        returnUrl: returnUrl || '/app/dashboard',
+        reason: 'session-expired',
+      },
+    });
   }
 }

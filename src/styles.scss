@@ -56,8 +56,9 @@
   --theme-auth-toggle-bg: rgba(46, 79, 174, 0.1);
   --theme-auth-toggle-hover: rgba(46, 79, 174, 0.18);
 
-  --theme-button-gradient: linear-gradient(120deg, #a7f8ff 0%, #8fe2ff 55%, #78d8f7 100%);
-  --theme-button-text: #0d2d5a;
+  --theme-button-gradient: #2e4fae;
+  --theme-button-hover: #264392;
+  --theme-button-text: #ffffff;
 
   --theme-success-bg: #e7f7ee;
   --theme-success-text: #1f7a43;
@@ -81,8 +82,9 @@
   --theme-auth-mid: #5a46c0;
   --theme-auth-end: #7b63f2;
 
-  --theme-button-gradient: linear-gradient(120deg, #d8ccff 0%, #c7b4ff 55%, #b59cff 100%);
-  --theme-button-text: #2a1c68;
+  --theme-button-gradient: #5a46c0;
+  --theme-button-hover: #4d3aa9;
+  --theme-button-text: #ffffff;
 }
 
 :root[data-theme='forest'] {
@@ -99,8 +101,9 @@
   --theme-auth-mid: #1f7c70;
   --theme-auth-end: #34b98c;
 
-  --theme-button-gradient: linear-gradient(120deg, #c8ffe5 0%, #adf6d2 55%, #91ebbf 100%);
-  --theme-button-text: #0f4d40;
+  --theme-button-gradient: #1f7c70;
+  --theme-button-hover: #1a6a60;
+  --theme-button-text: #ffffff;
 }
 
 :root[data-theme='slate'] {
@@ -117,8 +120,9 @@
   --theme-auth-mid: #3c5a8b;
   --theme-auth-end: #6288b9;
 
-  --theme-button-gradient: linear-gradient(120deg, #deebff 0%, #cadfff 55%, #b8d3ff 100%);
-  --theme-button-text: #1d355f;
+  --theme-button-gradient: #3c5a8b;
+  --theme-button-hover: #334d77;
+  --theme-button-text: #ffffff;
 }
 
 :root[data-theme='sunset'] {
@@ -135,8 +139,9 @@
   --theme-auth-mid: #8f3f2f;
   --theme-auth-end: #d48545;
 
-  --theme-button-gradient: linear-gradient(120deg, #ffe7cd 0%, #ffd5b0 55%, #ffc490 100%);
-  --theme-button-text: #5f2f1c;
+  --theme-button-gradient: #b85a46;
+  --theme-button-hover: #a14e3d;
+  --theme-button-text: #ffffff;
 }
 
 :root[data-theme='indigo'] {
@@ -153,8 +158,9 @@
   --theme-auth-mid: #3f4ab4;
   --theme-auth-end: #5e76e2;
 
-  --theme-button-gradient: linear-gradient(120deg, #dde2ff 0%, #c9d2ff 55%, #b3c0ff 100%);
-  --theme-button-text: #222f7d;
+  --theme-button-gradient: #3f4ab4;
+  --theme-button-hover: #35409d;
+  --theme-button-text: #ffffff;
 }
 
 :root[data-mode='dark'] {
@@ -210,6 +216,8 @@
   --theme-warning-text: #ffe09f;
   --theme-danger-bg: rgba(179, 62, 52, 0.24);
   --theme-danger-text: #ffb9b2;
+  --theme-button-hover: color-mix(in srgb, var(--theme-primary) 86%, black 14%);
+  --theme-button-text: #ffffff;
 }
 
 html,
@@ -219,10 +227,40 @@ body {
 
 body {
   margin: 0;
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;  
+  // font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;  
+  font-family: sans-Roboto,sans-serif;  
   background: var(--theme-page-bg);
   color: var(--theme-text-primary);
   transition: background 0.28s ease, color 0.28s ease;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+.mat-typography,
+.mat-button,
+.mat-flat-button,
+.mat-raised-button,
+.mat-stroked-button,
+.mat-icon-button,
+.mat-menu-item,
+.mat-option,
+.mat-dialog-container,
+.mat-form-field,
+.mat-input-element,
+.mat-select-value,
+.mat-select-placeholder,
+.mat-card,
+.mat-toolbar,
+.mat-table,
+.mat-cell,
+.mat-header-cell,
+.mat-list-item,
+.mat-tab-label,
+.mat-snack-bar-container {
+  font-family: sans-Roboto,sans-serif;  
 }
 
 a {
@@ -290,6 +328,49 @@ h6 {
   color: var(--theme-button-text) !important;
 }
 
+.mat-flat-button.mat-primary:hover,
+.mat-raised-button.mat-primary:hover,
+.mat-flat-button.mat-primary:focus-visible,
+.mat-raised-button.mat-primary:focus-visible {
+  background: var(--theme-button-hover) !important;
+}
+
+.mat-paginator {
+  background: color-mix(in srgb, var(--theme-surface-strong) 94%, transparent) !important;
+  color: var(--theme-text-primary) !important;
+  border-top: 1px solid var(--theme-border-soft);
+}
+
+.mat-paginator-container {
+  color: var(--theme-text-primary) !important;
+}
+
+.mat-paginator-page-size-label,
+.mat-paginator-range-label {
+  color: var(--theme-text-muted) !important;
+}
+
+.mat-paginator .mat-select-value,
+.mat-paginator .mat-select-arrow {
+  color: var(--theme-text-primary) !important;
+}
+
+.mat-paginator .mat-form-field-underline {
+  background-color: var(--theme-border-soft) !important;
+}
+
+.mat-paginator .mat-icon-button {
+  color: var(--theme-primary) !important;
+}
+
+.mat-paginator .mat-icon-button:hover:not([disabled]) {
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent) !important;
+}
+
+.mat-paginator .mat-icon-button[disabled] {
+  color: color-mix(in srgb, var(--theme-text-muted) 55%, transparent) !important;
+}
+
 .mat-form-field-label,
 .mat-form-field-appearance-outline .mat-form-field-outline {
   color: var(--theme-text-muted) !important;
@@ -313,6 +394,118 @@ h6 {
   border: 1px solid var(--theme-border-soft);
   border-radius: 16px !important;
   box-shadow: 0 24px 44px var(--theme-shadow-strong);
+}
+
+.cdk-overlay-pane.employee-dialog-panel {
+  z-index: 1202 !important;
+  position: fixed !important;
+  top: var(--shell-header-height, 64px) !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  margin: 0 !important;
+  margin-left: auto !important;
+  pointer-events: auto !important;
+  transform: translate3d(100%, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: employeeDrawerPaneIn 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.cdk-overlay-pane.employee-form-modal-panel {
+  width: min(580px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
+  max-width: min(580px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
+  height: calc(100vh - var(--shell-header-height, 64px)) !important;
+  max-height: calc(100vh - var(--shell-header-height, 64px)) !important;
+}
+
+.cdk-overlay-pane.employee-profile-modal-panel {
+  width: min(680px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
+  max-width: min(680px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
+  height: calc(100vh - var(--shell-header-height, 64px)) !important;
+  max-height: calc(100vh - var(--shell-header-height, 64px)) !important;
+}
+
+.cdk-overlay-pane.employee-delete-modal-panel {
+  width: min(460px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
+  max-width: min(460px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
+  height: calc(100vh - var(--shell-header-height, 64px)) !important;
+  max-height: calc(100vh - var(--shell-header-height, 64px)) !important;
+}
+
+.cdk-overlay-backdrop.employee-dialog-backdrop {
+  top: var(--shell-header-height, 64px) !important;
+  left: var(--shell-sidebar-offset, 260px) !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  // z-index: 1201 !important;
+  background: rgba(9, 24, 52, 0.18) !important;
+  backdrop-filter: none !important;
+  transition: opacity 220ms ease-in-out !important;
+}
+
+.employee-form-modal-panel .mat-dialog-container,
+.employee-profile-modal-panel .mat-dialog-container,
+.employee-delete-modal-panel .mat-dialog-container {
+  padding: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  border-radius: 0 !important;
+  border-right: 0 !important;
+  box-shadow: -24px 0 48px var(--theme-shadow-strong) !important;
+  overflow: hidden !important;
+  background: var(--theme-surface) !important;
+  transform: none !important;
+  opacity: 1 !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.employee-autocomplete-panel {
+  margin-top: 8px !important;
+  border-radius: 18px !important;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface) !important;
+  box-shadow: 0 18px 38px var(--theme-shadow-strong) !important;
+  max-height: 320px !important;
+  overflow-y: auto !important;
+}
+
+.employee-autocomplete-panel .mat-option {
+  min-height: 46px !important;
+}
+
+.cdk-overlay-pane.employee-dialog-panel.employee-dialog-panel--closing {
+  pointer-events: none;
+  animation: employeeDrawerPaneOut 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+@media (max-width: 720px) {
+  .employee-form-modal-panel .mat-dialog-container,
+  .employee-profile-modal-panel .mat-dialog-container,
+  .employee-delete-modal-panel .mat-dialog-container {
+    border-radius: 0 !important;
+  }
+}
+
+@keyframes employeeDrawerPaneIn {
+  0% {
+    transform: translate3d(100%, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes employeeDrawerPaneOut {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(100%, 0, 0);
+  }
 }
 
 .table-wrap {

@@ -8,6 +8,7 @@ export class TokenStorageService {
   private readonly TOKEN_KEY = 'payrol_token';
   private readonly ROLE_KEY = 'payrol_role';
   private readonly USERNAME_KEY = 'payrol_username';
+  private readonly EMPLOYEENAME_KEY = 'payrol_employee_name';
   private readonly REMEMBERED_USERNAME_KEY = 'payrol_remembered_username';
 
   saveToken(token: string): void {
@@ -34,6 +35,13 @@ export class TokenStorageService {
   getUsername(): string | null {
     return localStorage.getItem(this.USERNAME_KEY);
   }
+  saveEmployee(empname: any): void {
+    localStorage.setItem(this.EMPLOYEENAME_KEY, empname);
+  }
+
+  getEmpname(): string | null {
+    return localStorage.getItem(this.EMPLOYEENAME_KEY);
+  }
 
   saveRememberedUsername(username: string): void {
     localStorage.setItem(this.REMEMBERED_USERNAME_KEY, username);
@@ -51,5 +59,6 @@ export class TokenStorageService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.ROLE_KEY);
     localStorage.removeItem(this.USERNAME_KEY);
+    localStorage.removeItem(this.EMPLOYEENAME_KEY);
   }
 }

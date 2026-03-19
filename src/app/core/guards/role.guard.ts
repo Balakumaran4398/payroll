@@ -20,40 +20,33 @@ export class RoleGuard implements CanActivate, CanLoad {
 
   canActivate(
     route: ActivatedRouteSnapshot,
-    _state: RouterStateSnapshot
+    state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     const roles = (route.data.roles || []) as AppRole[];
-    return this.checkRole(roles);
+    return this.checkRole(roles, state.url);
   }
 
-  canLoad(route: Route, _segments: UrlSegment[]): Observable<boolean> | Promise<boolean> | boolean {
+  canLoad(route: Route, segments: UrlSegment[]): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     const roles = ((route.data && route.data.roles) || []) as AppRole[];
-    return this.checkRoleForLoad(roles);
+    const targetUrl = `/${[route.path || '', ...segments.map((segment) => segment.path)].filter(Boolean).join('/')}`;
+    return this.checkRole(roles, targetUrl);
   }
 
-  private checkRole(allowedRoles: AppRole[]): boolean | UrlTree {
-    if (!this.authService.isAuthenticated()) {
-      return this.router.parseUrl('/auth/login');
+  private checkRole(allowedRoles: AppRole[], returnUrl: string): boolean | UrlTree {
+    if (!this.authService.hasValidSession()) {
+      this.authService.clearSession();
+      return this.router.createUrlTree(['/auth/login'], {
+        queryParams: {
+          returnUrl: returnUrl || '/app/dashboard',
+          reason: 'session-expired',
+        },
+      });
     }
 
     if (!allowedRoles.length || this.authService.hasAnyRole(allowedRoles)) {
       return true;
     }
 
-    return this.router.parseUrl('/dashboard');
-  }
-
-  private checkRoleForLoad(allowedRoles: AppRole[]): boolean {
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/auth/login']);
-      return false;
-    }
-
-    if (!allowedRoles.length || this.authService.hasAnyRole(allowedRoles)) {
-      return true;
-    }
-
-    this.router.navigate(['/dashboard']);
-    return false;
+    return this.router.parseUrl('/app/dashboard');
   }
 }

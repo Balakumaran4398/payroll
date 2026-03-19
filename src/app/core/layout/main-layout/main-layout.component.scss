@@ -1,23 +1,32 @@
 .shell {
+  height: 100vh;
   min-height: 100vh;
   background: var(--theme-page-bg);
   color: var(--theme-text-primary);
   overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 .shell__content {
+  position: relative;
   margin-left: 260px;
   transition: margin-left 0.25s ease;
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 .shell__content--expanded {
-  margin-left: 90px;
+  margin-left: 88px;
 }
 
 .page-content {
-  padding: 1.25rem;
-  min-height: calc(100vh - 64px);
+  position: relative;
+  box-sizing: border-box;
+  height: 100vh;
+  padding: 80px 1.25rem 1.25rem;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .mobile-backdrop {
@@ -34,11 +43,9 @@
   .shell__content,
   .shell__content--expanded {
     margin-left: 0;
-    padding-top: 64px;
   }
 
   .page-content {
-    padding: 1rem;
-    min-height: calc(100vh - 64px);
+    padding: 80px 1rem 1rem;
   }
 }

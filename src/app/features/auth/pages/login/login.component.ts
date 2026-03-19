@@ -1,7 +1,7 @@
 import { animate, query, style, transition, trigger } from '@angular/animations';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from 'src/app/core/services/auth.service';
 
@@ -87,12 +87,13 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.signInForm = this.fb.group({
       username: ['', [Validators.required, Validators.email]],
       // password: ['', [Validators.required, Validators.pattern(this.passwordPattern)]],
-      password: ['', [Validators.required, Validators.pattern(/^.{8,}$/)]],
+      password: ['', [Validators.required, ]],
       rememberMe: [false],
     });
 
@@ -113,6 +114,11 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.authService.hasValidSession()) {
+      this.router.navigate(['/app/dashboard'], { replaceUrl: true });
+      return;
+    }
+
     const rememberedUsername = this.authService.getRememberedUsername();
     if (rememberedUsername) {
       const rememberedEmail = rememberedUsername.indexOf('@') > -1
@@ -155,7 +161,8 @@ export class LoginComponent implements OnInit {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: () => {
-          this.router.navigate(['/app/dashboard']);
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/app/dashboard';
+          this.router.navigateByUrl(returnUrl, { replaceUrl: true });
         },
         error: (err) => {
           if (err.status === 401) {

@@ -1,0 +1,100 @@
+<section class="departments-page">
+  <div class="departments-toolbar">
+    <div>
+      <h1>Departments</h1>
+      <p>Track monthly payroll allocation and team distribution across business units.</p>
+    </div>
+
+    <div class="departments-toolbar__actions">
+      <mat-form-field class="toolbar-field toolbar-field--search" appearance="outline">
+        <mat-label>Search departments</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput type="text" [(ngModel)]="searchTerm" placeholder="Search anything..." />
+      </mat-form-field>
+
+      <mat-form-field class="toolbar-field toolbar-field--filter" appearance="outline">
+        <mat-label>Filter cost</mat-label>
+        <mat-icon matPrefix>filter_alt</mat-icon>
+        <mat-select [(ngModel)]="costFilter">
+          <mat-option *ngFor="let option of costFilters" [value]="option.value">{{ option.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button type="button" mat-icon-button class="icon-shell" aria-label="Notifications">
+        <mat-icon>notifications_none</mat-icon>
+        <span class="icon-shell__dot"></span>
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="breakdown-card">
+    <div class="section-heading">
+      <h2>Department Cost Breakdown</h2>
+      <p>Monthly payroll allocation by department</p>
+    </div>
+
+    <div class="chart-board" *ngIf="filteredDepartments.length; else noDepartments">
+      <div class="chart-grid">
+        <div class="chart-row" *ngFor="let department of filteredDepartments">
+          <div class="chart-row__label">{{ department.name }}</div>
+
+          <div class="chart-row__track" [class.chart-row__track--active]="isHighlightedDepartment(department.name)">
+            <div class="chart-row__bar" [style.width.%]="getBarWidth(department.monthlyCost)"></div>
+
+            <div class="chart-row__tooltip" *ngIf="isHighlightedDepartment(department.name)">
+              <strong>{{ department.name }}</strong>
+              <span>Total Cost : {{ department.monthlyCost | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-axis">
+        <span *ngFor="let label of axisLabels">{{ label / 1000 | number:'1.0-0' }}k</span>
+      </div>
+    </div>
+
+    <ng-template #noDepartments>
+      <div class="empty-state">
+        <mat-icon>apartment</mat-icon>
+        <p>No departments found for this search.</p>
+      </div>
+    </ng-template>
+  </mat-card>
+
+  <section class="details-block">
+    <div class="section-heading section-heading--tight">
+      <h2>Department Details</h2>
+    </div>
+
+    <div class="department-grid">
+      <mat-card class="department-card" *ngFor="let department of filteredDepartments" [style.--department-accent]="department.accent">
+        <div class="department-card__header">
+          <div class="department-card__icon">
+            <mat-icon>business</mat-icon>
+          </div>
+
+          <div>
+            <h3>{{ department.name }}</h3>
+          </div>
+        </div>
+
+        <div class="department-card__metric">
+          <span>
+            <mat-icon>group</mat-icon>
+            Team Size
+          </span>
+          <strong>{{ department.teamSize }} members</strong>
+        </div>
+
+        <div class="department-card__metric">
+          <span>
+            <mat-icon>attach_money</mat-icon>
+            Monthly Cost
+          </span>
+          <strong>{{ department.monthlyCost | currency:'USD':'symbol':'1.0-0' }}</strong>
+        </div>
+      </mat-card>
+    </div>
+  </section>
+</section>

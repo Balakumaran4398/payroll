@@ -1,4 +1,4 @@
-<mat-toolbar class="topbar">
+<mat-toolbar class="topbar" [class.collapsed]="collapsed">
   <!-- <button mat-icon-button class="topbar__menu-btn" (click)="toggleSidebar.emit()" aria-label="Toggle Sidebar">
     <mat-icon>menu</mat-icon>
   </button> -->
@@ -12,7 +12,7 @@
 </mat-icon>
     </span>
     <div class="brand-copy">
-      <p class="brand-copy__title">PAYROLL</p>
+      <p class="brand-copy__title">{{empname}}</p>
     </div>
   </div>
 
@@ -26,19 +26,19 @@
     </span>
   </div>
 
-  <div class="topbar__quick-info" *ngIf="getRawRole() === 'ROLE_COMPANY'">
+  <div class="topbar__quick-info" *ngIf="getRawRole() === 'ROLE_COMPANY' || getRawRole() === 'ROLE_MANAGER'">
     <span class="quick-stat">
       <mat-icon>badge</mat-icon>
       <span>156 Employees</span>
     </span>
   </div>
 
-  <div class="topbar__quick-info" *ngIf="getRawRole() === 'ROLE_EMPLOYEE'">
+  <!-- <div class="topbar__quick-info" *ngIf="getRawRole() === 'ROLE_EMPLOYEE'">
     <span class="quick-stat">
       <mat-icon>check_circle</mat-icon>
       <span>94.2% Attendance</span>
     </span>
-  </div>
+  </div> -->
 
   <button mat-icon-button class="profile-btn" aria-label="Open user profile" (click)="openProfilePanel()">
     <mat-icon>account_circle</mat-icon>
@@ -50,35 +50,77 @@
   </button> -->
 </mat-toolbar>
 
-<div class="drawer-backdrop" [class.drawer-backdrop--visible]="profilePanelOpen" (click)="closeProfilePanel()"></div>
+<ng-container *ngIf="profilePanelOpen">
+  <div class="profile-stage" [class.profile-stage--collapsed]="collapsed" [class.profile-stage--closing]="profilePanelClosing">
+    <div class="profile-stage__backdrop"></div>
 
-<aside class="profile-drawer" [class.profile-drawer--open]="profilePanelOpen">
-  <div class="profile-drawer__head">
-    <h3>Profile Panel</h3>
-    <button type="button" class="icon-btn" (click)="closeProfilePanel()" aria-label="Close panel">
-      <mat-icon>close</mat-icon>
-    </button>
+    <section
+      class="profile-modal"
+      [class.profile-modal--closing]="profilePanelClosing"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="profile-modal__header">
+        <div>
+          <p class="profile-modal__eyebrow">Account center</p>
+          <h3 id="profile-modal-title">{{ empname }}</h3>
+          <p class="profile-modal__subtitle">Manage your identity, access, and sign-out actions without leaving the workspace.</p>
+        </div>
+
+        <button type="button" class="icon-btn" (click)="closeProfilePanel()" aria-label="Close profile dialog">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="profile-modal__body">
+        <div class="profile-card">
+          <div class="profile-avatar">{{ userInitials }}</div>
+          <div class="profile-card__copy">
+            <h4>{{ username }}</h4>
+            <p>{{ userEmail }}</p>
+          </div>
+          <span class="role-badge">{{ role }}</span>
+        </div>
+
+        <div class="profile-detail-grid">
+          <article class="profile-detail-card">
+            <span>Display name</span>
+            <strong>{{ empname }}</strong>
+          </article>
+
+          <article class="profile-detail-card">
+            <span>Username</span>
+            <strong>{{ username }}</strong>
+          </article>
+
+          <article class="profile-detail-card">
+            <span>Email</span>
+            <strong>{{ userEmail }}</strong>
+          </article>
+
+          <article class="profile-detail-card">
+            <span>Role</span>
+            <strong>{{ role }}</strong>
+          </article>
+        </div>
+      </div>
+
+      <div class="profile-modal__actions">
+        <button mat-flat-button color="primary" class="drawer-signout" (click)="requestSignout()">Signout</button>
+      </div>
+
+      <div class="confirm-overlay" *ngIf="confirmDialogOpen">
+        <div class="confirm-dialog" (click)="$event.stopPropagation()">
+          <h3>Confirm Signout</h3>
+          <p>Do you want to sign out and return to the login page?</p>
+          <div class="confirm-actions">
+            <button mat-stroked-button (click)="cancelSignout()">Cancel</button>
+            <button mat-flat-button color="primary" (click)="confirmSignout()">Yes</button>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
-
-  <div class="profile-card">
-    <div class="profile-avatar">{{ userInitials }}</div>
-    <h4>{{ username }}</h4>
-    <p>{{ userEmail }}</p>
-    <span class="role-badge">{{ role }}</span>
-  </div>
-
-  <button mat-flat-button color="primary" class="drawer-signout" (click)="requestSignout()">
-    Signout
-  </button>
-</aside>
-
-<div class="confirm-overlay" *ngIf="confirmDialogOpen" (click)="cancelSignout()">
-  <div class="confirm-dialog" (click)="$event.stopPropagation()">
-    <h3>Confirm Signout</h3>
-    <p>Do you want to sign out and return to the login page?</p>
-    <div class="confirm-actions">
-      <button mat-stroked-button (click)="cancelSignout()">Cancel</button>
-      <button mat-flat-button color="primary" (click)="confirmSignout()">Yes</button>
-    </div>
-  </div>
-</div>
+</ng-container>

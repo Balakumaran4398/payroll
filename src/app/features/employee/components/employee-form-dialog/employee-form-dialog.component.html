@@ -1,0 +1,330 @@
+<div class="employee-form-dialog">
+  <div class="dialog-head">
+    <div class="dialog-head__copy">
+      <h2>{{ title }}</h2>
+      <!-- <p class="dialog-copy">Create and update employee records with a cleaner, structured form layout.</p> -->
+      <p class="dialog-copy">
+        {{ data.mode === 'add'
+        ? 'Create employee records with a cleaner, structured form layout.'
+        : 'Update employee records with a cleaner, structured form layout.' }}
+      </p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close employee form dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
+    <div class="dialog-body">
+      <div class="validation-banner" *ngIf="form.invalid && form.touched">
+        <mat-icon>error_outline</mat-icon>
+        <span>Please complete all required fields before saving.</span>
+      </div>
+
+      <section class="form-section form-section--media">
+        <div class="form-section__header">
+          <div class="form-section__title">
+            <span class="form-section__icon">
+              <mat-icon>photo_camera</mat-icon>
+            </span>
+            <div>
+              <h4>Upload employee photo</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-upload-panel">
+          <input id="employee-image-upload" type="file" accept="image/*" (change)="onImageSelected($event)">
+
+          <label class="upload-stage" for="employee-image-upload">
+            <div class="image-preview" [class.image-preview--empty]="!imagePreview">
+              <img *ngIf="imagePreview; else imagePlaceholder" [src]="imagePreview" alt="Employee preview image">
+              <ng-template #imagePlaceholder>
+                <div class="image-empty-state">
+                  <span class="image-empty-state__orb"></span>
+                  <strong>Upload Image</strong>
+                </div>
+              </ng-template>
+            </div>
+
+            <!-- <div class="image-upload-copy">
+              <div class="upload-badge">
+                <mat-icon>upload</mat-icon>
+                <span>{{ imagePreview ? 'Change image' : 'Choose image' }}</span>
+              </div>
+              <h5>{{ imagePreview ? 'Profile image selected' : 'Upload employee image' }}</h5>
+              <p>Click here to open your files and choose a clear profile photo.</p>
+            </div> -->
+          </label>
+
+          <div class="image-upload-actions" *ngIf="imagePreview">
+            <button type="button" mat-stroked-button (click)="removeImage()">
+              Remove image
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="form-section__header">
+          <div class="form-section__title">
+            <span class="form-section__icon">
+              <mat-icon>person_outline</mat-icon>
+            </span>
+            <div>
+              <p class="section-eyebrow">Personal details</p>
+              <h4>Identity and background</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>First Name <span class="required-mark">*</span></mat-label>
+            <input matInput formControlName="firstname">
+            <mat-error *ngIf="hasError('firstname')">{{ getErrorMessage('firstname', 'First name') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Last Name <span class="required-mark">*</span></mat-label>
+            <input matInput formControlName="lastname">
+            <mat-error *ngIf="hasError('lastname')">{{ getErrorMessage('lastname', 'Last name') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Gender</mat-label>
+            <input matInput formControlName="gender" [matAutocomplete]="genderAuto" placeholder="Search gender">
+            <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
+            <mat-autocomplete #genderAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
+              autoActiveFirstOption>
+              <mat-option *ngFor="let gender of filterOptionsByControl(genderOptions, 'gender')" [value]="gender">{{
+                gender }}</mat-option>
+              <mat-option *ngIf="!filterOptionsByControl(genderOptions, 'gender').length" disabled>No matching
+                gender</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="hasError('gender')">{{ getErrorMessage('gender', 'Gender') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date of birth</mat-label>
+            <input matInput [matDatepicker]="dobPicker" formControlName="date_of_birth">
+            <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+            <mat-error *ngIf="hasError('date_of_birth')">{{ getErrorMessage('date_of_birth', 'Date of birth')
+              }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Blood group</mat-label>
+            <input matInput formControlName="blood_group" [matAutocomplete]="bloodGroupAuto"
+              placeholder="Search blood group">
+            <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
+            <mat-autocomplete #bloodGroupAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
+              autoActiveFirstOption>
+              <mat-option *ngFor="let bloodGroup of filterOptionsByControl(bloodGroupOptions, 'blood_group')"
+                [value]="bloodGroup">{{ bloodGroup }}</mat-option>
+              <mat-option *ngIf="!filterOptionsByControl(bloodGroupOptions, 'blood_group').length" disabled>No matching
+                blood group</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="hasError('blood_group')">{{ getErrorMessage('blood_group', 'Blood group') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Marital status</mat-label>
+            <input matInput formControlName="marital_status" [matAutocomplete]="maritalStatusAuto"
+              placeholder="Search marital status">
+            <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
+            <mat-autocomplete #maritalStatusAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
+              autoActiveFirstOption>
+              <mat-option *ngFor="let status of filterOptionsByControl(maritalStatusOptions, 'marital_status')"
+                [value]="status">{{ status }}</mat-option>
+              <mat-option *ngIf="!filterOptionsByControl(maritalStatusOptions, 'marital_status').length" disabled>No
+                matching marital status</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="hasError('marital_status')">{{ getErrorMessage('marital_status', 'Marital status')
+              }}</mat-error>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="form-section__header">
+          <div class="form-section__title">
+            <span class="form-section__icon">
+              <mat-icon>badge</mat-icon>
+            </span>
+            <div>
+              <p class="section-eyebrow">Contact & Login</p>
+              <h4>Official access information</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Official Email <span class="required-mark">*</span></mat-label>
+            <input matInput type="email" formControlName="email">
+            <mat-icon matSuffix class="field-icon">alternate_email</mat-icon>
+            <!-- <mat-error *ngIf="hasError('email')">{{ getErrorMessage('email', 'Official email') }}</mat-error> -->
+            <mat-error *ngIf="hasError('email', 'allowedEmailDomain')">{{ getErrorMessage('email', 'Official email')
+              }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Password <span class="required-mark">*</span></mat-label>
+            <input matInput [type]="passwordVisible ? 'text' : 'password'" formControlName="password">
+            <button type="button" mat-icon-button matSuffix class="password-toggle" (click)="togglePasswordVisibility()"
+              [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
+              <mat-icon>{{ passwordVisible ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="hasError('password')">{{ getErrorMessage('password', 'Password') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Mobile Number <span class="required-mark">*</span></mat-label>
+            <input matInput formControlName="mobile" maxlength="10" inputmode="numeric">
+             <mat-icon matSuffix
+              class="field-icon">phone_iphone</mat-icon>
+            <mat-error *ngIf="hasError('mobile')">{{ getErrorMessage('mobile', 'Mobile number') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Alternate Email</mat-label>
+            <input matInput type="email" formControlName="alternate_email">
+            <mat-icon matSuffix class="field-icon">mail_outline</mat-icon>
+            <!-- <mat-error *ngIf="hasError('alternate_email', 'email')">{{ getErrorMessage('alternate_email', 'Alternate
+              email') }}</mat-error> -->
+            <mat-error *ngIf="hasError('alternate_email', 'allowedEmailDomain')">{{ getErrorMessage('alternate_email',
+              'Alternate email') }}</mat-error>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="form-section__header">
+          <div class="form-section__title">
+            <span class="form-section__icon">
+              <mat-icon>work_outline</mat-icon>
+            </span>
+            <div>
+              <p class="section-eyebrow">Employment details</p>
+              <h4>Role, department, and attendance setup</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>System Role <span class="required-mark">*</span></mat-label>
+            <input matInput formControlName="role" [matAutocomplete]="roleAuto" placeholder="Search role">
+            <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
+            <mat-autocomplete #roleAuto="matAutocomplete" panelClass="employee-autocomplete-panel" autoActiveFirstOption
+              (optionSelected)="onRoleSelected($event.option.value)">
+              <mat-option *ngFor="let role of filterRoleOptions()" [value]="role.name">{{ role.name
+                }}</mat-option>
+              <mat-option *ngIf="!filterRoleOptions().length" disabled>No matching
+                role</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="hasError('role')">{{ getErrorMessage('role', 'Role') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Department <span class="required-mark">*</span></mat-label>
+            <input matInput formControlName="department_name" [matAutocomplete]="departmentAuto"
+              placeholder="Search department">
+            <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
+            <mat-autocomplete #departmentAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
+              autoActiveFirstOption>
+              <mat-option *ngFor="let department of filterOptionsByControl(departmentOptions, 'department_name')"
+                [value]="department">{{ department }}</mat-option>
+              <mat-option *ngIf="!filterOptionsByControl(departmentOptions, 'department_name').length" disabled>No
+                matching department</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="hasError('department_name')">{{ getErrorMessage('department_name', 'Department')
+              }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Position <span class="required-mark">*</span></mat-label>
+            <input matInput formControlName="position" [matAutocomplete]="positionAuto" placeholder="Search position">
+            <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
+            <mat-autocomplete #positionAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
+              autoActiveFirstOption>
+              <mat-option *ngFor="let position of filterOptionsByControl(designDepartmentOptions, 'position')"
+                [value]="position">{{ position }}</mat-option>
+              <mat-option *ngIf="!filterOptionsByControl(designDepartmentOptions, 'position').length" disabled>No
+                matching position</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="hasError('position')">{{ getErrorMessage('position', 'Position') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Shift <span class="required-mark">*</span></mat-label>
+            <input matInput formControlName="shift_type" [matAutocomplete]="shiftAuto" placeholder="Search shift">
+            <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
+            <mat-autocomplete #shiftAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
+              autoActiveFirstOption>
+              <mat-option *ngFor="let shift of filterOptionsByControl(shiftOptions, 'shift_type')" [value]="shift">{{
+                shift }}</mat-option>
+              <mat-option *ngIf="!filterOptionsByControl(shiftOptions, 'shift_type').length" disabled>No matching
+                shift</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="hasError('shift_type')">{{ getErrorMessage('shift_type', 'Shift type') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Biometric ID <span class="required-mark">*</span></mat-label>
+            <input matInput  formControlName="attendanceid">
+            <mat-icon matSuffix class="field-icon">fingerprint</mat-icon>
+            <mat-error *ngIf="hasError('attendanceid')">{{ getErrorMessage('attendanceid', 'Biometric ID')
+              }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Joining Date <span class="required-mark">*</span></mat-label>
+            <input matInput [matDatepicker]="joiningPicker" formControlName="joining_date">
+            <mat-datepicker-toggle matSuffix [for]="joiningPicker"></mat-datepicker-toggle>
+            <mat-datepicker #joiningPicker></mat-datepicker>
+            <mat-error *ngIf="hasError('joining_date')">{{ getErrorMessage('joining_date', 'Joining date')
+              }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Reference ID</mat-label>
+            <input matInput type="number" formControlName="reference_no">
+            <mat-icon matSuffix class="field-icon">badge</mat-icon>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="form-section__header">
+          <div class="form-section__title">
+            <span class="form-section__icon">
+              <mat-icon>verified_user</mat-icon>
+            </span>
+            <div>
+              <p class="section-eyebrow">Account privileges</p>
+              <h4>Access and work mode controls</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <mat-checkbox formControlName="isactive">Employee account is active</mat-checkbox>
+          <mat-checkbox formControlName="wfh">Work from home enabled</mat-checkbox>
+        </div>
+      </section>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" mat-stroked-button (click)="close()" [disabled]="submitting">Cancel</button>
+      <button type="button" mat-stroked-button class="reset-action" (click)="resetForm()"
+        [disabled]="submitting">Reset</button>
+      <button type="submit" mat-flat-button class="primary-action" [disabled]="form.invalid || submitting">
+        {{ submitting ? (data.mode === 'add' ? 'Creating...' : 'Saving...') : actionLabel }}
+      </button>
+    </div>
+  </form>
+</div>

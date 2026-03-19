@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -10,7 +10,9 @@ export class HeaderComponent {
   @Input() collapsed = false;
   @Output() toggleSidebar = new EventEmitter<void>();
 
+  private readonly profileCloseDurationMs = 340;
   profilePanelOpen = false;
+  profilePanelClosing = false;
   confirmDialogOpen = false;
   isSidebarOpen = true;
   constructor(private authService: AuthService) { }
@@ -23,6 +25,7 @@ export class HeaderComponent {
     switch (rawRole) {
       case 'ROLE_ADMIN': return 'Admin';
       case 'ROLE_COMPANY': return 'Company';
+      case 'ROLE_MANAGER': return 'Manager';
       case 'ROLE_EMPLOYEE': return 'Employee';
       default: return rawRole;
     }
@@ -34,6 +37,9 @@ export class HeaderComponent {
 
   get username(): string {
     return this.authService.getUsername() || 'User';
+  }
+  get empname(): string {
+    return this.authService.getEmpname() || 'Employee';
   }
 
   get userEmail(): string {
@@ -51,12 +57,21 @@ export class HeaderComponent {
   }
 
   openProfilePanel(): void {
+    this.profilePanelClosing = false;
     this.profilePanelOpen = true;
   }
 
   closeProfilePanel(): void {
-    this.profilePanelOpen = false;
-    this.confirmDialogOpen = false;
+    if (!this.profilePanelOpen || this.profilePanelClosing) {
+      return;
+    }
+
+    this.profilePanelClosing = true;
+    window.setTimeout(() => {
+      this.profilePanelOpen = false;
+      this.profilePanelClosing = false;
+      this.confirmDialogOpen = false;
+    }, this.profileCloseDurationMs);
   }
 
   requestSignout(): void {
@@ -70,20 +85,10 @@ export class HeaderComponent {
   confirmSignout(): void {
     this.confirmDialogOpen = false;
     this.profilePanelOpen = false;
+    this.profilePanelClosing = false;
     this.authService.logout();
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    if (this.confirmDialogOpen) {
-      this.confirmDialogOpen = false;
-      return;
-    }
-
-    if (this.profilePanelOpen) {
-      this.profilePanelOpen = false;
-    }
-  }
   onToggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen; // toggle state
     this.toggleSidebar.emit(); // notify parent

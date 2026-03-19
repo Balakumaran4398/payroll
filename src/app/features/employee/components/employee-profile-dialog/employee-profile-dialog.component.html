@@ -1,0 +1,93 @@
+<div class="profile-dialog">
+  <div class="profile-dialog__head">
+    <div class="profile-dialog__head-copy">
+      <p class="profile-dialog__eyebrow">Employee profile</p>
+      <h2>{{ data.employee.firstname }} {{ data.employee.lastname }}</h2>
+      <p>{{ data.employee.position }} • {{ data.employee.department_name }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close profile dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="profile-dialog__body">
+    <div class="profile-dialog__hero">
+      <img [src]="data.imageUrl" [alt]="data.employee.firstname + ' ' + data.employee.lastname" class="profile-dialog__image">
+
+      <div class="profile-dialog__intro">
+        <div class="profile-dialog__badges">
+          <span class="badge">{{ data.employee.isactive ? 'Active' : 'Inactive' }}</span>
+          <span class="badge badge--soft">Shift {{ data.employee.shift_type || 'N/A' }}</span>
+          <span class="badge badge--soft" *ngIf="data.employee.wfh">WFH enabled</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-dialog__grid">
+      <div class="detail-card">
+        <p class="detail-label">Email</p>
+        <p class="detail-value">{{ data.employee.email || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Mobile</p>
+        <p class="detail-value">{{ data.employee.mobile || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Alternate email</p>
+        <p class="detail-value">{{ data.employee.alternate_email || 'Not available' }}</p>
+      </div>
+
+      <!-- <div class="detail-card">
+        <p class="detail-label">Skype ID</p>
+        <p class="detail-value">{{ data.employee.skypeid || 'Not available' }}</p>
+      </div> -->
+
+      <div class="detail-card">
+        <p class="detail-label">Date of birth</p>
+        <p class="detail-value">{{ data.employee.date_of_birth || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Joining date</p>
+        <p class="detail-value">{{ data.employee.joining_date || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Gender</p>
+        <p class="detail-value">{{ data.employee.gender || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Marital status</p>
+        <p class="detail-value">{{ data.employee.marital_status || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Blood group</p>
+        <p class="detail-value">{{ data.employee.blood_group || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Manager ID</p>
+        <p class="detail-value">{{ data.employee.managerid || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Role</p>
+        <p class="detail-value">{{ data.employee.role || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Reference no</p>
+        <p class="detail-value">{{ data.employee.reference_no || 'Not available' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-dialog__actions">
+    <button mat-stroked-button (click)="close()">Close</button>
+  </div>
+</div>

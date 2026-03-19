@@ -35,15 +35,25 @@ const routes: Routes = [
         path: 'company',
         canLoad: [RoleGuard],
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY'] },
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER'] },
         loadChildren: () =>
           import('./features/company/company.module').then((m) => m.CompanyModule),
+      },
+      {
+        path: 'departments',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER'] },
+        loadChildren: () =>
+          import('./features/departments/departments.module').then(
+            (m) => m.DepartmentsModule
+          ),
       },
       {
         path: 'employee',
         canLoad: [RoleGuard],
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE'] },
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
         loadChildren: () =>
           import('./features/employee/employee.module').then(
             (m) => m.EmployeeModule
@@ -53,7 +63,7 @@ const routes: Routes = [
         path: 'attendance',
         canLoad: [RoleGuard],
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
         loadChildren: () =>
           import('./features/attendance/attendance.module').then(
             (m) => m.AttendanceModule
@@ -63,7 +73,7 @@ const routes: Routes = [
         path: 'reports',
         canLoad: [RoleGuard],
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
         loadChildren: () =>
           import('./features/reports/reports.module').then(
             (m) => m.ReportsModule
@@ -73,7 +83,7 @@ const routes: Routes = [
         path: 'settings',
         canLoad: [RoleGuard],
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
         loadChildren: () =>
           import('./features/settings/settings.module').then(
             (m) => m.SettingsModule
@@ -83,7 +93,7 @@ const routes: Routes = [
         path: 'themes',
         canLoad: [RoleGuard],
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'] },
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
         loadChildren: () =>
           import('./features/themes/themes.module').then((m) => m.ThemesModule),
       },

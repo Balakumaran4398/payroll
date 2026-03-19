@@ -32,22 +32,22 @@ export class SidebarComponent implements OnInit {
       label: 'Dashboard',
       route: '/app/dashboard',
       icon: 'dashboard',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
     {
       label: 'Employees',
       icon: 'groups',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
       children: [
         {
           label: 'Employee List',
           route: '/app/employee',
-          roles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE'],
+          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
         },
         {
           label: 'Attendance',
           route: '/app/attendance',
-          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'],
+          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
         },
         {
           label: 'Payroll',
@@ -58,27 +58,27 @@ export class SidebarComponent implements OnInit {
     },
     {
       label: 'Departments',
-      route: '/app/company',
+      route: '/app/departments',
       icon: 'apartment',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER'],
     },
     {
       label: 'Reports',
       route: '/app/reports',
       icon: 'bar_chart',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
     {
       label: 'Settings',
       route: '/app/settings',
       icon: 'settings',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
     {
       label: 'Themes',
       route: '/app/themes',
       icon: 'palette',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_EMPLOYEE'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
   ];
 
@@ -124,12 +124,7 @@ export class SidebarComponent implements OnInit {
       return;
     }
 
-    if (this.collapsed && !this.isMobile) {
-      this.router.navigate([item.children[0].route]);
-      this.handleMenuNavigate();
-      return;
-    }
-
+    // Toggle the dropdown expansion
     this.expandedMenu[item.label] = !this.expandedMenu[item.label];
   }
 
@@ -171,6 +166,7 @@ export class SidebarComponent implements OnInit {
     switch (rawRole) {
       case 'ROLE_ADMIN': return 'Admin';
       case 'ROLE_COMPANY': return 'Company';
+      case 'ROLE_MANAGER': return 'Manager';
       case 'ROLE_EMPLOYEE': return 'Employee';
       default: return rawRole;
     }
@@ -184,6 +180,7 @@ export class SidebarComponent implements OnInit {
     switch (rawRole) {
       case 'ROLE_ADMIN': return 'admin';
       case 'ROLE_COMPANY': return 'company';
+      case 'ROLE_MANAGER': return 'manager';
       case 'ROLE_EMPLOYEE': return 'employee';
       default: return (rawRole as string).toLowerCase();
     }

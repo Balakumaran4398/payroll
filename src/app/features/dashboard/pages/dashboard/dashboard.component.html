@@ -1,4 +1,4 @@
 <!-- Role-based dashboards -->
 <app-admin-dashboard *ngIf="userRole === 'ROLE_ADMIN'"></app-admin-dashboard>
-<app-company-dashboard *ngIf="userRole === 'ROLE_COMPANY'"></app-company-dashboard>
+<app-company-dashboard *ngIf="userRole === 'ROLE_MANAGER'"></app-company-dashboard>
 <app-employee-dashboard *ngIf="userRole === 'ROLE_EMPLOYEE'"></app-employee-dashboard>

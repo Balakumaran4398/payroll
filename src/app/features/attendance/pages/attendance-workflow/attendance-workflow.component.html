@@ -1,0 +1,276 @@
+<section class="workflow-page">
+  <header class="workflow-header">
+    <p class="workflow-breadcrumb">{{ config.breadcrumb }} &gt; {{ config.title }}</p>
+    <h1>{{ config.title }}</h1>
+    <p>{{ config.subtitle }}</p>
+  </header>
+
+  <div class="workflow-shell">
+    <article class="workflow-card workflow-card--form">
+      <div class="workflow-card__head">
+        <div class="workflow-card__meta-grid">
+          <div class="meta-chip">
+            <span>App. Date</span>
+            <strong>{{ appDate }}</strong>
+          </div>
+
+          <div class="meta-chip">
+            <span>Selected Date</span>
+            <strong>{{ currentDateLabel }}</strong>
+          </div>
+
+          <div class="meta-chip">
+            <span>Request Type</span>
+            <strong>{{ requestType }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-card__body" [ngSwitch]="config.key">
+        <div class="form-grid" *ngSwitchCase="'apply-leave'">
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="leaveFromPicker" [(ngModel)]="leaveForm.fromDate">
+            <mat-datepicker-toggle matSuffix [for]="leaveFromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #leaveFromPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="leaveToPicker" [(ngModel)]="leaveForm.toDate">
+            <mat-datepicker-toggle matSuffix [for]="leaveToPicker"></mat-datepicker-toggle>
+            <mat-datepicker #leaveToPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Start Day</mat-label>
+            <mat-select [(ngModel)]="leaveForm.startDay">
+              <mat-option *ngFor="let option of dayTypes" [value]="option">{{ option }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Last Day</mat-label>
+            <mat-select [(ngModel)]="leaveForm.endDay">
+              <mat-option *ngFor="let option of dayTypes" [value]="option">{{ option }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="field field--compact">
+            <span>Total Days</span>
+            <div class="pill-value">{{ totalLeaveDays }}</div>
+          </div>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select [(ngModel)]="leaveForm.leaveType">
+              <mat-option *ngFor="let option of leaveTypes" [value]="option">{{ option }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="field field--full" appearance="outline">
+            <mat-label>Reason</mat-label>
+            <textarea matInput rows="5" [(ngModel)]="leaveForm.reason" placeholder="Share the purpose of your leave request"></textarea>
+          </mat-form-field>
+
+          <label class="field field--full">
+            <span>Attach Document</span>
+            <input type="file">
+          </label>
+        </div>
+
+        <div class="form-grid" *ngSwitchCase="'regularize-swipe'">
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Attendance Date</mat-label>
+            <input matInput [matDatepicker]="swipeDatePicker" [(ngModel)]="swipeForm.attendanceDate">
+            <mat-datepicker-toggle matSuffix [for]="swipeDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #swipeDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field class="field field--time" appearance="outline">
+            <mat-label>Expected In</mat-label>
+            <input #expectedInInput matInput type="time" [(ngModel)]="swipeForm.expectedIn">
+            <button type="button" mat-icon-button matSuffix aria-label="Open expected in time picker" (click)="openTimePicker(expectedInInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field class="field field--time" appearance="outline">
+            <mat-label>Expected Out</mat-label>
+            <input #expectedOutInput matInput type="time" [(ngModel)]="swipeForm.expectedOut">
+            <button type="button" mat-icon-button matSuffix aria-label="Open expected out time picker" (click)="openTimePicker(expectedOutInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field class="field field--time" appearance="outline">
+            <mat-label>Actual In</mat-label>
+            <input #actualInInput matInput type="time" [(ngModel)]="swipeForm.actualIn">
+            <button type="button" mat-icon-button matSuffix aria-label="Open actual in time picker" (click)="openTimePicker(actualInInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field class="field field--time" appearance="outline">
+            <mat-label>Actual Out</mat-label>
+            <input #actualOutInput matInput type="time" [(ngModel)]="swipeForm.actualOut">
+            <button type="button" mat-icon-button matSuffix aria-label="Open actual out time picker" (click)="openTimePicker(actualOutInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field class="field field--full" appearance="outline">
+            <mat-label>Reason for Regularization</mat-label>
+            <textarea matInput rows="5" [(ngModel)]="swipeForm.reason" placeholder="Explain why the swipe correction is needed"></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="form-grid" *ngSwitchCase="'permission-request'">
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Permission Date</mat-label>
+            <input matInput [matDatepicker]="permissionDatePicker" [(ngModel)]="permissionForm.permissionDate">
+            <mat-datepicker-toggle matSuffix [for]="permissionDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #permissionDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Permission Type</mat-label>
+            <mat-select [(ngModel)]="permissionForm.permissionType">
+              <mat-option *ngFor="let option of permissionTypes" [value]="option">{{ option }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="field field--time" appearance="outline">
+            <mat-label>Start Time</mat-label>
+            <input #permissionStartInput matInput type="time" [(ngModel)]="permissionForm.startTime">
+            <button type="button" mat-icon-button matSuffix aria-label="Open permission start time picker" (click)="openTimePicker(permissionStartInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field class="field field--time" appearance="outline">
+            <mat-label>End Time</mat-label>
+            <input #permissionEndInput matInput type="time" [(ngModel)]="permissionForm.endTime">
+            <button type="button" mat-icon-button matSuffix aria-label="Open permission end time picker" (click)="openTimePicker(permissionEndInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field class="field field--full" appearance="outline">
+            <mat-label>Reason</mat-label>
+            <textarea matInput rows="5" [(ngModel)]="permissionForm.reason" placeholder="Add the reason for this short permission"></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="form-grid" *ngSwitchCase="'request-od'">
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>OD Date</mat-label>
+            <input matInput [matDatepicker]="odDatePicker" [(ngModel)]="odForm.odDate">
+            <mat-datepicker-toggle matSuffix [for]="odDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #odDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Client / Project</mat-label>
+            <input matInput type="text" [(ngModel)]="odForm.clientName" placeholder="Example: Nova Retail rollout">
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Location</mat-label>
+            <input matInput type="text" [(ngModel)]="odForm.location" placeholder="Client office or field location">
+          </mat-form-field>
+
+          <mat-form-field class="field field--time" appearance="outline">
+            <mat-label>Reporting Time</mat-label>
+            <input #reportingTimeInput matInput type="time" [(ngModel)]="odForm.reportingTime">
+            <button type="button" mat-icon-button matSuffix aria-label="Open reporting time picker" (click)="openTimePicker(reportingTimeInput)">
+              <mat-icon>schedule</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field class="field field--full" appearance="outline">
+            <mat-label>Remarks</mat-label>
+            <textarea matInput rows="5" [(ngModel)]="odForm.remarks" placeholder="Add travel, meeting, or purpose details"></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="form-grid" *ngSwitchDefault>
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select [(ngModel)]="queryForm.category">
+              <mat-option *ngFor="let option of queryCategories" [value]="option">{{ option }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Priority</mat-label>
+            <mat-select [(ngModel)]="queryForm.priority">
+              <mat-option *ngFor="let option of priorities" [value]="option">{{ option }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="field field--full" appearance="outline">
+            <mat-label>Subject</mat-label>
+            <input matInput type="text" [(ngModel)]="queryForm.subject" placeholder="Brief subject for your request">
+          </mat-form-field>
+
+          <mat-form-field class="field field--full" appearance="outline">
+            <mat-label>Description</mat-label>
+            <textarea matInput rows="6" [(ngModel)]="queryForm.description" placeholder="Explain your issue with dates, request IDs, or relevant context"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="workflow-card__actions">
+        <button type="button" mat-stroked-button color="primary">Cancel</button>
+        <button type="button" mat-flat-button color="primary">{{ config.primaryAction }}</button>
+      </div>
+    </article>
+
+    <aside class="workflow-card workflow-card--side">
+      <div class="workflow-card__head">
+        <div>
+          <p class="panel-tag">Assistant Panel</p>
+          <h2>{{ config.helperTitle }}</h2>
+          <p>{{ config.helperDescription }}</p>
+        </div>
+      </div>
+
+      <div class="workflow-card__body">
+        <table class="balance-table" *ngIf="config.key === 'apply-leave'; else helperChecklist">
+          <thead>
+            <tr>
+              <th>Leave Type</th>
+              <th>Current</th>
+              <th>Applied</th>
+              <th>Adj.</th>
+              <th>Available</th>
+              <th>For</th>
+              <th>Closing</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of leaveBalances">
+              <td>{{ row.type }}</td>
+              <td>{{ row.currentBalance }}</td>
+              <td>{{ row.alreadyApplied }}</td>
+              <td>{{ row.adjustment }}</td>
+              <td>{{ row.availableBalance }}</td>
+              <td>{{ row.appliedFor }}</td>
+              <td>{{ row.closingBalance }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #helperChecklist>
+          <div class="checklist">
+            <div class="checklist-item" *ngFor="let item of config.checklist; let index = index">
+              <span class="checklist-item__index">{{ index + 1 }}</span>
+              <p>{{ item }}</p>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </aside>
+  </div>
+</section>
