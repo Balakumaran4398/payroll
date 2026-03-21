@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -6,16 +6,32 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   @Input() collapsed = false;
   @Output() toggleSidebar = new EventEmitter<void>();
 
   private readonly profileCloseDurationMs = 340;
+  private readonly notificationCloseDurationMs = 300;
   profilePanelOpen = false;
   profilePanelClosing = false;
   confirmDialogOpen = false;
   isSidebarOpen = true;
+  isMobileViewport = false;
+  notificationsCount = 3;
+  readonly searchPlaceholder = 'Search employees, attendance, reports';
+  notificationPanelOpen = false;
+  notificationPanelClosing = false;
+  readonly notifications = [
+    { title: 'Attendance regularization pending', description: '3 requests require manager review today.', time: '5 min ago', icon: 'schedule' },
+    { title: 'Festival calendar updated', description: 'Next month highlights were synced with the dashboard calendar.', time: '18 min ago', icon: 'event' },
+    { title: 'Directory refresh complete', description: 'Employee directory was updated with the latest team data.', time: '1 hour ago', icon: 'groups' },
+  ];
+
   constructor(private authService: AuthService) { }
+
+  ngOnInit(): void {
+    this.updateViewportState();
+  }
 
   get role(): string {
     const rawRole = this.authService.getRole();
@@ -52,13 +68,52 @@ export class HeaderComponent {
   }
 
   get userInitials(): string {
-    const value = this.username || 'U';
-    return value.substring(0, 2).toUpperCase();
+    const source = this.empname || this.username || 'User';
+    const initials = source
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
+
+    return initials || 'US';
+  }
+
+  @HostListener('document:keydown.escape')
+  handleEscape(): void {
+    if (this.confirmDialogOpen) {
+      this.cancelSignout();
+      return;
+    }
+
+    if (this.notificationPanelOpen) {
+      this.closeNotificationsPanel();
+      return;
+    }
+
+    if (this.profilePanelOpen) {
+      this.closeProfilePanel();
+    }
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.updateViewportState();
   }
 
   openProfilePanel(): void {
+    this.closeNotificationsPanel(true);
     this.profilePanelClosing = false;
     this.profilePanelOpen = true;
+  }
+
+  toggleProfilePanel(): void {
+    if (this.profilePanelOpen) {
+      this.closeProfilePanel();
+      return;
+    }
+
+    this.openProfilePanel();
   }
 
   closeProfilePanel(): void {
@@ -72,6 +127,49 @@ export class HeaderComponent {
       this.profilePanelClosing = false;
       this.confirmDialogOpen = false;
     }, this.profileCloseDurationMs);
+  }
+
+  onProfileStageClick(): void {
+    if (!this.confirmDialogOpen) {
+      this.closeProfilePanel();
+    }
+  }
+
+  toggleNotificationsPanel(): void {
+    if (this.notificationPanelOpen) {
+      this.closeNotificationsPanel();
+      return;
+    }
+
+    this.openNotificationsPanel();
+  }
+
+  openNotificationsPanel(): void {
+    this.closeProfilePanel();
+    this.notificationPanelClosing = false;
+    this.notificationPanelOpen = true;
+  }
+
+  closeNotificationsPanel(immediate = false): void {
+    if (!this.notificationPanelOpen || this.notificationPanelClosing) {
+      return;
+    }
+
+    if (immediate) {
+      this.notificationPanelOpen = false;
+      this.notificationPanelClosing = false;
+      return;
+    }
+
+    this.notificationPanelClosing = true;
+    window.setTimeout(() => {
+      this.notificationPanelOpen = false;
+      this.notificationPanelClosing = false;
+    }, this.notificationCloseDurationMs);
+  }
+
+  onNotificationsStageClick(): void {
+    this.closeNotificationsPanel();
   }
 
   requestSignout(): void {
@@ -94,4 +192,7 @@ export class HeaderComponent {
     this.toggleSidebar.emit(); // notify parent
   }
 
+  private updateViewportState(): void {
+    this.isMobileViewport = window.innerWidth < 768;
+  }
 }

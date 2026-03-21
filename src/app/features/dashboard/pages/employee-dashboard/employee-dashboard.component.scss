@@ -5,7 +5,7 @@
   --calendar-present: #22a06b;
   --calendar-absent: #dc5b57;
   --calendar-late: #ef9a2f;
-  --calendar-half-day: #d08a2d;
+  --calendar-half-day: #6b7207;
   --calendar-leave: #6772ff;
   --calendar-holiday: #d54a72;
   --calendar-weekend: #64748b;
@@ -22,16 +22,19 @@
 .dashboard-hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   padding: 22px 24px;
   border-radius: 22px;
   color: #f8fbff;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--theme-primary) 80%, #1f7aec 20%), color-mix(in srgb, var(--theme-secondary) 72%, #67c8d8 28%));
-  box-shadow: 0 24px 48px color-mix(in srgb, var(--theme-primary) 16%, transparent);
+  background: var(--theme-primary);
+  // background: linear-gradient(135deg, color-mix(in srgb, var(--theme-primary) 80%, #1f7aec 20%), color-mix(in srgb, var(--theme-secondary) 72%, #67c8d8 28%));
+  // box-shadow: 0 24px 48px color-mix(in srgb, var(--theme-primary) 16%, transparent);
 }
 
 .dashboard-hero__content {
+  display: grid;
+  gap: 8px;
+  flex: 1;
   min-width: 0;
 }
 
@@ -49,11 +52,37 @@
   letter-spacing: -0.04em;
 }
 
+.dashboard-hero__welcome {
+  margin: 0;
+  color: rgba(248, 251, 255, 0.92);
+  font-size: 0.94rem;
+  line-height: 1.7;
+}
+
+.dashboard-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.dashboard-hero__role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .dashboard-hero__subtitle {
-  margin: 8px 0 0;
+  margin: 0;
   color: rgba(248, 251, 255, 0.88);
-  font-size: 0.92rem;
-  line-height: 1.6;
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 .dashboard-hero__profile {
@@ -61,12 +90,240 @@
 }
 
 .dashboard-hero__avatar {
-  width: 78px;
-  height: 78px;
-  border-radius: 24px;
+  width: 88px;
+  height: 88px;
+  border-radius: 26px;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.24);
   background: rgba(255, 255, 255, 0.16);
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.people-card {
+  position: relative;
+  min-width: 0;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--dashboard-panel-border);
+  background: var(--dashboard-panel-bg);
+  box-shadow: var(--dashboard-shadow);
+  overflow: hidden;
+}
+
+.people-card::before {
+  content: '';
+  position: absolute;
+  top: -58px;
+  right: -44px;
+  width: 150px;
+  height: 150px;
+  border-radius: 999px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.people-card--birthday::before {
+  background: color-mix(in srgb, #f97316 18%, transparent);
+}
+
+.people-card--anniversary::before {
+  background: color-mix(in srgb, #eab308 18%, transparent);
+}
+
+.people-card--joiner::before {
+  background: color-mix(in srgb, #22a06b 18%, transparent);
+}
+
+.people-card__header,
+.people-list,
+.people-card__empty {
+  position: relative;
+  z-index: 1;
+}
+
+.people-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.people-card__eyebrow {
+  margin: 0;
+  color: var(--theme-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.people-card__header h2 {
+  margin: 6px 0 0;
+  font-size: 1.06rem;
+  letter-spacing: -0.02em;
+}
+
+.people-card__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-primary) 12%, #ffffff 88%);
+  color: var(--theme-primary);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.people-card__empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  min-height: 124px;
+  padding: 14px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--theme-surface) 92%, rgba(255, 255, 255, 0.18));
+
+  .mat-icon {
+    color: var(--theme-primary);
+  }
+
+  p {
+    margin: 0;
+    color: var(--theme-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+}
+
+.people-list {
+  display: grid;
+  gap: 12px;
+}
+
+.joiner-marquee {
+  position: relative;
+}
+
+.joiner-marquee__viewport {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.joiner-marquee__track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  animation: joinerMarquee 22s linear infinite;
+  will-change: transform;
+}
+
+.joiner-marquee__track:hover {
+  animation-play-state: paused;
+}
+
+.joiner-marquee__track--static {
+  width: 100%;
+  animation: none;
+}
+
+.joiner-marquee__item {
+  min-width: min(320px, calc(100vw - 96px));
+  max-width: 320px;
+  min-height: 172px;
+  align-content: start;
+}
+
+.people-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 74%, transparent);
+  background: color-mix(in srgb, var(--theme-surface) 94%, rgba(255, 255, 255, 0.14));
+}
+
+.people-item__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--theme-surface-strong) 92%, #ffffff 8%);
+}
+
+.people-item__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+
+  strong {
+    font-size: 0.92rem;
+  }
+
+  small {
+    color: var(--theme-text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: var(--theme-text-secondary);
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+}
+
+.people-item__badge,
+.people-item__value {
+  grid-column: 1 / -1;
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.people-item__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(249, 115, 22, 0.12);
+  color: #d96a1a;
+  animation: birthdayPulse 2.2s ease-in-out infinite;
+
+  .mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.people-item__value {
+  display: inline-flex;
+  align-items: center;
+  background: color-mix(in srgb, var(--theme-primary) 10%, #ffffff 90%);
+  color: var(--theme-primary);
+}
+
+.people-item--anniversary .people-item__value {
+  background: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+}
+
+.people-item__value--joiner {
+  background: rgba(34, 160, 107, 0.12) !important;
+  color: #19704a !important;
 }
 
 .stats-grid {
@@ -305,6 +562,27 @@
   }
 }
 
+.calendar-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--calendar-holiday) 7%, transparent);
+
+  .mat-icon {
+    color: var(--calendar-holiday);
+    margin-top: 1px;
+  }
+
+  p {
+    margin: 0;
+    color: var(--theme-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+}
+
 .panel-head--calendar {
   align-items: center;
 }
@@ -466,7 +744,8 @@
 }
 
 .calendar-day--holiday {
-  background: color-mix(in srgb, var(--calendar-holiday) 8%, var(--theme-surface) 92%);
+  background: color-mix(in srgb, var(--calendar-holiday) 12%, var(--theme-surface) 88%);
+  border-color: color-mix(in srgb, var(--calendar-holiday) 24%, transparent);
 }
 
 .calendar-day--selected {
@@ -559,6 +838,8 @@
 }
 
 .attendance-dialog {
+  display: flex;
+  flex-direction: column;
   width: min(880px, 100%);
   max-height: min(88vh, 760px);
   overflow: hidden;
@@ -574,11 +855,16 @@
 }
 
 .attendance-dialog__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex-shrink: 0;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   border-bottom: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
+  background: var(--theme-surface);
 
   h3 {
     margin: 6px 0 0;
@@ -602,7 +888,10 @@
 }
 
 .attendance-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .attendance-dialog__status-card {
@@ -675,6 +964,7 @@
 .attendance-event-card__image {
   width: 100%;
   min-height: 180px;
+  max-height: 150px;
   object-fit: cover;
   border-radius: 18px;
 }
@@ -785,7 +1075,29 @@
   }
 }
 
+@keyframes birthdayPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes joinerMarquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @media (max-width: 1180px) {
+  .people-grid,
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -809,7 +1121,7 @@
 
 @media (max-width: 720px) {
   .dashboard-hero {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
   }
 
@@ -820,6 +1132,7 @@
   }
 
   .stats-grid,
+  .people-grid,
   .calendar-legend {
     grid-template-columns: 1fr;
   }
@@ -855,5 +1168,11 @@
   .attendance-dialog__body {
     padding-left: 18px;
     padding-right: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-hero {
+    flex-direction: column;
   }
 }

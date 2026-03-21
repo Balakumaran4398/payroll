@@ -3,13 +3,20 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Sort, SortDirection } from '@angular/material/sort';
+import { finalize } from 'rxjs/operators';
 import { ApiService } from '../../../../core/services/api.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { UiFeedbackService } from '../../../../core/services/ui-feedback.service';
 import { Employee, EmployeeFormMode } from '../../employee.types';
 import { EmployeeProfileDialogComponent } from '../../components/employee-profile-dialog/employee-profile-dialog.component';
 import { EmployeeFormDialogComponent } from '../../components/employee-form-dialog/employee-form-dialog.component';
 import { EmployeeDeleteDialogComponent } from '../../components/employee-delete-dialog/employee-delete-dialog.component';
+
+interface EmployeeFormDialogResult {
+  employee: Employee;
+  message?: string;
+}
 
 @Component({
   selector: 'app-employee',
@@ -30,6 +37,7 @@ export class EmployeeComponent implements OnInit {
   pageIndex = 0;
   sortActive = 'profile';
   sortDirection: SortDirection = 'asc';
+  readonly deletingEmployeeIds = new Set<number>();
 
   displayedColumns: string[] = ['profile', 'contact', 'department', 'personal', 'employment', 'actions'];
 
@@ -59,9 +67,10 @@ export class EmployeeComponent implements OnInit {
 
   constructor(
     private apiService: ApiService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
+    private feedback: UiFeedbackService,
     private sanitizer: DomSanitizer
   ) { }
 
@@ -87,7 +96,7 @@ export class EmployeeComponent implements OnInit {
       },
       error: () => {
         this.loadSampleData();
-        this.showError('Failed to load employees from API. Sample data is shown instead.');
+        this.feedback.warning('Live employee data could not be loaded. Sample data is shown instead.');
         this.loading = false;
       },
     });
@@ -380,9 +389,7 @@ export class EmployeeComponent implements OnInit {
         return;
       }
 
-      this.employees = this.employees.filter((item) => item.id !== employee.id);
-      this.applyFilters();
-      this.showInfo(`${employee.firstname} ${employee.lastname} has been removed from the list.`);
+      this.runDeleteEmployee(employee);
     });
   }
 
@@ -415,41 +422,44 @@ export class EmployeeComponent implements OnInit {
       data: { mode, employee },
     });
 
-    dialogRef.afterClosed().subscribe((result?: Employee) => {
+    dialogRef.afterClosed().subscribe((result?: EmployeeFormDialogResult) => {
       if (!result) {
         return;
       }
 
+      const savedEmployee = result.employee;
+
       if (mode === 'add') {
         const nextId = this.employees.length ? Math.max(...this.employees.map((item) => item.id)) + 1 : 1;
-        const now = new Date().toISOString();
         const newEmployee: Employee = {
-          ...result,
-          id: nextId,
-          // createddate: now,
-          // updateddate: now,
-          deptid: result.deptid || nextId,
-          positionid: result.positionid || nextId,
-          shiftid: result.shiftid || 1,
-          attendanceid: result.attendanceid || nextId,
-          reference_no: result.reference_no || nextId,
+          ...savedEmployee,
+          id: savedEmployee.id || nextId,
+          deptid: savedEmployee.deptid || nextId,
+          positionid: savedEmployee.positionid || nextId,
+          shiftid: savedEmployee.shiftid || 1,
+          attendanceid: savedEmployee.attendanceid || nextId,
+          reference_no: savedEmployee.reference_no || nextId,
         };
 
         this.employees = [newEmployee, ...this.employees];
-        this.showInfo(`${newEmployee.firstname} ${newEmployee.lastname} added successfully.`);
+        this.feedback.success(result.message || `${newEmployee.firstname} ${newEmployee.lastname} created successfully.`);
       } else if (employee) {
         const updatedEmployee: Employee = {
           ...employee,
-          ...result,
-          // updateddate: new Date().toISOString(),
+          ...savedEmployee,
         };
 
         this.employees = this.employees.map((item) => (item.id === employee.id ? updatedEmployee : item));
-        this.showInfo(`${updatedEmployee.firstname} ${updatedEmployee.lastname} updated successfully.`);
+        this.feedback.success(result.message || `${updatedEmployee.firstname} ${updatedEmployee.lastname} updated successfully.`);
       }
 
+      this.apiService.setEmployeeListCache(this.employees);
       this.applyFilters();
     });
+  }
+
+  isEmployeeDeleting(employeeId: number): boolean {
+    return this.deletingEmployeeIds.has(employeeId);
   }
 
   private getFallbackAvatar(employee?: Employee): SafeUrl {
@@ -474,17 +484,40 @@ export class EmployeeComponent implements OnInit {
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
 
-  private showError(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      panelClass: ['error-snackbar'],
-    });
+  private runDeleteEmployee(employee: Employee): void {
+    const employeeId = employee.id;
+    if (!employeeId) {
+      this.feedback.error('Unable to delete this employee because the employee id is missing.');
+      return;
+    }
+
+    this.deletingEmployeeIds.add(employeeId);
+    const username = `${this.authService.getUsername() || ''}`.trim();
+
+    this.apiService
+      .getDeleteEmployee(employeeId, username)
+      .pipe(
+        finalize(() => {
+          this.deletingEmployeeIds.delete(employeeId);
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.employees = this.employees.filter((item) => item.id !== employeeId);
+          this.apiService.setEmployeeListCache(this.employees);
+          this.applyFilters();
+          this.feedback.success(this.extractResponseMessage(response, `${employee.firstname} ${employee.lastname} deleted successfully.`));
+        },
+        error: (error) => {
+          this.feedback.error(
+            error?.error?.message || error?.message || `Failed to delete ${employee.firstname} ${employee.lastname}. Please try again.`
+          );
+        },
+      });
   }
 
-  private showInfo(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 3000,
-      panelClass: ['info-snackbar'],
-    });
+  private extractResponseMessage(response: any, fallback: string): string {
+    const candidate = `${response?.message || response?.msg || response?.data?.message || ''}`.trim();
+    return candidate || fallback;
   }
 }

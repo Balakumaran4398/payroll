@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AppRole, AuthService } from '../../services/auth.service';
 
 interface MenuChildItem {
@@ -21,7 +22,7 @@ interface MenuItem {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Input() collapsed = false;
   @Input() isMobile = false;
   @Input() mobileOpen = false;
@@ -33,6 +34,12 @@ export class SidebarComponent implements OnInit {
       route: '/app/dashboard',
       icon: 'dashboard',
       roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+    },
+    {
+      label: 'New Requests',
+      route: '/app/dashboard/requests',
+      icon: 'notifications_active',
+      roles: ['ROLE_ADMIN'],
     },
     {
       label: 'Employees',
@@ -84,22 +91,24 @@ export class SidebarComponent implements OnInit {
 
   visibleMenu: MenuItem[] = [];
   expandedMenu: { [key: string]: boolean } = {};
+  hoverExpanded = false;
+  signoutDialogOpen = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  private routerEventsSubscription?: Subscription;
+
+  constructor(private authService: AuthService, private router: Router) { }
 
   ngOnInit(): void {
     const currentRole = this.authService.getRole();
-    console.log('Sidebar initialized with role:', currentRole);
 
     if (!currentRole) {
-      console.log('No role found, showing all menu items for testing');
-      // If no role, show all menu items for debugging
       this.visibleMenu = this.menu.map((item) => {
         if (!item.children) {
           return item;
         }
         return { ...item, children: item.children };
       });
+      this.syncExpandedMenuWithRoute();
       return;
     }
 
@@ -117,6 +126,19 @@ export class SidebarComponent implements OnInit {
         return { ...item, children: filteredChildren };
       })
       .filter((item) => !item.children || item.children.length > 0);
+
+    this.syncExpandedMenuWithRoute();
+
+    this.routerEventsSubscription = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.syncExpandedMenuWithRoute();
+        this.hoverExpanded = false;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.routerEventsSubscription?.unsubscribe();
   }
 
   toggleGroup(item: MenuItem): void {
@@ -124,8 +146,12 @@ export class SidebarComponent implements OnInit {
       return;
     }
 
-    // Toggle the dropdown expansion
-    this.expandedMenu[item.label] = !this.expandedMenu[item.label];
+    if (this.isGroupActive(item) && this.expandedMenu[item.label]) {
+      return;
+    }
+
+    const nextState = !this.expandedMenu[item.label];
+    this.expandedMenu = nextState ? { [item.label]: true } : {};
   }
 
   isGroupExpanded(item: MenuItem): boolean {
@@ -141,11 +167,27 @@ export class SidebarComponent implements OnInit {
   }
 
   shouldShowLabels(): boolean {
-    return !this.collapsed || this.isMobile;
+    return !this.collapsed || this.isMobile || this.hoverExpanded;
   }
 
   shouldShowSubmenu(item: MenuItem): boolean {
     return this.shouldShowLabels() && !!item.children && item.children.length > 0;
+  }
+
+  handleMouseEnter(): void {
+    if (!this.isMobile && this.collapsed) {
+      this.hoverExpanded = true;
+    }
+  }
+
+  handleMouseLeave(): void {
+    if (!this.isMobile) {
+      this.hoverExpanded = false;
+    }
+  }
+
+  isDesktopHoverExpanded(): boolean {
+    return !this.isMobile && this.collapsed && this.hoverExpanded;
   }
 
   handleMenuNavigate(): void {
@@ -154,8 +196,26 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  signOut(): void {
+    this.signoutDialogOpen = true;
+  }
+
+  cancelSignOut(): void {
+    this.signoutDialogOpen = false;
+  }
+
+  confirmSignOut(): void {
+    this.signoutDialogOpen = false;
+    this.authService.logout();
+  }
+
   private isAllowed(roles: AppRole[], currentRole: AppRole | null): boolean {
     return !!currentRole && roles.includes(currentRole);
+  }
+
+  private syncExpandedMenuWithRoute(): void {
+    const activeGroup = this.visibleMenu.find((item) => this.isGroupActive(item));
+    this.expandedMenu = activeGroup ? { [activeGroup.label]: true } : {};
   }
 
   get userRole(): string {
@@ -169,20 +229,6 @@ export class SidebarComponent implements OnInit {
       case 'ROLE_MANAGER': return 'Manager';
       case 'ROLE_EMPLOYEE': return 'Employee';
       default: return rawRole;
-    }
-  }
-
-  get userRoleClass(): string {
-    const rawRole = this.authService.getRole();
-    if (!rawRole) return '';
-
-    // Return lowercase version for CSS classes
-    switch (rawRole) {
-      case 'ROLE_ADMIN': return 'admin';
-      case 'ROLE_COMPANY': return 'company';
-      case 'ROLE_MANAGER': return 'manager';
-      case 'ROLE_EMPLOYEE': return 'employee';
-      default: return (rawRole as string).toLowerCase();
     }
   }
 }

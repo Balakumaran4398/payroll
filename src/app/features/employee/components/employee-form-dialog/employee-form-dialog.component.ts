@@ -1,8 +1,9 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { UiFeedbackService } from 'src/app/core/services/ui-feedback.service';
 import { Employee, EmployeeFormMode } from '../../employee.types';
 import { ApiService } from 'src/app/core/services/api.service';
 import { AuthService } from 'src/app/core/services/auth.service';
@@ -11,6 +12,11 @@ interface RoleOption {
   id: number;
   name: string;
   value: string;
+}
+
+interface EmployeeFormDialogResult {
+  employee: Employee;
+  message?: string;
 }
 
 @Component({
@@ -77,7 +83,7 @@ export class EmployeeFormDialogComponent implements OnInit {
     private authService: AuthService,
     @Inject(MAT_DIALOG_DATA) public data: { mode: EmployeeFormMode; employee?: Employee },
     private dialogRef: MatDialogRef<EmployeeFormDialogComponent>,
-    private snackBar: MatSnackBar
+    private feedback: UiFeedbackService
   ) {
     const fullName = [data.employee?.firstname, data.employee?.lastname].filter(Boolean).join(' ');
 
@@ -293,6 +299,11 @@ export class EmployeeFormDialogComponent implements OnInit {
       return;
     }
 
+    if (this.data.mode === 'edit' && this.form.pristine && !this.selectedImagePayload) {
+      this.feedback.warning('No changes detected to save for this employee.');
+      return;
+    }
+
     const employee = this.data.employee;
     const value = this.form.getRawValue();
     const selectedRole = this.findRoleOption(value.role);
@@ -357,7 +368,7 @@ export class EmployeeFormDialogComponent implements OnInit {
     );
   }
 
-  close(result?: Employee): void {
+  close(result?: EmployeeFormDialogResult): void {
     if (this.closing) {
       return;
     }
@@ -584,7 +595,7 @@ export class EmployeeFormDialogComponent implements OnInit {
     }
   }
 
-  private saveEmployeeRequest(request$: any, fallback: Employee, errorMessage: string): void {
+  private saveEmployeeRequest(request$: Observable<any>, fallback: Employee, errorMessage: string): void {
     this.submitting = true;
     request$.pipe(
       finalize(() => {
@@ -592,14 +603,19 @@ export class EmployeeFormDialogComponent implements OnInit {
       })
     ).subscribe({
       next: (response: any) => {
-        this.close(this.mapSavedResponse(response, fallback));
+        this.close({
+          employee: this.mapSavedResponse(response, fallback),
+          message: this.extractResponseMessage(
+            response,
+            this.data.mode === 'add'
+              ? `${fallback.firstname} ${fallback.lastname} created successfully.`
+              : `${fallback.firstname} ${fallback.lastname} updated successfully.`
+          ),
+        });
       },
       error: (error: any) => {
         const message = error?.error?.message || error?.message || errorMessage;
-        this.snackBar.open(message, 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar'],
-        });
+        this.feedback.error(message);
       },
     });
   }
@@ -635,5 +651,10 @@ export class EmployeeFormDialogComponent implements OnInit {
 
       return this.allowedEmailPattern.test(value) ? null : { allowedEmailDomain: true };
     };
+  }
+
+  private extractResponseMessage(response: any, fallback: string): string {
+    const candidate = `${response?.message || response?.msg || response?.data?.message || ''}`.trim();
+    return candidate || fallback;
   }
 }

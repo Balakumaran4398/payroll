@@ -1,5 +1,6 @@
 <aside class="sidebar" [class.sidebar--collapsed]="collapsed" [class.sidebar--mobile]="isMobile"
-  [class.sidebar--mobile-open]="isMobile && mobileOpen" [class]="'sidebar--' + userRoleClass">
+  [class.sidebar--mobile-open]="isMobile && mobileOpen" [class.sidebar--hover-open]="isDesktopHoverExpanded()"
+  (mouseenter)="handleMouseEnter()" (mouseleave)="handleMouseLeave()">
   <div class="brand">
     <img class="brand__logo" src="assets/logo/hr.png" alt="HR Logo" />
     <span *ngIf="shouldShowLabels()">{{ userRole }}</span>
@@ -13,26 +14,47 @@
         class="menu__item" [matTooltip]="shouldShowLabels() ? '' : item.label" matTooltipPosition="right"
         (click)="handleMenuNavigate()">
         <mat-icon>{{ item.icon }}</mat-icon>
-        <span *ngIf="shouldShowLabels()">{{ item.label }}</span>
+        <span class="menu__label" *ngIf="shouldShowLabels()">{{ item.label }}</span>
       </a>
 
       <div *ngIf="item.children" class="menu-group" [class.menu-group--active]="isGroupActive(item)">
         <button type="button" class="menu__item menu__item--group" [matTooltip]="shouldShowLabels() ? '' : item.label"
           matTooltipPosition="right" (click)="toggleGroup(item)">
           <mat-icon>{{ item.icon }}</mat-icon>
-          <span *ngIf="shouldShowLabels()">{{ item.label }}</span>
+          <span class="menu__label" *ngIf="shouldShowLabels()">{{ item.label }}</span>
           <mat-icon class="menu__chevron" *ngIf="shouldShowLabels()">
             {{ isGroupExpanded(item) ? 'expand_less' : 'expand_more' }}
           </mat-icon>
         </button>
 
-        <div class="submenu" [class.submenu--open]="isGroupExpanded(item)" *ngIf="shouldShowSubmenu(item)">
+        <div class="submenu" *ngIf="item.children" [class.submenu--open]="shouldShowSubmenu(item) && isGroupExpanded(item)"
+          [class.submenu--collapsed]="!shouldShowLabels()">
           <a *ngFor="let child of item.children" mat-button class="submenu__item" [routerLink]="child.route"
             routerLinkActive="submenu__item--active" (click)="handleMenuNavigate()">
-            <span>{{ child.label }}</span>
+            <span class="submenu__label">{{ child.label }}</span>
           </a>
         </div>
       </div>
     </ng-container>
   </nav>
+
+  <div class="sidebar__footer">
+    <mat-divider></mat-divider>
+    <button type="button" class="menu__item menu__item--footer" [matTooltip]="shouldShowLabels() ? '' : 'Sign Out'"
+      matTooltipPosition="right" (click)="signOut()">
+      <mat-icon>logout</mat-icon>
+      <span class="menu__label" *ngIf="shouldShowLabels()">Sign Out</span>
+    </button>
+  </div>
 </aside>
+
+<div class="sidebar-dialog-backdrop" *ngIf="signoutDialogOpen" (click)="cancelSignOut()">
+  <div class="sidebar-dialog" (click)="$event.stopPropagation()">
+    <h3>Sign Out</h3>
+    <p>Are you sure you want to sign out?</p>
+    <div class="sidebar-dialog__actions">
+      <button mat-stroked-button (click)="cancelSignOut()">No</button>
+      <button mat-flat-button color="primary" (click)="confirmSignOut()">Yes</button>
+    </div>
+  </div>
+</div>

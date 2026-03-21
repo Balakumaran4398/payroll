@@ -1,0 +1,99 @@
+<section class="admin-dashboard">
+  <header class="admin-hero">
+    <div class="admin-hero__copy">
+      <p class="admin-hero__eyebrow">Admin Command Center</p>
+      <h1>Requests, notifications, and approvals in one workspace</h1>
+      <p class="admin-hero__text">
+        Employee and manager dashboard requests are listed here for review. Open any notification to inspect the request page,
+        then approve or cancel directly from admin.
+      </p>
+    </div>
+
+    <div class="admin-hero__badge">
+      <span>Pending Queue</span>
+      <strong>{{ pendingRequests.length }}</strong>
+      <small>needs review</small>
+    </div>
+  </header>
+
+  <div class="stats-grid">
+    <article class="stat-card" *ngFor="let card of statCards" [class]="'stat-card stat-card--' + card.tone">
+      <div class="stat-card__copy">
+        <p class="stat-card__label">{{ card.title }}</p>
+        <strong>{{ card.value }}</strong>
+        <small>{{ card.note }}</small>
+      </div>
+      <span class="stat-card__icon">
+        <mat-icon>{{ card.icon }}</mat-icon>
+      </span>
+    </article>
+  </div>
+
+  <div class="admin-grid">
+    <section class="panel-card panel-card--requests">
+      <div class="panel-card__head">
+        <div>
+          <p class="panel-card__eyebrow">Notifications</p>
+          <h2>Approval Requests</h2>
+        </div>
+        <span class="panel-chip">{{ requestNotifications.length }} listed</span>
+      </div>
+
+      <div class="request-list" *ngIf="requestNotifications.length; else emptyRequests">
+        <article class="request-card" *ngFor="let item of requestNotifications; trackBy: trackByRequestId"
+          [class]="'request-card request-card--' + item.status.toLowerCase()" (click)="openRequestDetails(item)">
+          <div class="request-card__main">
+            <div class="request-card__title-row">
+              <div>
+                <p class="request-card__eyebrow">{{ item.requesterRole }} Dashboard</p>
+                <h3>{{ item.title }}</h3>
+              </div>
+              <span class="status-chip" [class]="'status-chip status-chip--' + item.status.toLowerCase()">{{ item.status }}</span>
+            </div>
+
+            <p class="request-card__summary">{{ item.summary }}</p>
+
+            <div class="request-card__meta">
+              <span>{{ item.id }}</span>
+              <span>{{ item.requesterName }}</span>
+              <span>{{ item.department }}</span>
+              <span>{{ item.submittedAt }}</span>
+            </div>
+          </div>
+
+          <div class="request-card__actions">
+            <button type="button" mat-stroked-button (click)="cancelRequest($event, item)">Cancel</button>
+            <button type="button" mat-flat-button color="primary" (click)="approveRequest($event, item)">Approve</button>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #emptyRequests>
+        <div class="empty-state">
+          <mat-icon>notifications_off</mat-icon>
+          <p>No admin notifications are waiting right now.</p>
+        </div>
+      </ng-template>
+    </section>
+
+    <section class="panel-card panel-card--activity">
+      <div class="panel-card__head">
+        <div>
+          <p class="panel-card__eyebrow">Activity</p>
+          <h2>Recent Admin Timeline</h2>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <article class="timeline-item" *ngFor="let row of recentActivity">
+          <span class="timeline-item__dot" [class]="'timeline-item__dot timeline-item__dot--' + row.status.toLowerCase()"></span>
+          <div class="timeline-item__copy">
+            <strong>{{ row.action }}</strong>
+            <p>{{ row.user }} · {{ row.module }}</p>
+            <small>{{ row.timestamp }}</small>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+</section>

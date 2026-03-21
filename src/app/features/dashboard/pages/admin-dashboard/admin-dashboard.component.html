@@ -14,34 +14,83 @@
   </div>
 
   <div class="chart-grid">
-    <mat-card>
-      <h3>Weekly Activity</h3>
-      <div class="chart-wrap">
+    <mat-card class="chart-card chart-card--activity">
+      <div class="chart-card__header">
+        <div>
+          <p class="chart-card__eyebrow">Analytics</p>
+          <h3>Weekly Activity</h3>
+          <p class="chart-card__copy">Smooth animated trend lines styled from the active theme palette.</p>
+        </div>
+        <span class="chart-card__badge">Live Trend</span>
+      </div>
+
+      <div class="chart-wrap chart-wrap--line">
         <canvas
           baseChart
-          [datasets]="lineChartData"
-          [labels]="lineChartLabels"
+          [data]="lineChartData"
           [options]="lineChartOptions"
-          [chartType]="lineChartType"
+          [type]="lineChartType"
         ></canvas>
+      </div>
+
+      <div class="chart-insights">
+        <article class="chart-insight chart-insight--primary">
+          <span>Peak Day</span>
+          <strong>{{ weeklyPeakDay }}</strong>
+          <small>{{ weeklyPeakTotal }} total actions</small>
+        </article>
+        <article class="chart-insight chart-insight--secondary">
+          <span>Daily Average</span>
+          <strong>{{ weeklyAverageTotal }}</strong>
+          <small>actions per day</small>
+        </article>
+        <article class="chart-insight chart-insight--neutral">
+          <span>Momentum</span>
+          <strong>{{ weeklyMomentum }}</strong>
+          <small>first day vs last day</small>
+        </article>
       </div>
     </mat-card>
 
-    <mat-card>
-      <h3>Role Distribution</h3>
-      <div class="chart-wrap">
+    <mat-card class="chart-card chart-card--distribution">
+      <div class="chart-card__header">
+        <div>
+          <p class="chart-card__eyebrow">Access Mix</p>
+          <h3>Role Distribution</h3>
+          <p class="chart-card__copy">A cleaner role split with animated segments and theme-aware accents.</p>
+        </div>
+        <span class="chart-card__badge">{{ totalRoleCount }} Users</span>
+      </div>
+
+      <div class="chart-wrap chart-wrap--doughnut">
         <canvas
           baseChart
           [data]="doughnutChartData"
-          [labels]="doughnutChartLabels"
           [options]="doughnutChartOptions"
-          [chartType]="doughnutChartType"
+          [type]="doughnutChartType"
         ></canvas>
+
+        <div class="chart-center">
+          <span>Total Roles</span>
+          <strong>{{ totalRoleCount }}</strong>
+          <small>{{ leadingRoleLabel }} · {{ leadingRoleShare }}</small>
+        </div>
+      </div>
+
+      <div class="distribution-list">
+        <article class="distribution-item" *ngFor="let item of roleBreakdown">
+          <span class="distribution-item__swatch" [style.background]="item.color"></span>
+          <div class="distribution-item__copy">
+            <strong>{{ item.label }}</strong>
+            <small>{{ item.value }} users</small>
+          </div>
+          <span class="distribution-item__value">{{ item.share }}</span>
+        </article>
       </div>
     </mat-card>
   </div>
 
-  <mat-card>
+  <mat-card class="activity-panel">
     <h3>Recent System Activity</h3>
     <div class="table-wrap">
       <table mat-table [dataSource]="recentActivity" class="mat-elevation-z0">
@@ -75,6 +124,17 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
+    </div>
+
+    <div class="activity-mobile-list">
+      <article class="activity-mobile-card" *ngFor="let row of recentActivity">
+        <div class="activity-mobile-card__header">
+          <strong>{{ row.action }}</strong>
+          <span class="status" [class]="'status--' + row.status.toLowerCase()">{{ row.status }}</span>
+        </div>
+        <p class="activity-mobile-card__meta">{{ row.user }} · {{ row.module }}</p>
+        <small>{{ row.timestamp }}</small>
+      </article>
     </div>
   </mat-card>
 </section>

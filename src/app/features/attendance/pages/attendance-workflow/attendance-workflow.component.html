@@ -5,6 +5,17 @@
     <p>{{ config.subtitle }}</p>
   </header>
 
+  <section class="review-banner" *ngIf="isAdminReview && reviewRequest">
+    <div class="review-banner__copy">
+      <p class="review-banner__eyebrow">Admin Review</p>
+      <h2>{{ reviewRequest.id }} · {{ reviewRequest.requesterName }}</h2>
+      <p>{{ reviewRequest.requesterRole }} request from {{ reviewRequest.department }} is open for approval review.</p>
+    </div>
+    <span class="review-banner__status" [class]="'review-banner__status review-banner__status--' + reviewRequest.status.toLowerCase()">
+      {{ reviewRequest.status }}
+    </span>
+  </section>
+
   <div class="workflow-shell">
     <article class="workflow-card workflow-card--form">
       <div class="workflow-card__head">
@@ -22,6 +33,21 @@
           <div class="meta-chip">
             <span>Request Type</span>
             <strong>{{ requestType }}</strong>
+          </div>
+
+          <div class="meta-chip" *ngIf="reviewRequest">
+            <span>Request Id</span>
+            <strong>{{ reviewRequest.id }}</strong>
+          </div>
+
+          <div class="meta-chip" *ngIf="reviewRequest">
+            <span>Requested By</span>
+            <strong>{{ reviewRequest.requesterName }}</strong>
+          </div>
+
+          <div class="meta-chip" *ngIf="reviewRequest">
+            <span>Submitted</span>
+            <strong>{{ reviewRequest.submittedAt }}</strong>
           </div>
         </div>
       </div>
@@ -164,33 +190,47 @@
 
         <div class="form-grid" *ngSwitchCase="'request-od'">
           <mat-form-field class="field" appearance="outline">
-            <mat-label>OD Date</mat-label>
-            <input matInput [matDatepicker]="odDatePicker" [(ngModel)]="odForm.odDate">
+            <mat-label>Employee ID</mat-label>
+            <input matInput type="text" [(ngModel)]="odForm.empid" placeholder="Employee ID">
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="odDatePicker" [(ngModel)]="odForm.from_date">
             <mat-datepicker-toggle matSuffix [for]="odDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #odDatePicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field class="field" appearance="outline">
-            <mat-label>Client / Project</mat-label>
-            <input matInput type="text" [(ngModel)]="odForm.clientName" placeholder="Example: Nova Retail rollout">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="odToDatePicker" [(ngModel)]="odForm.to_date">
+            <mat-datepicker-toggle matSuffix [for]="odToDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #odToDatePicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field class="field" appearance="outline">
-            <mat-label>Location</mat-label>
-            <input matInput type="text" [(ngModel)]="odForm.location" placeholder="Client office or field location">
+            <mat-label>Place of Visit</mat-label>
+            <input matInput type="text" [(ngModel)]="odForm.place_of_visit" placeholder="Client office or field location">
           </mat-form-field>
 
-          <mat-form-field class="field field--time" appearance="outline">
-            <mat-label>Reporting Time</mat-label>
-            <input #reportingTimeInput matInput type="time" [(ngModel)]="odForm.reportingTime">
-            <button type="button" mat-icon-button matSuffix aria-label="Open reporting time picker" (click)="openTimePicker(reportingTimeInput)">
-              <mat-icon>schedule</mat-icon>
-            </button>
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Purpose of Visit</mat-label>
+            <input matInput type="text" [(ngModel)]="odForm.purpose_of_visit" placeholder="Business purpose or visit reason">
           </mat-form-field>
 
           <mat-form-field class="field field--full" appearance="outline">
-            <mat-label>Remarks</mat-label>
-            <textarea matInput rows="5" [(ngModel)]="odForm.remarks" placeholder="Add travel, meeting, or purpose details"></textarea>
+            <mat-label>Comments</mat-label>
+            <textarea matInput rows="5" [(ngModel)]="odForm.comments" placeholder="Add travel, meeting, or purpose details"></textarea>
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Approved By</mat-label>
+            <input matInput type="text" [(ngModel)]="odForm.approved_by" placeholder="Approver name or ID">
+          </mat-form-field>
+
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Is Approved</mat-label>
+            <input matInput type="text" [(ngModel)]="odForm.isapproved" placeholder="Pending / Approved / Rejected">
           </mat-form-field>
         </div>
 
@@ -222,8 +262,16 @@
       </div>
 
       <div class="workflow-card__actions">
-        <button type="button" mat-stroked-button color="primary">Cancel</button>
-        <button type="button" mat-flat-button color="primary">{{ config.primaryAction }}</button>
+        <ng-container *ngIf="isAdminReview && reviewRequest; else submitActions">
+          <button type="button" mat-stroked-button (click)="cancelRequest()">Cancel Request</button>
+          <button type="button" mat-flat-button color="primary" (click)="approveRequest()">Approve Request</button>
+        </ng-container>
+        <ng-template #submitActions>
+          <button type="button" mat-stroked-button color="primary">Cancel</button>
+          <button type="button" mat-flat-button color="primary" [disabled]="isSubmitting" (click)="submitWorkflow()">
+            {{ isSubmitting ? 'Submitting...' : config.primaryAction }}
+          </button>
+        </ng-template>
       </div>
     </article>
 

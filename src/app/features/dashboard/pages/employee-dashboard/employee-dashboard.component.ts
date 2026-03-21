@@ -6,7 +6,7 @@ import { Employee } from '../../../employee/employee.types';
 
 type AttendanceState = 'present' | 'absent' | 'late' | 'half-day' | 'leave' | 'holiday' | 'weekend' | 'upcoming';
 type ActionTone = 'blue' | 'purple' | 'orange' | 'teal';
-type CalendarEventType = 'holiday' | 'festival';
+type CalendarEventType = 'holiday' | 'festival' | 'important';
 
 interface EmployeeStatCard {
   title: string;
@@ -36,6 +36,7 @@ interface CalendarEventSeed {
   accentFrom: string;
   accentTo: string;
   badge: string;
+  imageUrl: string;
 }
 
 interface CalendarEvent extends CalendarEventSeed {
@@ -55,6 +56,29 @@ interface AttendanceMetric {
   label: string;
   value: string;
   icon: string;
+}
+
+interface BirthdayEmployee {
+  id: number;
+  name: string;
+  avatarUrl: string;
+  department: string;
+}
+
+interface AnniversaryEmployee {
+  id: number;
+  name: string;
+  avatarUrl: string;
+  department: string;
+  yearsCompleted: number;
+}
+
+interface NewJoinerEmployee {
+  id: number;
+  name: string;
+  avatarUrl: string;
+  department: string;
+  joiningDateLabel: string;
 }
 
 interface CalendarDay {
@@ -83,7 +107,7 @@ export class EmployeeDashboardComponent implements OnInit {
     { state: 'late', label: 'Late', description: 'Late punch-in recorded' },
     { state: 'half-day', label: 'Half Day', description: 'Half Day Leave' },
     { state: 'leave', label: 'Leave', description: 'Approved leave day' },
-    { state: 'holiday', label: 'Holiday', description: 'Holiday or festival calendar entry' },
+    { state: 'holiday', label: 'Special Day', description: 'Holiday, festival, or important day entry' },
   ];
   readonly calendarActions = [
     { title: 'Apply Leave', subtitle: 'Create leave request', icon: 'event_available', tone: 'blue' as const, route: '/app/attendance/apply-leave' },
@@ -99,6 +123,7 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#1f7aec',
       accentTo: '#64c3ff',
       badge: 'NY',
+      imageUrl: 'assets/images/newyear.jpeg'
     },
     '01-14': {
       title: 'Makar Sankranti',
@@ -107,6 +132,7 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#f59f2a',
       accentTo: '#f7d154',
       badge: 'MS',
+      imageUrl: 'assets/images/pongal.jpeg'
     },
     '01-26': {
       title: 'Republic Day',
@@ -115,6 +141,17 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#ff8f40',
       accentTo: '#1c9d5f',
       badge: 'RD',
+      imageUrl: 'assets/images/rebublicday.jpeg'
+
+    },
+    '03-08': {
+      title: 'Womens Day',
+      type: 'holiday',
+      description: 'Important day recognizing the achievements, leadership, and contributions of women across every field.',
+      accentFrom: '#2d6cdf',
+      accentTo: '#a056f7',
+      badge: 'WD',
+      imageUrl: 'assets/images/womensday.jpeg'
     },
     '04-14': {
       title: 'Ambedkar Jayanthi',
@@ -123,6 +160,18 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#2d6cdf',
       accentTo: '#a056f7',
       badge: 'AJ',
+      imageUrl: 'assets/images/Ambedkar_Jayanthi.jpeg'
+
+    },
+    '06-05': {
+      title: 'Environment Day',
+      type: 'important',
+      description: 'Important awareness day to promote sustainability, responsibility, and green initiatives across the workplace.',
+      accentFrom: '#0f9d58',
+      accentTo: '#5ccf8e',
+      badge: 'ED',
+      imageUrl: 'assets/images/Environment_Day.jpeg'
+
     },
     '05-01': {
       title: 'Labour Day',
@@ -131,6 +180,17 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#0e9f6e',
       accentTo: '#6bd3a6',
       badge: 'LD',
+      imageUrl: 'assets/images/labourday.jpeg'
+
+    },
+    '07-01': {
+      title: 'Founders Day',
+      type: 'important',
+      description: 'Important company day celebrating the journey, culture, and milestones that shaped the organization.',
+      accentFrom: '#4f46e5',
+      accentTo: '#8b5cf6',
+      badge: 'FD',
+      imageUrl: 'assets/images/Founders.jpeg'
     },
     '08-15': {
       title: 'Independence Day',
@@ -139,6 +199,16 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#f28b2e',
       accentTo: '#0f9d58',
       badge: 'ID',
+      imageUrl: 'assets/images/Independence_Day.jpeg'
+    },
+    '09-05': {
+      title: 'Teachers Day',
+      type: 'important',
+      description: 'Important commemorative day honoring mentors, guidance, and the value of learning.',
+      accentFrom: '#2563eb',
+      accentTo: '#60a5fa',
+      badge: 'TD',
+      imageUrl: 'assets/images/Teachers_day.jpeg'
     },
     '10-02': {
       title: 'Gandhi Jayanti',
@@ -147,6 +217,26 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#4f86ed',
       accentTo: '#9bc1ff',
       badge: 'GJ',
+      imageUrl: 'assets/images/Gandhi_Jayanti.jpeg'
+    },
+    '11-14': {
+      title: 'Childrens Day',
+      type: 'important',
+      description: 'Important observance celebrating joy, care, and the importance of nurturing the next generation.',
+      accentFrom: '#ec4899',
+      accentTo: '#f97316',
+      badge: 'CD',
+      imageUrl: 'assets/images/Childrens_day.jpeg'
+
+    },
+    '11-19': {
+      title: 'Mens Day',
+      type: 'important',
+      description: 'Important day recognizing positive role models, wellbeing, and the contributions of men in families, workplaces, and communities.',
+      accentFrom: '#1f7aec',
+      accentTo: '#4f86ed',
+      badge: 'MD',
+      imageUrl: 'assets/images/mens.jpeg'
     },
     '12-25': {
       title: 'Christmas',
@@ -155,18 +245,25 @@ export class EmployeeDashboardComponent implements OnInit {
       accentFrom: '#1f9d62',
       accentTo: '#dd4b63',
       badge: 'XM',
+      imageUrl: 'assets/images/Christmas.jpeg'
+
     },
   };
 
   greetingName = 'Bob';
+  employeeName = 'Bob';
   heroDate = '';
   heroSubtitle = '';
+  heroWelcomeMessage = '';
   heroImageUrl = '';
   heroRoleLabel = 'Employee';
   monthLabel = '';
   calendarWeeks: CalendarDay[][] = [];
   selectedCalendarDay: CalendarDay | null = null;
   viewedDate = new Date();
+  birthdaysToday: BirthdayEmployee[] = [];
+  anniversariesToday: AnniversaryEmployee[] = [];
+  newJoiners: NewJoinerEmployee[] = [];
 
   statCards: EmployeeStatCard[] = [];
 
@@ -174,17 +271,20 @@ export class EmployeeDashboardComponent implements OnInit {
     { title: 'Apply Leave', subtitle: 'Request planned leave in seconds', icon: 'event_available', tone: 'blue', route: '/app/attendance/apply-leave' },
     { title: 'Regularize Swipe', subtitle: 'Correct missed or late punches', icon: 'fingerprint', tone: 'orange', route: '/app/attendance/regularize-swipe' },
     { title: 'Permission Request', subtitle: 'Submit short-time approval', icon: 'verified_user', tone: 'purple', route: '/app/attendance/permission-request' },
+    { title: 'Request OD', subtitle: 'Submit on-duty movement for field visits, client meetings, or travel work', icon: 'work_history', tone: 'orange', route: '/app/attendance/request-od' },
     { title: 'Attendance Report', subtitle: 'Review monthly attendance summary', icon: 'insights', tone: 'teal', route: '/app/reports' },
   ];
 
-  constructor(private authService: AuthService, private apiService: ApiService, private router: Router) {}
+  constructor(private authService: AuthService, private apiService: ApiService, private router: Router) { }
 
   ngOnInit(): void {
-    this.greetingName = this.resolveGreetingName();
+    this.employeeName = this.resolveEmployeeName();
+    this.greetingName = this.resolveFirstName(this.employeeName);
     this.heroDate = this.formatHeroDate(new Date());
     this.heroSubtitle = this.resolveHeroSubtitle(this.authService.getRole());
     this.heroRoleLabel = this.formatRoleLabel(this.authService.getRole());
-    this.heroImageUrl = this.buildFallbackAvatar(this.greetingName);
+    this.heroWelcomeMessage = this.buildWelcomeMessage(this.greetingName);
+    this.heroImageUrl = this.buildFallbackAvatar(this.employeeName);
     this.viewedDate = new Date();
     this.viewedDate.setDate(1);
     this.rebuildCalendar();
@@ -204,6 +304,24 @@ export class EmployeeDashboardComponent implements OnInit {
 
   trackByState(_index: number, item: AttendanceLegendItem): AttendanceState {
     return item.state;
+  }
+
+  trackByEmployeeId(_index: number, item: { id: number }): number {
+    return item.id;
+  }
+
+  onEmployeeImageError(event: Event, employeeName?: string): void {
+    const target = event.target as HTMLImageElement | null;
+    if (target) {
+      target.src = this.buildFallbackAvatar(employeeName || 'Employee');
+    }
+  }
+
+  onSpecialEventImageError(event: Event, specialEvent: CalendarEvent): void {
+    const target = event.target as HTMLImageElement | null;
+    if (target) {
+      target.src = this.buildEventImage(specialEvent);
+    }
   }
 
   selectCalendarDay(day: CalendarDay): void {
@@ -320,24 +438,44 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   getEventTypeLabel(type: CalendarEventType): string {
-    return type === 'festival' ? 'Festival' : 'Holiday';
+    switch (type) {
+      case 'festival':
+        return 'Festival';
+      case 'important':
+        return 'Important Day';
+      case 'holiday':
+      default:
+        return 'Holiday';
+    }
   }
 
-  private resolveGreetingName(): string {
+  // getEventTypeLabel(type: CalendarEventType): string {
+  //   return type === 'festival' ? 'Festival' : 'Holiday';
+  // }
+
+  private resolveEmployeeName(): string {
     const employeeName = `${this.authService.getEmpname() || ''}`.trim();
     if (employeeName) {
-      return employeeName.split(' ')[0];
+      return employeeName;
     }
 
     const username = `${this.authService.getUsername() || ''}`.trim();
     if (username) {
-      const firstToken = username.split('@')[0].split(/[._-]/)[0];
-      if (firstToken) {
-        return firstToken.charAt(0).toUpperCase() + firstToken.slice(1);
+      const parts = username.split('@')[0].split(/[._-]/).filter(Boolean);
+      if (parts.length) {
+        return parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
       }
     }
 
     return 'Bob';
+  }
+
+  private resolveFirstName(name: string): string {
+    return name.split(' ').filter(Boolean)[0] || 'Bob';
+  }
+
+  private buildWelcomeMessage(name: string): string {
+    return `Welcome back, ${name}! Wishing you a productive and successful day.`;
   }
 
   private resolveHeroSubtitle(role: AppRole | null): string {
@@ -370,16 +508,20 @@ export class EmployeeDashboardComponent implements OnInit {
           return;
         }
 
+        this.populatePeopleCards(employees);
+
         const currentEmployee = this.findCurrentEmployee(employees) || employees[0];
         if (!currentEmployee) {
           return;
         }
 
         const fullName = this.getEmployeeFullName(currentEmployee);
-        this.greetingName = this.resolveDisplayName(fullName, currentEmployee.username, currentEmployee.email);
+        this.employeeName = fullName || this.resolveAccountDisplayName(currentEmployee.username, currentEmployee.email) || this.employeeName;
+        this.greetingName = this.resolveFirstName(this.employeeName);
         this.heroSubtitle = this.resolveEmployeeSubtitle(currentEmployee);
         this.heroRoleLabel = currentEmployee.role || this.heroRoleLabel;
         this.heroImageUrl = this.resolveEmployeeImage(currentEmployee);
+        this.heroWelcomeMessage = this.buildWelcomeMessage(this.greetingName);
       },
       error: (error) => {
         console.error('Error loading employee hero context:', error);
@@ -407,20 +549,18 @@ export class EmployeeDashboardComponent implements OnInit {
     return `${employee.firstname || ''} ${employee.lastname || ''}`.trim();
   }
 
-  private resolveDisplayName(fullName: string, username?: string, email?: string): string {
-    if (fullName) {
-      return fullName.split(' ')[0];
-    }
-
+  private resolveAccountDisplayName(username?: string, email?: string): string {
     const source = `${username || email || ''}`.trim();
     if (source) {
-      const firstToken = source.split('@')[0].split(/[._-]/)[0];
-      if (firstToken) {
-        return firstToken.charAt(0).toUpperCase() + firstToken.slice(1);
-      }
+      return source
+        .split('@')[0]
+        .split(/[._-]/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
     }
 
-    return this.greetingName;
+    return '';
   }
 
   private resolveEmployeeSubtitle(employee: Partial<Employee>): string {
@@ -448,8 +588,47 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   private resolveEmployeeImage(employee: Partial<Employee>): string {
-    const imageUrl = `${employee.profile_image_url || employee.image_url || ''}`.trim();
-    return imageUrl || this.buildFallbackAvatar(this.getEmployeeFullName(employee) || this.greetingName);
+    const imageUrl = this.normalizeImagePath(employee.profile_image_url || employee.image_url || '');
+    const normalizedName = this.getEmployeeDisplayName(employee);
+
+    if (!imageUrl) {
+      return this.buildFallbackAvatar(normalizedName);
+    }
+
+    return this.buildAbsoluteImageUrl(imageUrl) || this.buildFallbackAvatar(normalizedName);
+  }
+
+  private getEmployeeDisplayName(employee: Partial<Employee>): string {
+    return this.getEmployeeFullName(employee) || this.resolveAccountDisplayName(employee.username, employee.email) || 'Employee';
+  }
+
+  private normalizeImagePath(imageValue: unknown): string {
+    const candidate = `${imageValue || ''}`.trim();
+    if (!candidate) {
+      return '';
+    }
+
+    if (candidate.startsWith('data:') || candidate.startsWith('blob:')) {
+      return '';
+    }
+
+    return candidate.replace(/\\/g, '/');
+  }
+
+  private buildAbsoluteImageUrl(imagePath: string): string {
+    if (!imagePath) {
+      return '';
+    }
+
+    if (/^(https?:)?\/\//i.test(imagePath) || imagePath.startsWith('/assets/')) {
+      return imagePath;
+    }
+
+    if (imagePath.startsWith('/')) {
+      return `http://192.168.1.105:8081${imagePath}`;
+    }
+
+    return `http://192.168.1.105:8081/${imagePath.replace(/^\/+/, '')}`;
   }
 
   private formatRoleLabel(role: AppRole | null | string): string {
@@ -495,6 +674,90 @@ export class EmployeeDashboardComponent implements OnInit {
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
     const day = `${date.getDate()}`.padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private populatePeopleCards(employees: Employee[]): void {
+    const today = new Date();
+    const activeEmployees = employees.filter((employee) => employee && employee.isactive !== false && !employee.isdelete);
+
+    this.birthdaysToday = activeEmployees
+      .filter((employee) => this.isSameMonthDay(employee.date_of_birth, today))
+      .map((employee) => ({
+        id: employee.id,
+        name: this.getEmployeeDisplayName(employee),
+        avatarUrl: this.resolveEmployeeImage(employee),
+        department: `${employee.department_name || ''}`.trim(),
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    this.anniversariesToday = activeEmployees
+      .filter((employee) => this.isSameMonthDay(employee.joining_date, today))
+      .map((employee) => ({
+        id: employee.id,
+        name: this.getEmployeeDisplayName(employee),
+        avatarUrl: this.resolveEmployeeImage(employee),
+        department: `${employee.department_name || ''}`.trim(),
+        yearsCompleted: this.getCompletedYears(employee.joining_date, today),
+      }))
+      .filter((employee) => employee.yearsCompleted > 0)
+      .sort((left, right) => right.yearsCompleted - left.yearsCompleted || left.name.localeCompare(right.name));
+
+    this.newJoiners = activeEmployees
+      .map((employee) => ({
+        employee,
+        joiningDate: this.parseDate(employee.joining_date),
+      }))
+      .filter((item) => !!item.joiningDate)
+      .filter((item) => this.getDaysDifference(item.joiningDate as Date, today) <= 5 && this.getDaysDifference(item.joiningDate as Date, today) >= 0)
+      .sort((left, right) => (right.joiningDate as Date).getTime() - (left.joiningDate as Date).getTime())
+      .map((item) => ({
+        id: item.employee.id,
+        name: this.getEmployeeDisplayName(item.employee),
+        avatarUrl: this.resolveEmployeeImage(item.employee),
+        department: `${item.employee.department_name || ''}`.trim(),
+        joiningDateLabel: this.formatShortDate(item.joiningDate as Date),
+      }));
+  }
+
+  private parseDate(value: string | null | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private isSameMonthDay(value: string | null | undefined, reference: Date): boolean {
+    const parsed = this.parseDate(value);
+    if (!parsed) {
+      return false;
+    }
+
+    return parsed.getMonth() === reference.getMonth() && parsed.getDate() === reference.getDate();
+  }
+
+  private getCompletedYears(value: string | null | undefined, reference: Date): number {
+    const parsed = this.parseDate(value);
+    if (!parsed) {
+      return 0;
+    }
+
+    return Math.max(reference.getFullYear() - parsed.getFullYear(), 0);
+  }
+
+  private getDaysDifference(startDate: Date, endDate: Date): number {
+    const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+    const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+    return Math.floor((end - start) / 86400000);
+  }
+
+  private formatShortDate(date: Date): string {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   }
 
   private rebuildCalendar(selectedDate?: Date): void {
@@ -696,9 +959,15 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   private resolveEventTooltipLabel(specialEvent: CalendarEvent): string {
-    return specialEvent.type === 'festival'
-      ? `Festival: ${specialEvent.title}`
-      : `Important Date: ${specialEvent.title}`;
+    switch (specialEvent.type) {
+      case 'festival':
+        return `Festival: ${specialEvent.title}`;
+      case 'important':
+        return `Important Day: ${specialEvent.title}`;
+      case 'holiday':
+      default:
+        return `Holiday: ${specialEvent.title}`;
+    }
   }
 
   private buildAttendanceDetails(date: Date, state: AttendanceState, specialEvent: CalendarEvent | null): AttendanceRecord {
@@ -802,14 +1071,45 @@ export class EmployeeDashboardComponent implements OnInit {
       return null;
     }
 
-    return {
+    const normalizedEvent: CalendarEventSeed = {
       ...eventSeed,
-      imageUrl: this.buildEventImage(eventSeed),
+      description: this.normalizeSpecialEventDescription(eventSeed),
+      imageUrl: this.normalizeSpecialEventImage(eventSeed.imageUrl),
+    };
+
+    return {
+      ...normalizedEvent,
     };
   }
 
+  private normalizeSpecialEventDescription(eventSeed: CalendarEventSeed): string {
+    const description = `${eventSeed.description || ''}`.trim();
+    if (description) {
+      return description;
+    }
+
+    return `${eventSeed.title} is highlighted on the calendar for this date.`;
+  }
+
+  private normalizeSpecialEventImage(imageUrl: string): string {
+    const normalized = `${imageUrl || ''}`.trim().replace(/\\/g, '/').replace(/^\.?\//, '');
+    if (!normalized) {
+      return '';
+    }
+
+    if (/^(https?:)?\/\//i.test(normalized) || normalized.startsWith('/assets/')) {
+      return normalized;
+    }
+
+    if (normalized.startsWith('assets/')) {
+      return normalized;
+    }
+
+    return `assets/${normalized.replace(/^\/+/, '')}`;
+  }
+
   private buildEventImage(eventSeed: CalendarEventSeed): string {
-    const eventType = eventSeed.type === 'festival' ? 'Festival' : 'Holiday';
+    const eventType = this.getEventTypeLabel(eventSeed.type);
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-label="${eventSeed.title}">
         <defs>

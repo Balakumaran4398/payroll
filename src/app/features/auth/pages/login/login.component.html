@@ -45,9 +45,9 @@
               <mat-icon>mail_outline</mat-icon>
               <input type="email" formControlName="username" placeholder="employee@company.com" autocomplete="email" />
             </div>
-            <small class="error-text" *ngIf="hasControlError(signInForm, 'email', 'required')">Email is
+            <small class="error-text" *ngIf="hasControlError(signInForm, 'username', 'required')">Email is
               required.</small>
-            <small class="error-text" *ngIf="hasControlError(signInForm, 'email', 'email')">Enter a valid email
+            <small class="error-text" *ngIf="hasControlError(signInForm, 'username', 'email')">Enter a valid email
               address.</small>
 
             <label class="field-label">Password</label>
@@ -97,26 +97,48 @@
 
           <form class="auth-form" *ngIf="activeView === 'signUp'" [formGroup]="signUpForm" (ngSubmit)="submitSignUp()"
             novalidate>
-            <label class="field-label">Employee Name</label>
+            <label class="field-label">Company Name</label>
             <div class="field" [class.invalid]="
                 hasControlError(signUpForm, 'name', 'required') ||
                 hasControlError(signUpForm, 'name', 'minlength')
               ">
               <mat-icon>person_outline</mat-icon>
-              <input type="text" formControlName="name" placeholder="Employee full name" autocomplete="name" />
+              <input type="text" formControlName="name" placeholder="Company full name" autocomplete="name" />
             </div>
-            <small class="error-text" *ngIf="hasControlError(signUpForm, 'name', 'required')">Employee name is
+            <small class="error-text" *ngIf="hasControlError(signUpForm, 'name', 'required')">Company name is
               required.</small>
-            <small class="error-text" *ngIf="hasControlError(signUpForm, 'name', 'minlength')">Name must be at least 2
-              characters.</small>
+            <!-- <small class="error-text" *ngIf="hasControlError(signUpForm, 'name', 'minlength')">Name must be at least 2 characters.</small> -->
 
-            <label class="field-label">Employee Email</label>
+            <label class="field-label">Company Type</label>
+            <mat-form-field appearance="outline" class="auth-select-field"
+              [class.auth-select-field--invalid]="hasControlError(signUpForm, 'companyTypeId', 'required')">
+              <mat-icon matPrefix>apartment</mat-icon>
+              <mat-select formControlName="companyTypeId" placeholder="Select company type">
+                <mat-option *ngFor="let type of businessUnitTypes" [value]="type.id">{{ type.type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <small class="helper-text" *ngIf="loadingBusinessUnitTypes">Loading company types...</small>
+            <small class="error-text" *ngIf="!loadingBusinessUnitTypes && !businessUnitTypes.length">Company types are not available right now.</small>
+            <small class="error-text" *ngIf="hasControlError(signUpForm, 'companyTypeId', 'required')">Company type is required.</small>
+
+            <label class="field-label">Mobile Number</label>
+            <div class="field" [class.invalid]="
+                hasControlError(signUpForm, 'mobile', 'required') ||
+                hasControlError(signUpForm, 'mobile', 'pattern')
+              ">
+              <mat-icon>phone_iphone</mat-icon>
+              <input type="tel" formControlName="mobile" placeholder="Enter mobile number" inputmode="numeric" maxlength="10" />
+            </div>
+            <small class="error-text" *ngIf="hasControlError(signUpForm, 'mobile', 'required')">Mobile number is required.</small>
+            <small class="error-text" *ngIf="hasControlError(signUpForm, 'mobile', 'pattern')">Enter a valid 10 digit mobile number.</small>
+
+            <label class="field-label">Company Email</label>
             <div class="field" [class.invalid]="
                 hasControlError(signUpForm, 'email', 'required') ||
                 hasControlError(signUpForm, 'email', 'email')
               ">
               <mat-icon>alternate_email</mat-icon>
-              <input type="email" formControlName="email" placeholder="employee@company.com" autocomplete="email" />
+              <input type="email" formControlName="email" placeholder="ompany@gmail.com" autocomplete="email" />
             </div>
             <small class="error-text" *ngIf="hasControlError(signUpForm, 'email', 'required')">Email is
               required.</small>
@@ -141,26 +163,12 @@
             <small class="error-text" *ngIf="hasControlError(signUpForm, 'password', 'pattern')">Use at least 8
               characters including a letter and number.</small>
 
-            <label class="field-label">Confirm Password</label>
-            <div class="field" [class.invalid]="
-                hasControlError(signUpForm, 'confirmPassword', 'required') ||
-                hasPasswordMismatch()
-              ">
-              <mat-icon>verified_user</mat-icon>
-              <input [type]="showSignUpConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword"
-                placeholder="Re-enter password" autocomplete="new-password" />
-              <button type="button" class="toggle-btn" (click)="showSignUpConfirmPassword = !showSignUpConfirmPassword"
-                aria-label="Toggle confirm password visibility">
-                <mat-icon>{{ showSignUpConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-            </div>
-            <small class="error-text" *ngIf="hasControlError(signUpForm, 'confirmPassword', 'required')">Confirm your
-              password.</small>
-            <small class="error-text" *ngIf="hasPasswordMismatch()">Passwords do not match.</small>
-
+           
             <div class="action-row">
-              <button class="btn-secondary" type="button" (click)="resetSignUpForm()">Clear</button>
-              <button class="btn-primary" type="submit">Register</button>
+              <button class="btn-secondary" type="button" (click)="resetSignUpForm()" [disabled]="loading">Clear</button>
+              <button class="btn-primary" type="submit" [disabled]="loading || loadingBusinessUnitTypes || !businessUnitTypes.length">
+                <span>{{ loading ? 'Registering...' : 'Register' }}</span>
+              </button>
             </div>
 
             <p class="footnote">

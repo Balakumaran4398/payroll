@@ -41,7 +41,13 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": {
+                  "inline": false
+                }
+              },
               "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
@@ -126,7 +132,6 @@
       }
     }
   },
-  "defaultProject": "rbac-admin-app",
   "cli": {
     "analytics": "caa9c981-8330-47d3-b7c9-47c0dafe104e"
   }

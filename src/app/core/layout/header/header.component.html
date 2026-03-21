@@ -1,72 +1,82 @@
 <mat-toolbar class="topbar" [class.collapsed]="collapsed">
-  <!-- <button mat-icon-button class="topbar__menu-btn" (click)="toggleSidebar.emit()" aria-label="Toggle Sidebar">
-    <mat-icon>menu</mat-icon>
-  </button> -->
-
   <div class="topbar__brand">
-    <span class="brand-logo" (click)="onToggleSidebar()" aria-label="Toggle Sidebar" matTooltip="menu"
-      style="cursor: pointer;">
-      <!-- <mat-icon>menu_open</mat-icon> -->
-      <mat-icon>
-  {{ isSidebarOpen ? 'menu_open' : 'menu' }}
-</mat-icon>
-    </span>
+    <button type="button" class="brand-logo" (click)="onToggleSidebar()" aria-label="Toggle Sidebar" matTooltip="Menu">
+      <mat-icon>{{ isSidebarOpen ? 'menu_open' : 'menu' }}</mat-icon>
+    </button>
     <div class="brand-copy">
-      <p class="brand-copy__title">{{empname}}</p>
+      <p class="brand-copy__title">{{ empname }}</p>
+      <!-- <p class="brand-copy__subtitle">{{ role }} Workspace</p> -->
     </div>
   </div>
 
+
   <span class="spacer"></span>
 
-  <!-- Role-specific quick info -->
-  <div class="topbar__quick-info" *ngIf="getRawRole() === 'ROLE_ADMIN'">
-    <span class="quick-stat">
-      <mat-icon>groups</mat-icon>
-      <span>1,286 Users</span>
-    </span>
+  <div class="topbar__actions">
+  <label *ngIf="!isMobileViewport" class="topbar__search" aria-label="Global search">
+    <mat-icon>search</mat-icon>
+    <input type="text" [placeholder]="searchPlaceholder" />
+    <span class="topbar__search-shortcut">/</span>
+  </label>
+    <button type="button" class="icon-action" aria-label="Notifications" (click)="toggleNotificationsPanel()">
+      <mat-icon>notifications_none</mat-icon>
+      <span class="icon-action__dot" *ngIf="notificationsCount"></span>
+    </button>
+
+    <button type="button" class="avatar-btn" aria-label="Open profile dialog" (click)="toggleProfilePanel()">
+      <span class="avatar-btn__initials">{{ userInitials }}</span>
+      <!-- <span class="avatar-btn__copy">
+        <strong>{{ empname }}</strong>
+        <small>{{ role }}</small>
+      </span>
+      <mat-icon>expand_more</mat-icon> -->
+    </button>
   </div>
-
-  <div class="topbar__quick-info" *ngIf="getRawRole() === 'ROLE_COMPANY' || getRawRole() === 'ROLE_MANAGER'">
-    <span class="quick-stat">
-      <mat-icon>badge</mat-icon>
-      <span>156 Employees</span>
-    </span>
-  </div>
-
-  <!-- <div class="topbar__quick-info" *ngIf="getRawRole() === 'ROLE_EMPLOYEE'">
-    <span class="quick-stat">
-      <mat-icon>check_circle</mat-icon>
-      <span>94.2% Attendance</span>
-    </span>
-  </div> -->
-
-  <button mat-icon-button class="profile-btn" aria-label="Open user profile" (click)="openProfilePanel()">
-    <mat-icon>account_circle</mat-icon>
-  </button>
-
-  <!-- <button mat-flat-button color="primary" class="topbar__signout" (click)="openProfilePanel()">
-    <mat-icon>logout</mat-icon>
-    Signout
-  </button> -->
 </mat-toolbar>
 
+<ng-container *ngIf="notificationPanelOpen">
+  <div class="notifications-stage" [class.notifications-stage--closing]="notificationPanelClosing"
+    (click)="onNotificationsStageClick()">
+    <div class="notifications-stage__backdrop"></div>
+    <section class="notifications-panel" [class.notifications-panel--closing]="notificationPanelClosing"
+      (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="notifications-title">
+      <div class="notifications-panel__header">
+        <div>
+          <p class="notifications-panel__eyebrow">Notifications</p>
+          <h3 id="notifications-title">Latest Updates</h3>
+        </div>
+        <button type="button" class="icon-btn" (click)="closeNotificationsPanel()" aria-label="Close notifications panel">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="notifications-panel__body">
+        <article class="notification-card" *ngFor="let notification of notifications">
+          <span class="notification-card__icon">
+            <mat-icon>{{ notification.icon }}</mat-icon>
+          </span>
+          <div class="notification-card__copy">
+            <strong>{{ notification.title }}</strong>
+            <p>{{ notification.description }}</p>
+            <small>{{ notification.time }}</small>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+</ng-container>
+
 <ng-container *ngIf="profilePanelOpen">
-  <div class="profile-stage" [class.profile-stage--collapsed]="collapsed" [class.profile-stage--closing]="profilePanelClosing">
+  <div class="profile-stage" [class.profile-stage--closing]="profilePanelClosing" (click)="onProfileStageClick()">
     <div class="profile-stage__backdrop"></div>
 
-    <section
-      class="profile-modal"
-      [class.profile-modal--closing]="profilePanelClosing"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="profile-modal-title"
-      (click)="$event.stopPropagation()"
-    >
+    <section class="profile-modal" [class.profile-modal--closing]="profilePanelClosing" role="dialog" aria-modal="true"
+      aria-labelledby="profile-modal-title" (click)="$event.stopPropagation()">
       <div class="profile-modal__header">
         <div>
           <p class="profile-modal__eyebrow">Account center</p>
           <h3 id="profile-modal-title">{{ empname }}</h3>
-          <p class="profile-modal__subtitle">Manage your identity, access, and sign-out actions without leaving the workspace.</p>
+          <p class="profile-modal__subtitle">Review your workspace identity, notifications, and sign-out actions.</p>
         </div>
 
         <button type="button" class="icon-btn" (click)="closeProfilePanel()" aria-label="Close profile dialog">
@@ -101,19 +111,25 @@
           </article>
 
           <article class="profile-detail-card">
-            <span>Role</span>
-            <strong>{{ role }}</strong>
+            <span>Notifications</span>
+            <strong>{{ notificationsCount }} new alerts</strong>
           </article>
+        </div>
+
+        <div class="profile-highlight">
+          <mat-icon>shield</mat-icon>
+          <p>Your session is active. Use this dialog for account info and secure sign-out.</p>
         </div>
       </div>
 
       <div class="profile-modal__actions">
-        <button mat-flat-button color="primary" class="drawer-signout" (click)="requestSignout()">Signout</button>
+        <button mat-stroked-button (click)="closeProfilePanel()">Close</button>
+        <button mat-flat-button color="primary" class="drawer-signout" (click)="requestSignout()">Sign Out</button>
       </div>
 
       <div class="confirm-overlay" *ngIf="confirmDialogOpen">
         <div class="confirm-dialog" (click)="$event.stopPropagation()">
-          <h3>Confirm Signout</h3>
+          <h3>Confirm Sign Out</h3>
           <p>Do you want to sign out and return to the login page?</p>
           <div class="confirm-actions">
             <button mat-stroked-button (click)="cancelSignout()">Cancel</button>

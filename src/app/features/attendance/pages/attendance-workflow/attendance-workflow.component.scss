@@ -4,6 +4,66 @@
   gap: 1.5rem;
 }
 
+.review-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 20px;
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: color-mix(in srgb, var(--theme-primary) 8%, var(--theme-surface) 92%);
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+}
+
+.review-banner__copy {
+  display: grid;
+  gap: 6px;
+}
+
+.review-banner__eyebrow {
+  margin: 0;
+  color: var(--theme-primary) !important;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.review-banner__copy h2,
+.review-banner__copy p {
+  margin: 0;
+}
+
+.review-banner__copy p {
+  color: var(--theme-text-muted);
+}
+
+.review-banner__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.review-banner__status--pending {
+  background: var(--theme-warning-bg);
+  color: var(--theme-warning-text);
+}
+
+.review-banner__status--approved {
+  background: var(--theme-success-bg);
+  color: var(--theme-success-text);
+}
+
+.review-banner__status--cancelled {
+  background: var(--theme-danger-bg);
+  color: var(--theme-danger-text);
+}
+
 .workflow-header {
   display: flex;
   flex-direction: column;
@@ -265,9 +325,15 @@
 }
 
 @media (max-width: 720px) {
+  .review-banner,
   .workflow-card__meta-grid,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .review-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .workflow-card__actions {

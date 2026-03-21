@@ -331,7 +331,33 @@
 }
 
 .table-card {
+  position: relative;
   overflow: hidden;
+}
+
+.table-card--loading {
+  pointer-events: none;
+}
+
+.table-card__loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  padding: 24px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--employee-surface) 86%, transparent), color-mix(in srgb, var(--employee-surface-strong) 92%, transparent)),
+    rgba(255, 255, 255, 0.36);
+  backdrop-filter: blur(8px);
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: var(--employee-muted);
+    font-weight: 600;
+  }
 }
 
 .table-card mat-card-header {
@@ -707,7 +733,11 @@
     }
 
     &[disabled] {
-      opacity: 0.4;
+      opacity: 0.55;
+    }
+
+    .mat-mdc-progress-spinner {
+      margin: auto;
     }
   }
 }
@@ -788,6 +818,10 @@
 
   button {
     border-radius: 14px;
+  }
+
+  .mat-mdc-progress-spinner {
+    margin: auto;
   }
 }
 

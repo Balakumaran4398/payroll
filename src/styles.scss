@@ -14,6 +14,7 @@
   --theme-surface-card: rgba(255, 255, 255, 0.92);
 
   --theme-text-primary: #122a4d;
+  --theme-text-secondary: #445f86;
   --theme-text-muted: #5d7499;
 
   --theme-border-soft: rgba(18, 57, 110, 0.16);
@@ -170,6 +171,7 @@
   --theme-surface-card: rgba(23, 37, 78, 0.9);
 
   --theme-text-primary: #eaf2ff;
+  --theme-text-secondary: #bfd4f8;
   --theme-text-muted: #87aee9;
 
   --theme-border-soft: rgba(147, 182, 231, 0.2);
@@ -293,6 +295,9 @@ h6 {
 
 .mat-divider {
   border-top-color: var(--theme-border-soft) !important;
+}
+.mat-mdc-button:not(:disabled) {
+    color: var(--theme-text-primary) !important;
 }
 
 .mat-card {
@@ -522,4 +527,59 @@ h6 {
 .sidebar--collapsed .brand {
   justify-content: center;
   padding: 0;
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar {
+  --mdc-snackbar-container-color: transparent;
+  --mdc-snackbar-supporting-text-color: inherit;
+  --mat-mdc-snack-bar-button-color: inherit;
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar .mdc-snackbar__surface {
+  min-width: min(420px, calc(100vw - 32px));
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--theme-border-strong) 50%, transparent);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--theme-shadow-strong) 18%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar .mdc-snackbar__label {
+  padding: 16px 18px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar .mat-mdc-snack-bar-action {
+  margin-right: 10px;
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar .mat-mdc-button {
+  min-width: auto;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar--success .mdc-snackbar__surface {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-success-bg) 84%, var(--theme-surface) 16%), color-mix(in srgb, #ffffff 16%, var(--theme-success-bg) 84%));
+  color: var(--theme-success-text);
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar--warning .mdc-snackbar__surface {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-warning-bg) 84%, var(--theme-surface) 16%), color-mix(in srgb, #ffffff 16%, var(--theme-warning-bg) 84%));
+  color: var(--theme-warning-text);
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar--error .mdc-snackbar__surface {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-danger-bg) 84%, var(--theme-surface) 16%), color-mix(in srgb, #ffffff 12%, var(--theme-danger-bg) 88%));
+  color: var(--theme-danger-text);
+}
+
+.mat-mdc-snack-bar-container.app-feedback-snackbar--info .mdc-snackbar__surface {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-primary) 10%, var(--theme-surface) 90%), color-mix(in srgb, var(--theme-secondary) 10%, var(--theme-surface) 90%));
+  color: var(--theme-text-primary);
 }

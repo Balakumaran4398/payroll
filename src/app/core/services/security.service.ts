@@ -6,6 +6,7 @@ import { Injectable } from '@angular/core';
 export class SecurityService {
   private readonly LOGIN_TIMESTAMP_KEY = 'payrol_login_timestamp';
   private loginTimestamp: number | null = null;
+  private readonly sessionStorageRef = sessionStorage;
 
   constructor() {
     this.loadLoginTimestamp();
@@ -14,12 +15,12 @@ export class SecurityService {
   // Set login timestamp for session validation
   setLoginTimestamp(): void {
     this.loginTimestamp = Date.now();
-    localStorage.setItem(this.LOGIN_TIMESTAMP_KEY, this.loginTimestamp.toString());
+    this.sessionStorageRef.setItem(this.LOGIN_TIMESTAMP_KEY, this.loginTimestamp.toString());
   }
 
   // Load login timestamp from localStorage
   private loadLoginTimestamp(): void {
-    const stored = localStorage.getItem(this.LOGIN_TIMESTAMP_KEY);
+    const stored = this.sessionStorageRef.getItem(this.LOGIN_TIMESTAMP_KEY);
     if (stored) {
       this.loginTimestamp = parseInt(stored, 10);
     }
@@ -28,7 +29,7 @@ export class SecurityService {
   // Clear login timestamp on logout
   clearLoginTimestamp(): void {
     this.loginTimestamp = null;
-    localStorage.removeItem(this.LOGIN_TIMESTAMP_KEY);
+    this.sessionStorageRef.removeItem(this.LOGIN_TIMESTAMP_KEY);
   }
 
   // Get session age in minutes

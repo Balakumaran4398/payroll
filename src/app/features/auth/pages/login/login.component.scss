@@ -306,7 +306,50 @@
   font-size: 20px;
 }
 
-.field input {
+.auth-select-field {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.auth-select-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.auth-select-field ::ng-deep .mat-mdc-text-field-wrapper {
+  min-height: 48px;
+  border-radius: 12px;
+  background: var(--theme-auth-field-bg);
+}
+
+.auth-select-field ::ng-deep .mdc-notched-outline__leading,
+.auth-select-field ::ng-deep .mdc-notched-outline__notch,
+.auth-select-field ::ng-deep .mdc-notched-outline__trailing {
+  border-color: var(--theme-auth-field-border) !important;
+}
+
+.auth-select-field ::ng-deep .mat-mdc-form-field-icon-prefix,
+.auth-select-field ::ng-deep .mat-mdc-select-arrow {
+  color: var(--theme-auth-field-icon);
+}
+
+.auth-select-field ::ng-deep .mat-mdc-select-value,
+.auth-select-field ::ng-deep .mat-mdc-select-placeholder {
+  color: var(--theme-auth-field-text);
+  font-size: 0.92rem;
+}
+
+.auth-select-field ::ng-deep .mat-mdc-form-field-flex {
+  align-items: center;
+}
+
+.auth-select-field--invalid ::ng-deep .mdc-notched-outline__leading,
+.auth-select-field--invalid ::ng-deep .mdc-notched-outline__notch,
+.auth-select-field--invalid ::ng-deep .mdc-notched-outline__trailing {
+  border-color: rgba(255, 161, 172, 0.95) !important;
+}
+
+.field input,
+.field select {
   flex: 1;
   min-width: 0;
   border: 0;
@@ -315,6 +358,15 @@
   color: var(--theme-auth-field-text);
   font-size: 0.92rem;
   font-family: inherit;
+}
+
+.field select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.field select option {
+  color: var(--theme-auth-panel-text);
 }
 
 .field input::placeholder {
@@ -359,6 +411,13 @@
   margin: 5px 0 0;
   font-size: 0.74rem;
   color: #f30018;
+}
+
+.helper-text {
+  display: block;
+  margin: 5px 0 0;
+  font-size: 0.74rem;
+  color: var(--auth-text-muted);
 }
 
 .inline-row {

@@ -3,7 +3,8 @@ import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators }
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { AuthService } from 'src/app/core/services/auth.service';
+import { AuthService, BusinessUnitType } from 'src/app/core/services/auth.service';
+import { TokenStorageService } from 'src/app/core/services/token-storage.service';
 
 type AuthView = 'signIn' | 'signUp' | 'forgot';
 
@@ -73,12 +74,14 @@ export class LoginComponent implements OnInit {
   signInForm: FormGroup;
   signUpForm: FormGroup;
   forgotPasswordForm: FormGroup;
+  businessUnitTypes: BusinessUnitType[] = [];
 
   showSignInPassword = false;
   showSignUpPassword = false;
   showSignUpConfirmPassword = false;
 
   loading = false;
+  loadingBusinessUnitTypes = false;
   errorMessage = '';
   successMessage = '';
 
@@ -88,18 +91,21 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute, private storage: TokenStorageService,
+
   ) {
     this.signInForm = this.fb.group({
       username: ['', [Validators.required, Validators.email]],
       // password: ['', [Validators.required, Validators.pattern(this.passwordPattern)]],
-      password: ['', [Validators.required, ]],
+      password: ['', [Validators.required,]],
       rememberMe: [false],
     });
 
     this.signUpForm = this.fb.group(
       {
         name: ['', [Validators.required, Validators.minLength(2)]],
+        companyTypeId: [null, [Validators.required]],
+        mobile: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
         email: ['', [Validators.required, Validators.email]],
         // password: ['', [Validators.required, Validators.pattern(this.passwordPattern)]],
         password: ['', [Validators.required, Validators.pattern(/^.{8,}$/)]],
@@ -126,16 +132,22 @@ export class LoginComponent implements OnInit {
         : rememberedUsername + '@demo.app';
 
       this.signInForm.patchValue({
-        email: rememberedEmail,
+        username: rememberedEmail,
         rememberMe: true,
       });
     }
+
+    this.loadBusinessUnitTypes();
   }
 
   switchView(view: AuthView): void {
     this.activeView = view;
     this.errorMessage = '';
     this.successMessage = '';
+
+    if (view === 'signUp' && !this.businessUnitTypes.length && !this.loadingBusinessUnitTypes) {
+      this.loadBusinessUnitTypes();
+    }
   }
 
   submitSignIn(): void {
@@ -166,34 +178,61 @@ export class LoginComponent implements OnInit {
         },
         error: (err) => {
           if (err.status === 401) {
-            // Unauthorized → wrong username/password
             this.errorMessage = 'Username or Password is incorrect';
           } else if (err.status === 0) {
-            // Network error
             this.errorMessage = 'Server not reachable';
           } else {
-            // Other errors
             this.errorMessage = 'Something went wrong. Please try again';
           }
         }
       });
   }
-
   submitSignUp(): void {
     if (this.signUpForm.invalid) {
       this.signUpForm.markAllAsTouched();
-      return;
     }
 
-    const registeredEmail = this.getControlValue(this.signUpForm, 'email');
-
-    this.signInForm.patchValue({
-      email: registeredEmail,
-      rememberMe: true,
-    });
-
-    this.successMessage = 'Account created successfully. You can sign in when ready.';
     this.errorMessage = '';
+    this.successMessage = '';
+    this.loading = true;
+
+    const registeredEmail = this.getControlValue(this.signUpForm, 'email');
+    const payload = {
+      name: this.getControlValue(this.signUpForm, 'name'),
+      type: Number(this.getControlValue(this.signUpForm, 'companyTypeId')),
+      parent_id: 0,
+      mobile: this.getControlValue(this.signUpForm, 'mobile'),
+      email: registeredEmail,
+      isactive: true,
+      isdelete: false,
+      createddate: '',
+      updateddate: '',
+      password: this.getControlValue(this.signUpForm, 'password'),
+    };
+
+    console.log(payload);
+    this.authService.createCompany(payload).pipe(
+      finalize(() => {
+        
+        this.loading = false;
+      })
+    ).subscribe({
+      next: (response) => {
+        this.signInForm.patchValue({
+          username: registeredEmail,
+          rememberMe: true,
+        });
+        this.resetSignUpForm(true);
+        this.successMessage = this.extractApiMessage(response, 'Account created successfully. You can sign in when ready.');
+        this.activeView = 'signIn';
+      },
+      error: (err) => {
+        this.errorMessage =
+          err?.error?.message ||
+          err?.message ||
+          'Unable to create the account right now. Please try again.';
+      },
+    });
   }
 
   submitForgotPassword(): void {
@@ -218,17 +257,21 @@ export class LoginComponent implements OnInit {
     this.successMessage = '';
   }
 
-  resetSignUpForm(): void {
+  resetSignUpForm(preserveFeedback = false): void {
     this.signUpForm.reset({
       name: '',
+      companyTypeId: this.businessUnitTypes[0]?.id || null,
+      mobile: '',
       email: '',
       password: '',
       confirmPassword: '',
     });
     this.showSignUpPassword = false;
     this.showSignUpConfirmPassword = false;
-    this.errorMessage = '';
-    this.successMessage = '';
+    if (!preserveFeedback) {
+      this.errorMessage = '';
+      this.successMessage = '';
+    }
   }
 
   resetForgotPasswordForm(): void {
@@ -265,6 +308,41 @@ export class LoginComponent implements OnInit {
   private getControlValue(form: FormGroup, controlName: string): any {
     const control = form.get(controlName);
     return control ? control.value : null;
+  }
+
+  private loadBusinessUnitTypes(): void {
+    this.loadingBusinessUnitTypes = true;
+    this.authService.getBusinessUnitTypes().pipe(
+      finalize(() => {
+        this.loadingBusinessUnitTypes = false;
+      })
+    ).subscribe({
+      next: (types) => {
+        this.businessUnitTypes = types;
+        this.storage.saveBusinessUnits(types);
+
+        if (!this.signUpForm.get('companyTypeId')?.value && types.length) {
+          this.signUpForm.patchValue({
+            companyTypeId: types[0].id,
+          });
+        }
+      },
+      error: () => {
+        const cachedTypes = this.storage.getBusinessUnits();
+        this.businessUnitTypes = Array.isArray(cachedTypes) ? cachedTypes : [];
+
+        if (!this.signUpForm.get('companyTypeId')?.value && this.businessUnitTypes.length) {
+          this.signUpForm.patchValue({
+            companyTypeId: this.businessUnitTypes[0].id,
+          });
+        }
+      },
+    });
+  }
+
+  private extractApiMessage(response: any, fallback: string): string {
+    const message = `${response?.message || response?.msg || response?.data?.message || ''}`.trim();
+    return message || fallback;
   }
 
   private static passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {

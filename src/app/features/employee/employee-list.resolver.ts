@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Resolve, ActivatedRouteSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
@@ -7,7 +7,7 @@ import { ApiService } from '../../core/services/api.service';
 @Injectable({
   providedIn: 'root'
 })
-export class EmployeeListResolver implements Resolve<any> {
+export class EmployeeListResolver  {
 
   constructor(private apiService: ApiService) {}
 

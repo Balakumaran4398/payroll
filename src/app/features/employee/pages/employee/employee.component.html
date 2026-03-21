@@ -1,13 +1,11 @@
 <div class="employee-container">
   <div class="employee-shell">
+    <mat-card class="table-card" [class.table-card--loading]="loading">
+      <div *ngIf="loading" class="table-card__loading-overlay" aria-live="polite" aria-busy="true">
+        <mat-spinner diameter="44"></mat-spinner>
+        <p>{{ hasEmployees ? 'Refreshing employee data...' : 'Loading employees...' }}</p>
+      </div>
 
-
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>Loading employees...</p>
-    </div>
-
-    <mat-card *ngIf="!loading" class="table-card">
       <mat-card-header>
         <div class="table-heading">
           <div class="table-heading__copy">
@@ -131,15 +129,22 @@
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let employee">
                 <div class="action-buttons">
-                  <button mat-icon-button matTooltip="View Details" (click)="viewEmployeeDetails(employee)">
+                  <button mat-icon-button matTooltip="View Details" (click)="viewEmployeeDetails(employee)"
+                    [disabled]="isEmployeeDeleting(employee.id)">
                     <mat-icon>visibility</mat-icon>
                   </button>
-                  <button mat-icon-button matTooltip="Edit Employee" (click)="editEmployee(employee)">
+                  <button mat-icon-button matTooltip="Edit Employee" (click)="editEmployee(employee)"
+                    [disabled]="isEmployeeDeleting(employee.id)">
                     <mat-icon>edit</mat-icon>
                   </button>
                   <button mat-icon-button matTooltip="Delete Employee" (click)="deleteEmployee(employee)"
-                    [disabled]="!employee.isactive">
-                    <mat-icon>delete</mat-icon>
+                    [disabled]="!employee.isactive || isEmployeeDeleting(employee.id)"
+                    [attr.aria-label]="isEmployeeDeleting(employee.id) ? 'Deleting employee' : 'Delete Employee'">
+                    <mat-spinner *ngIf="isEmployeeDeleting(employee.id); else deleteIcon" diameter="18"
+                      strokeWidth="3"></mat-spinner>
+                    <ng-template #deleteIcon>
+                      <mat-icon>delete</mat-icon>
+                    </ng-template>
                   </button>
                 </div>
               </td>
@@ -220,17 +225,22 @@
             </div>
 
             <div class="employee-mobile-card__actions">
-              <button mat-stroked-button (click)="openProfileDialog(employee)">
+              <button mat-stroked-button (click)="openProfileDialog(employee)" [disabled]="isEmployeeDeleting(employee.id)">
                 <mat-icon>visibility</mat-icon>
                 Profile
               </button>
-              <button mat-stroked-button (click)="editEmployee(employee)">
+              <button mat-stroked-button (click)="editEmployee(employee)" [disabled]="isEmployeeDeleting(employee.id)">
                 <mat-icon>edit</mat-icon>
                 Edit
               </button>
-              <button mat-flat-button class="mobile-delete-btn" (click)="deleteEmployee(employee)">
-                <mat-icon>delete</mat-icon>
-                Delete
+              <button mat-flat-button class="mobile-delete-btn" (click)="deleteEmployee(employee)"
+                [disabled]="!employee.isactive || isEmployeeDeleting(employee.id)">
+                <mat-spinner *ngIf="isEmployeeDeleting(employee.id); else mobileDeleteLabel" diameter="18"
+                  strokeWidth="3"></mat-spinner>
+                <ng-template #mobileDeleteLabel>
+                  <mat-icon>delete</mat-icon>
+                  Delete
+                </ng-template>
               </button>
             </div>
           </article>
