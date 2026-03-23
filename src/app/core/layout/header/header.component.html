@@ -5,19 +5,32 @@
     </button>
     <div class="brand-copy">
       <p class="brand-copy__title">{{ empname }}</p>
-      <!-- <p class="brand-copy__subtitle">{{ role }} Workspace</p> -->
     </div>
   </div>
-
 
   <span class="spacer"></span>
 
   <div class="topbar__actions">
-  <label *ngIf="!isMobileViewport" class="topbar__search" aria-label="Global search">
-    <mat-icon>search</mat-icon>
-    <input type="text" [placeholder]="searchPlaceholder" />
-    <span class="topbar__search-shortcut">/</span>
-  </label>
+    <label *ngIf="!isMobileViewport" class="topbar__search" aria-label="Global search">
+      <mat-icon>search</mat-icon>
+      <input type="text" [placeholder]="searchPlaceholder" />
+      <span class="topbar__search-shortcut">/</span>
+    </label>
+
+    <button
+      type="button"
+      class="mode-switch"
+      [class.mode-switch--dark]="isDarkMode"
+      [attr.aria-label]="themeToggleLabel"
+      [matTooltip]="themeToggleLabel"
+      (click)="toggleThemeMode()"
+    >
+      <span class="mode-switch__icon">
+        <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
+      </span>
+ 
+    </button>
+
     <button type="button" class="icon-action" aria-label="Notifications" (click)="toggleNotificationsPanel()">
       <mat-icon>notifications_none</mat-icon>
       <span class="icon-action__dot" *ngIf="notificationsCount"></span>
@@ -25,11 +38,6 @@
 
     <button type="button" class="avatar-btn" aria-label="Open profile dialog" (click)="toggleProfilePanel()">
       <span class="avatar-btn__initials">{{ userInitials }}</span>
-      <!-- <span class="avatar-btn__copy">
-        <strong>{{ empname }}</strong>
-        <small>{{ role }}</small>
-      </span>
-      <mat-icon>expand_more</mat-icon> -->
     </button>
   </div>
 </mat-toolbar>

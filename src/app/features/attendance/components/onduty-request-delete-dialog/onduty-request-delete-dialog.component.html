@@ -1,0 +1,31 @@
+<div class="od-delete-dialog">
+  <div class="od-delete-dialog__head">
+    <div class="od-delete-dialog__head-copy">
+      <p class="od-delete-dialog__eyebrow">Confirm action</p>
+      <h2>Delete {{ data.request.display_id }}?</h2>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close OD delete dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="od-delete-dialog__body">
+    <div class="od-delete-dialog__icon">
+      <mat-icon>delete_forever</mat-icon>
+    </div>
+
+    <p class="od-delete-dialog__copy">This will remove the selected OD request after the delete API completes.</p>
+
+    <div class="od-delete-dialog__meta">
+      <span>{{ data.request.employee_name || 'Employee #' + data.request.empid }}</span>
+      <span>{{ data.request.place_of_visit || 'No place' }}</span>
+      <span>{{ data.request.purpose_of_visit || 'No purpose' }}</span>
+    </div>
+  </div>
+
+  <div class="od-delete-dialog__actions">
+    <button mat-stroked-button (click)="close()">Cancel</button>
+    <button mat-flat-button class="danger-action" (click)="confirm()">Delete</button>
+  </div>
+</div>

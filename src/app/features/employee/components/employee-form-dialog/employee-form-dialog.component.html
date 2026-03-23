@@ -1,4 +1,11 @@
 <div class="employee-form-dialog">
+  <div class="dialog-loading" *ngIf="submitting" aria-live="polite" aria-busy="true">
+    <div class="dialog-loading__backdrop"></div>
+    <div class="dialog-loading__panel">
+      <strong>{{ data.mode === 'add' ? 'Creating...' : 'Updating...' }}</strong>
+      <div class="dialog-loading__bar"></div>
+    </div>
+  </div>
   <div class="dialog-head">
     <div class="dialog-head__copy">
       <h2>{{ title }}</h2>
@@ -17,10 +24,10 @@
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
     <div class="dialog-body">
-      <div class="validation-banner" *ngIf="form.invalid && form.touched">
+      <!-- <div class="validation-banner" *ngIf="form.invalid && form.touched">
         <mat-icon>error_outline</mat-icon>
         <span>Please complete all required fields before saving.</span>
-      </div>
+      </div> -->
 
       <section class="form-section form-section--media">
         <div class="form-section__header">
@@ -81,13 +88,13 @@
 
         <div class="form-grid">
           <mat-form-field appearance="outline">
-            <mat-label>First Name <span class="required-mark">*</span></mat-label>
+            <mat-label>First Name </mat-label>
             <input matInput formControlName="firstname">
             <mat-error *ngIf="hasError('firstname')">{{ getErrorMessage('firstname', 'First name') }}</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Last Name <span class="required-mark">*</span></mat-label>
+            <mat-label>Last Name </mat-label>
             <input matInput formControlName="lastname">
             <mat-error *ngIf="hasError('lastname')">{{ getErrorMessage('lastname', 'Last name') }}</mat-error>
           </mat-form-field>
@@ -163,7 +170,7 @@
 
         <div class="form-grid">
           <mat-form-field appearance="outline">
-            <mat-label>Official Email <span class="required-mark">*</span></mat-label>
+            <mat-label>Official Email </mat-label>
             <input matInput type="email" formControlName="email">
             <mat-icon matSuffix class="field-icon">alternate_email</mat-icon>
             <!-- <mat-error *ngIf="hasError('email')">{{ getErrorMessage('email', 'Official email') }}</mat-error> -->
@@ -172,7 +179,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Password <span class="required-mark">*</span></mat-label>
+            <mat-label>Password </mat-label>
             <input matInput [type]="passwordVisible ? 'text' : 'password'" formControlName="password">
             <button type="button" mat-icon-button matSuffix class="password-toggle" (click)="togglePasswordVisibility()"
               [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
@@ -182,7 +189,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Mobile Number <span class="required-mark">*</span></mat-label>
+            <mat-label>Mobile Number </mat-label>
             <input matInput formControlName="mobile" maxlength="10" inputmode="numeric">
              <mat-icon matSuffix
               class="field-icon">phone_iphone</mat-icon>
@@ -216,7 +223,7 @@
 
         <div class="form-grid">
           <mat-form-field appearance="outline">
-            <mat-label>System Role <span class="required-mark">*</span></mat-label>
+            <mat-label>System Role </mat-label>
             <input matInput formControlName="role" [matAutocomplete]="roleAuto" placeholder="Search role">
             <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
             <mat-autocomplete #roleAuto="matAutocomplete" panelClass="employee-autocomplete-panel" autoActiveFirstOption
@@ -230,7 +237,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Department <span class="required-mark">*</span></mat-label>
+            <mat-label>Department </mat-label>
             <input matInput formControlName="department_name" [matAutocomplete]="departmentAuto"
               placeholder="Search department">
             <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
@@ -246,7 +253,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Position <span class="required-mark">*</span></mat-label>
+            <mat-label>Position </mat-label>
             <input matInput formControlName="position" [matAutocomplete]="positionAuto" placeholder="Search position">
             <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
             <mat-autocomplete #positionAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
@@ -260,7 +267,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Shift <span class="required-mark">*</span></mat-label>
+            <mat-label>Shift </mat-label>
             <input matInput formControlName="shift_type" [matAutocomplete]="shiftAuto" placeholder="Search shift">
             <mat-icon matSuffix class="field-icon">arrow_drop_down</mat-icon>
             <mat-autocomplete #shiftAuto="matAutocomplete" panelClass="employee-autocomplete-panel"
@@ -274,7 +281,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Biometric ID <span class="required-mark">*</span></mat-label>
+            <mat-label>Biometric ID </mat-label>
             <input matInput  formControlName="attendanceid">
             <mat-icon matSuffix class="field-icon">fingerprint</mat-icon>
             <mat-error *ngIf="hasError('attendanceid')">{{ getErrorMessage('attendanceid', 'Biometric ID')
@@ -282,7 +289,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Joining Date <span class="required-mark">*</span></mat-label>
+            <mat-label>Joining Date </mat-label>
             <input matInput [matDatepicker]="joiningPicker" formControlName="joining_date">
             <mat-datepicker-toggle matSuffix [for]="joiningPicker"></mat-datepicker-toggle>
             <mat-datepicker #joiningPicker></mat-datepicker>
@@ -323,7 +330,9 @@
       <button type="button" mat-stroked-button class="reset-action" (click)="resetForm()"
         [disabled]="submitting">Reset</button>
       <button type="submit" mat-flat-button class="primary-action" [disabled]="form.invalid || submitting">
-        {{ submitting ? (data.mode === 'add' ? 'Creating...' : 'Saving...') : actionLabel }}
+        <span class="primary-action__content">
+          <span>{{ submitting ? (data.mode === 'add' ? 'Creating...' : 'Updating...') : actionLabel }}</span>
+        </span>
       </button>
     </div>
   </form>

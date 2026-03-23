@@ -6,6 +6,7 @@ import { Injectable } from '@angular/core';
 
 export class TokenStorageService {
   private readonly TOKEN_KEY = 'payrol_token';
+  private readonly ID_KEY = 'payrol_ID';
   private readonly ROLE_KEY = 'payrol_role';
   private readonly COMPANY_ID_KEY = 'payrol_company_id';
   private readonly COMPANY_TYPE_KEY = 'payrol_company_type';
@@ -20,6 +21,13 @@ export class TokenStorageService {
 
   getToken(): string | null {
     return this.authStorage.getItem(this.TOKEN_KEY);
+  }
+  saveID(id: any): void {  
+    this.authStorage.setItem(this.ID_KEY, id);
+  }
+
+  getID(): any | null {
+    return this.authStorage.getItem(this.ID_KEY);
   }
 
   saveRole(roles: any[]): void {

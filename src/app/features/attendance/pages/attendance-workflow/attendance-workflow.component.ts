@@ -1,10 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { timer } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AdminRequestCenterService, AdminRequestItem } from '../../../../core/services/admin-request-center.service';
 import { ApiService } from '../../../../core/services/api.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UiFeedbackService } from '../../../../core/services/ui-feedback.service';
+import { OnDutyRequestViewDialogComponent } from '../../components/onduty-request-view-dialog/onduty-request-view-dialog.component';
+import { OnDutyRequestFormDialogComponent } from '../../components/onduty-request-form-dialog/onduty-request-form-dialog.component';
+import { OnDutyRequestDeleteDialogComponent } from '../../components/onduty-request-delete-dialog/onduty-request-delete-dialog.component';
 
 type WorkflowKey =
   | 'apply-leave'
@@ -12,6 +17,8 @@ type WorkflowKey =
   | 'permission-request'
   | 'request-od'
   | 'raise-query';
+
+type ApprovalStatus = 'Pending' | 'Approved' | 'Rejeted';
 
 interface WorkflowConfig {
   key: WorkflowKey;
@@ -32,6 +39,46 @@ interface LeaveBalanceRow {
   availableBalance: number | string;
   appliedFor: number | string;
   closingBalance: number | string;
+}
+
+interface LeaveTypeOption {
+  id: number;
+  leave_type: string;
+  leave_code: string;
+  isactive: boolean;
+  createddate: string;
+}
+
+type RequestTableStatus = 'Approved' | 'Pending' | 'Rejected';
+type RequestTableStatusFilter = 'all' | RequestTableStatus;
+
+interface WorkflowRequestHistoryItem {
+  id: string;
+  workflow: WorkflowKey;
+  requestType: string;
+  dateTime: string;
+  reason: string;
+  status: RequestTableStatus;
+  createdAt: string;
+  formSnapshot: Record<string, unknown>;
+}
+
+interface OnDutyRequestApiItem {
+  id: number;
+  empid: number;
+  from_date: string;
+  to_date: string;
+  place_of_visit: string;
+  purpose_of_visit: string;
+  comments: string;
+  isactive: boolean;
+  isdelete: boolean;
+  no_of_days: number;
+  approved_by: number | string;
+  approved_status: string;
+  created_date: string;
+  updated_date: string;
+  employee_name: string;
 }
 
 @Component({
@@ -121,11 +168,22 @@ export class AttendanceWorkflowComponent implements OnInit {
     { type: 'L5/ML', currentBalance: 0, alreadyApplied: 0, adjustment: 0, availableBalance: 0, appliedFor: 0, closingBalance: 0 },
   ];
 
-  readonly leaveTypes = ['CL', 'SL', 'LWP', 'Permission', 'OD'];
-  readonly dayTypes = ['Full', 'First Half', 'Second Half'];
+  leaveTypes: LeaveTypeOption[] = [];
+  readonly dayTypes = [
+    { value: 'full', label: 'Full Day' },
+    { value: 'half', label: 'Half Day' },
+  ];
+  readonly dayTypes_1 = [
+    { value: 'first_half', label: 'First Half' },
+    { value: 'second_half', label: 'Second Half' },
+  ];
   readonly permissionTypes = ['Personal', 'Medical', 'Official', 'Emergency'];
   readonly queryCategories = ['Attendance', 'Leave', 'Payroll', 'Access'];
   readonly priorities = ['Low', 'Medium', 'High'];
+  readonly approvalStatusOptions = [
+    { label: 'Approved', value: 'Approved' as ApprovalStatus },
+    { label: 'Rejected', value: 'Rejeted' as ApprovalStatus },
+  ];
 
   appDate = '';
   selectedDate = '';
@@ -133,13 +191,34 @@ export class AttendanceWorkflowComponent implements OnInit {
   reviewRequest: AdminRequestItem | null = null;
   isAdminReview = false;
   isSubmitting = false;
+  loadingHeadline = '';
+  loadingCaption = '';
+  private loadingStartedAt = 0;
+  private historySequence = 1000;
+  readonly deletingHistoryRequestIds = new Set<string>();
+
+  readonly historyStatusFilters: Array<{ label: string; value: RequestTableStatusFilter }> = [
+    { label: 'All', value: 'all' },
+    { label: 'Approved', value: 'Approved' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Rejected', value: 'Rejected' },
+  ];
+  readonly historyPageSizeOptions = [5, 10, 20];
+  historySearchTerm = '';
+  historyStatusFilter: RequestTableStatusFilter = 'all';
+  historyPageSize = 5;
+  historyPageIndex = 0;
+  selectedHistoryRequestId = '';
+  requestHistory: WorkflowRequestHistoryItem[] = this.buildSeedHistory();
+  leaveDocumentDataUrl = '';
+  leaveDocumentName = '';
 
   leaveForm = {
     fromDate: '',
     toDate: '',
-    startDay: 'Full',
-    endDay: 'Full',
-    leaveType: 'CL',
+    startDay: 'full',
+    endDay: 'first_half',
+    leaveType: '',
     reason: '',
   };
 
@@ -168,7 +247,8 @@ export class AttendanceWorkflowComponent implements OnInit {
     purpose_of_visit: '10:00',
     comments: '',
     approved_by: '',
-    isapproved: '',
+    approved_status: 'Pending' as ApprovalStatus,
+    isapproved: false,
   };
 
   queryForm = {
@@ -179,22 +259,24 @@ export class AttendanceWorkflowComponent implements OnInit {
   };
 
   config: WorkflowConfig = this.workflowConfigs['apply-leave'];
-
+  empid: any;
   constructor(
     private route: ActivatedRoute,
     private requestCenter: AdminRequestCenterService,
     private apiService: ApiService,
     private authService: AuthService,
-    private feedback: UiFeedbackService
-  ) {}
+    private feedback: UiFeedbackService,
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit(): void {
-    this.odForm.empid = this.resolveEmployeeId();
-
+    this.empid = this.resolveEmployeeId();
+    this.loadLeaveTypes();
     this.route.data.subscribe((data) => {
       const workflow = (data.workflow as WorkflowKey) || 'apply-leave';
       this.config = this.workflowConfigs[workflow];
       this.requestType = this.config.title;
+      this.loadWorkflowHistory();
     });
 
     this.route.queryParamMap.subscribe((params) => {
@@ -207,6 +289,10 @@ export class AttendanceWorkflowComponent implements OnInit {
       this.patchDates(selectedDate);
       this.patchReviewContext();
     });
+
+    if (!this.selectedHistoryRequestId && this.requestHistory.length) {
+      this.selectedHistoryRequestId = this.requestHistory[0].id;
+    }
   }
 
   get totalLeaveDays(): number {
@@ -222,6 +308,84 @@ export class AttendanceWorkflowComponent implements OnInit {
 
   get currentDateLabel(): string {
     return this.formatReadableDate(this.selectedDate);
+  }
+
+  get isLeaveEndDayDisabled(): boolean {
+    return `${this.leaveForm.startDay || 'full'}`.trim().toLowerCase() === 'full';
+  }
+
+  get submitStatusLabel(): string {
+    return this.loadingHeadline || 'Loading...';
+  }
+
+  get showManagerApprovalPanel(): boolean {
+    return this.authService.hasAnyRole(['ROLE_MANAGER']) && this.config.key === 'request-od';
+  }
+
+  get showPageApiLoading(): boolean {
+    return this.isSubmitting && this.config.key === 'request-od';
+  }
+
+  get approvedStatusLabel(): string {
+    return this.odForm.approved_status === 'Rejeted' ? 'Rejected' : this.odForm.approved_status;
+  }
+
+  get approvalFlagLabel(): string {
+    return this.odForm.isapproved ? 'True' : 'False';
+  }
+
+  get filteredHistoryRequests(): WorkflowRequestHistoryItem[] {
+    const search = this.historySearchTerm.trim().toLowerCase();
+
+    return this.requestHistory.filter((item) => {
+      const matchesStatus = this.historyStatusFilter === 'all' || item.status === this.historyStatusFilter;
+      const matchesSearch =
+        !search ||
+        item.requestType.toLowerCase().includes(search) ||
+        item.dateTime.toLowerCase().includes(search) ||
+        item.reason.toLowerCase().includes(search) ||
+        item.status.toLowerCase().includes(search) ||
+        item.id.toLowerCase().includes(search);
+
+      return matchesStatus && matchesSearch;
+    });
+  }
+
+  get pagedHistoryRequests(): WorkflowRequestHistoryItem[] {
+    const startIndex = this.historyPageIndex * this.historyPageSize;
+    return this.filteredHistoryRequests.slice(startIndex, startIndex + this.historyPageSize);
+  }
+
+  get totalHistoryItems(): number {
+    return this.filteredHistoryRequests.length;
+  }
+
+  get totalHistoryPages(): number {
+    return Math.max(Math.ceil(this.totalHistoryItems / this.historyPageSize), 1);
+  }
+
+  get historyRangeStart(): number {
+    return this.totalHistoryItems ? this.historyPageIndex * this.historyPageSize + 1 : 0;
+  }
+
+  get historyRangeEnd(): number {
+    return Math.min((this.historyPageIndex + 1) * this.historyPageSize, this.totalHistoryItems);
+  }
+
+  get selectedHistoryRequest(): WorkflowRequestHistoryItem | null {
+    return this.requestHistory.find((item) => item.id === this.selectedHistoryRequestId) || null;
+  }
+
+  get approvedHistoryCount(): number {
+    return this.requestHistory.filter((item) => item.status === 'Approved').length;
+  }
+
+  get pendingHistoryCount(): number {
+    return this.requestHistory.filter((item) => item.status === 'Pending').length;
+  }
+
+  get rejectedHistoryCount(): number {
+    return this.requestHistory.filter((item) => item.status === 'Rejected').length;
   }
 
   openTimePicker(input: HTMLInputElement): void {
@@ -260,13 +424,220 @@ export class AttendanceWorkflowComponent implements OnInit {
     }
   }
 
-  submitWorkflow(): void {
-    if (this.config.key !== 'request-od') {
-      this.feedback.info(`${this.config.title} submission is not connected to an API yet.`);
+  onHistorySearchChange(): void {
+    this.updateHistoryPageIndex(true);
+  }
+
+  setHistoryStatusFilter(filter: RequestTableStatusFilter): void {
+    this.historyStatusFilter = filter;
+    this.updateHistoryPageIndex(true);
+  }
+
+  setHistoryPageSize(pageSize: number | string): void {
+    this.historyPageSize = Number(pageSize) || this.historyPageSizeOptions[0];
+    this.updateHistoryPageIndex(true);
+  }
+
+  changeHistoryPage(direction: number): void {
+    const nextPage = this.historyPageIndex + direction;
+    const maxPageIndex = this.totalHistoryPages - 1;
+    this.historyPageIndex = Math.min(Math.max(nextPage, 0), maxPageIndex);
+  }
+
+  viewHistoryRequest(item: WorkflowRequestHistoryItem): void {
+    this.selectedHistoryRequestId = item.id;
+
+    if (item.workflow !== 'request-od') {
       return;
     }
 
-    this.submitOdRequest();
+    this.dialog.open(OnDutyRequestViewDialogComponent, {
+      width: '680px',
+      height: 'calc(100vh - 64px)',
+      maxWidth: 'calc(100vw - 24px)',
+      maxHeight: 'calc(100vh - 64px)',
+      panelClass: ['employee-dialog-panel', 'employee-profile-modal-panel'],
+      position: {
+        top: '64px',
+        right: '0',
+      },
+      hasBackdrop: true,
+      backdropClass: 'employee-dialog-backdrop',
+      autoFocus: false,
+      restoreFocus: false,
+      disableClose: true,
+      data: { request: this.buildOnDutyDialogRequest(item) },
+    });
+  }
+
+  editHistoryRequest(item: WorkflowRequestHistoryItem): void {
+    this.selectedHistoryRequestId = item.id;
+
+    if (item.workflow !== 'request-od') {
+      if (item.workflow !== this.config.key) {
+        this.feedback.info(`Open the ${item.requestType} page to edit this request.`);
+        return;
+      }
+
+      this.applyHistorySnapshot(item);
+      this.feedback.info(`${item.requestType} details loaded into the form.`);
+      return;
+    }
+
+    const dialogRef = this.dialog.open(OnDutyRequestFormDialogComponent, {
+      width: '580px',
+      height: 'calc(100vh - 64px)',
+      maxWidth: 'calc(100vw - 24px)',
+      maxHeight: 'calc(100vh - 64px)',
+      panelClass: ['employee-dialog-panel', 'employee-form-modal-panel'],
+      position: {
+        top: '64px',
+        right: '0',
+      },
+      hasBackdrop: true,
+      backdropClass: 'employee-dialog-backdrop',
+      autoFocus: false,
+      restoreFocus: false,
+      disableClose: true,
+      data: { request: this.buildOnDutyDialogRequest(item) },
+    });
+
+    dialogRef.afterClosed().subscribe((result?: { message?: string }) => {
+      if (!result) {
+        return;
+      }
+
+      this.getondutylist();
+      this.feedback.success(result.message || 'OD request updated successfully.');
+    });
+  }
+
+  cancelHistoryRequest(item: WorkflowRequestHistoryItem): void {
+    this.selectedHistoryRequestId = item.id;
+
+    if (item.workflow !== 'request-od') {
+      if (item.status === 'Rejected') {
+        this.feedback.warning('This request is already rejected.');
+        return;
+      }
+
+      this.requestHistory = this.requestHistory.map((request) =>
+        request.id === item.id ? { ...request, status: 'Rejected' as RequestTableStatus } : request
+      );
+      this.feedback.warning(`${item.requestType} request marked as rejected.`);
+      this.updateHistoryPageIndex();
+      return;
+    }
+
+    const dialogRef = this.dialog.open(OnDutyRequestDeleteDialogComponent, {
+      width: '460px',
+      height: 'calc(100vh - 64px)',
+      maxWidth: 'calc(100vw - 24px)',
+      maxHeight: 'calc(100vh - 64px)',
+      panelClass: ['employee-dialog-panel', 'employee-delete-modal-panel'],
+      position: {
+        top: '64px',
+        right: '0',
+      },
+      hasBackdrop: true,
+      backdropClass: 'employee-dialog-backdrop',
+      autoFocus: false,
+      restoreFocus: false,
+      disableClose: true,
+      data: { request: this.buildOnDutyDialogRequest(item) },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.runDeleteOndutyRequest(item);
+    });
+  }
+
+  resetActiveWorkflowForm(): void {
+    switch (this.config.key) {
+      case 'apply-leave':
+        this.leaveForm = {
+          fromDate: this.selectedDate,
+          toDate: this.selectedDate,
+          startDay: 'full',
+          endDay: 'first_half',
+          leaveType: this.leaveTypes[0]?.leave_code || '',
+          reason: '',
+        };
+        this.leaveDocumentDataUrl = '';
+        this.leaveDocumentName = '';
+        break;
+      case 'regularize-swipe':
+        this.swipeForm = {
+          attendanceDate: this.selectedDate,
+          expectedIn: '09:00',
+          expectedOut: '18:00',
+          actualIn: '09:18',
+          actualOut: '18:22',
+          reason: '',
+        };
+        break;
+      case 'permission-request':
+        this.permissionForm = {
+          permissionDate: this.selectedDate,
+          permissionType: 'Personal',
+          startTime: '14:00',
+          endTime: '16:00',
+          reason: '',
+        };
+        break;
+      case 'request-od':
+        this.odForm = {
+          empid: this.resolveEmployeeId(),
+          from_date: this.selectedDate,
+          to_date: this.selectedDate,
+          place_of_visit: '',
+          purpose_of_visit: '10:00',
+          comments: '',
+          approved_by: '',
+          approved_status: 'Pending',
+          isapproved: false,
+        };
+        break;
+      default:
+        this.queryForm = {
+          category: 'Attendance',
+          priority: 'Medium',
+          subject: '',
+          description: '',
+        };
+        break;
+    }
+  }
+
+  submitWorkflow(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    if (this.config.key === 'request-od') {
+      this.submitOdRequest();
+      return;
+    }
+    if (this.config.key === 'apply-leave') {
+      this.submitLeaveRequest();
+      return;
+    }
+
+    this.submitLocalWorkflow();
+  }
+
+  setApprovedStatus(status: ApprovalStatus): void {
+    this.odForm.approved_status = status;
+    this.odForm.isapproved = status === 'Approved';
+  }
+
+  setApprovalFlag(isApproved: boolean): void {
+    this.odForm.isapproved = isApproved;
+    this.odForm.approved_status = isApproved ? 'Approved' : 'Rejeted';
   }
 
   private patchDates(selectedDate: string): void {
@@ -304,6 +675,44 @@ export class AttendanceWorkflowComponent implements OnInit {
     }
   }
 
+
+  private loadLeaveTypes(): void {
+    this.apiService.getleavetype().subscribe({
+      next: (data: any) => {
+        const source = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+        this.leaveTypes = source
+          .filter((item: any) => item?.isactive !== false)
+          .map((item: any) => ({
+            id: Number(item?.id || 0),
+            leave_type: `${item?.leave_type || item?.leaveType || item?.name || item?.leave_code || ''}`.trim(),
+            leave_code: `${item?.leave_code || item?.leaveCode || item?.code || ''}`.trim(),
+            isactive: item?.isactive !== false,
+            createddate: `${item?.createddate || item?.created_date || ''}`,
+          }))
+          .filter((item: LeaveTypeOption) => !!item.leave_code);
+
+        this.ensureLeaveTypeSelection();
+      },
+      error: () => {
+        this.leaveTypes = [
+          { id: 1, leave_type: 'Casual Leave', leave_code: 'CL', isactive: true, createddate: '' },
+          { id: 2, leave_type: 'Sick Leave', leave_code: 'SL', isactive: true, createddate: '' },
+          { id: 3, leave_type: 'Leave Without Pay', leave_code: 'LWP', isactive: true, createddate: '' },
+        ];
+        this.ensureLeaveTypeSelection();
+      },
+    });
+  }
+
+  private ensureLeaveTypeSelection(): void {
+    const currentLeaveType = `${this.leaveForm.leaveType || ''}`.trim();
+    if (currentLeaveType && this.leaveTypes.some((item) => item.leave_code === currentLeaveType)) {
+      return;
+    }
+
+    this.leaveForm.leaveType = this.leaveTypes[0]?.leave_code || '';
+  }
+
   private toIsoDate(date: Date): string {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -333,37 +742,517 @@ export class AttendanceWorkflowComponent implements OnInit {
     });
   }
 
+  private submitLocalWorkflow(): void {
+    const isPayrollQuery = this.config.key === 'raise-query' && this.queryForm.category === 'Payroll';
+
+    if (!this.validateCurrentWorkflow()) {
+      this.feedback.warning('Fill all required fields before submitting.');
+      return;
+    }
+
+    const historyItem = this.buildHistoryItemFromCurrentWorkflow('Pending');
+    this.startLocalLoading(isPayrollQuery ? 'Creating...' : 'Loading...');
+
+    timer(1200)
+      .pipe(finalize(() => this.stopLocalLoading()))
+      .subscribe(() => {
+        if (historyItem) {
+          this.addHistoryItem(historyItem);
+        }
+
+        if (isPayrollQuery) {
+          this.feedback.success('Payroll request prepared successfully.');
+          return;
+        }
+
+        this.feedback.success(`${this.config.title} submitted successfully.`);
+      });
+  }
+
   private submitOdRequest(): void {
+    const isManagerApproved = this.showManagerApprovalPanel && this.odForm.isapproved;
+
     const payload = {
       ...this.odForm,
-      empid: this.odForm.empid || this.resolveEmployeeId(),
+      empid: this.empid,
       from_date: this.normalizeDateValue(this.odForm.from_date),
       to_date: this.normalizeDateValue(this.odForm.to_date),
       place_of_visit: `${this.odForm.place_of_visit}`.trim(),
       purpose_of_visit: `${this.odForm.purpose_of_visit}`.trim(),
       comments: `${this.odForm.comments}`.trim(),
-      approved_by: `${this.odForm.approved_by}`.trim(),
-      isapproved: `${this.odForm.isapproved}`.trim(),
+      approved_by: this.showManagerApprovalPanel ? this.authService.getUsername() : '',
+      approved_status: this.showManagerApprovalPanel ? (isManagerApproved ? 'Approved' : 'Rejeted') : 'Pending',
+      isapproved: isManagerApproved,
     };
 
-    if (!payload.empid || !payload.from_date || !payload.to_date || !payload.place_of_visit || !payload.purpose_of_visit) {
-      this.feedback.warning('Fill Employee ID, from/to dates, place of visit, and purpose of visit.');
+    if (!payload.from_date || !payload.to_date || !payload.place_of_visit || !payload.purpose_of_visit) {
+      this.feedback.warning('Fill All Input Feild');
       return;
     }
 
-    this.isSubmitting = true;
+    this.startLocalLoading('Loading...');
     this.apiService.getRequestforonduty(payload)
-      .pipe(finalize(() => {
-        this.isSubmitting = false;
-      }))
+      .pipe(finalize(() => this.stopLocalLoading()))
       .subscribe({
         next: () => {
+          this.getondutylist();
           this.feedback.success('OD request submitted successfully.');
         },
         error: () => {
           this.feedback.error('Failed to submit OD request. Please try again.');
         },
       });
+  }
+  onLeaveStartDayChange(value: string): void {
+    const normalizedValue = `${value || 'full'}`.trim().toLowerCase();
+    if (normalizedValue === 'full') {
+      this.leaveForm.endDay = 'first_half';
+      return;
+    }
+
+    if (`${this.leaveForm.endDay || ''}`.trim().toLowerCase() !== 'second_half') {
+      this.leaveForm.endDay = 'first_half';
+    }
+  }
+
+  onLeaveDocumentSelected(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0] || null;
+
+    if (!file) {
+      this.leaveDocumentDataUrl = '';
+      this.leaveDocumentName = '';
+      return;
+    }
+
+    this.leaveDocumentName = file.name || '';
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.leaveDocumentDataUrl = typeof reader.result === 'string' ? reader.result : '';
+    };
+    reader.onerror = () => {
+      this.leaveDocumentDataUrl = '';
+      this.leaveDocumentName = '';
+      this.feedback.error('Failed to read the selected document. Please try again.');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  private submitLeaveRequest(): void {
+    const leaveTypeId = this.getSelectedLeaveTypeId();
+    const fromDate = this.normalizeDateValue(this.leaveForm.fromDate);
+    const toDate = this.normalizeDateValue(this.leaveForm.toDate);
+    const reason = `${this.leaveForm.reason}`.trim();
+
+    if (!fromDate || !toDate || !leaveTypeId || !reason) {
+      this.feedback.warning('Fill All Input Feild');
+      return;
+    }
+
+    if (this.leaveDocumentName && !this.leaveDocumentDataUrl) {
+      this.feedback.warning('Document is still loading. Please wait.');
+      return;
+    }
+
+    const payload = {
+      empid: this.empid,
+      leave_type_id: leaveTypeId,
+      fromdate: fromDate,
+      todate: toDate,
+      leave_mode: this.resolveLeaveMode(),
+      reason,
+      doc_url: this.leaveDocumentDataUrl,
+      filename: this.leaveDocumentName,
+    };
+
+    this.startLocalLoading('Loading...');
+    this.apiService.createLeave(payload)
+      .pipe(finalize(() => this.stopLocalLoading()))
+      .subscribe({
+        next: () => {
+          const historyItem = this.buildHistoryItemFromCurrentWorkflow('Pending');
+          if (historyItem) {
+            this.addHistoryItem(historyItem);
+          }
+          this.feedback.success('Leave request submitted successfully.');
+        },
+        error: () => {
+          this.feedback.error('Failed to submit leave request. Please try again.');
+        },
+      });
+  }
+
+  private getSelectedLeaveTypeId(): number {
+    const selectedLeaveType = this.leaveTypes.find((item) => item.leave_code === `${this.leaveForm.leaveType}`.trim());
+    return selectedLeaveType?.id || 0;
+  }
+
+  private resolveLeaveMode(): string {
+    const normalizedStartDay = `${this.leaveForm.startDay || 'full'}`.trim().toLowerCase();
+    if (normalizedStartDay === 'half') {
+      return `${this.leaveForm.endDay || 'first_half'}`.trim().toLowerCase() === 'second_half' ? 'second_half' : 'first_half';
+    }
+
+    return 'full';
+  }
+
+  private startLocalLoading(headline: string, caption = ''): void {
+    this.loadingStartedAt = Date.now();
+    this.loadingHeadline = headline;
+    this.loadingCaption = caption;
+    this.isSubmitting = true;
+  }
+
+  private addHistoryItem(item: WorkflowRequestHistoryItem): void {
+    this.requestHistory = [item, ...this.requestHistory];
+    this.selectedHistoryRequestId = item.id;
+    this.updateHistoryPageIndex(true);
+  }
+
+  private updateHistoryPageIndex(reset = false): void {
+    if (reset) {
+      this.historyPageIndex = 0;
+      return;
+    }
+
+    const maxPageIndex = Math.max(Math.ceil(this.totalHistoryItems / this.historyPageSize) - 1, 0);
+    this.historyPageIndex = Math.min(this.historyPageIndex, maxPageIndex);
+  }
+
+  private validateCurrentWorkflow(): boolean {
+    switch (this.config.key) {
+      case 'apply-leave':
+        return !!this.leaveForm.fromDate && !!this.leaveForm.toDate && !!`${this.leaveForm.reason}`.trim();
+      case 'regularize-swipe':
+        return !!this.swipeForm.attendanceDate && !!this.swipeForm.expectedIn && !!this.swipeForm.expectedOut && !!`${this.swipeForm.reason}`.trim();
+      case 'permission-request':
+        return !!this.permissionForm.permissionDate && !!this.permissionForm.startTime && !!this.permissionForm.endTime && !!`${this.permissionForm.reason}`.trim();
+      case 'raise-query':
+        return !!this.queryForm.category && !!`${this.queryForm.subject}`.trim() && !!`${this.queryForm.description}`.trim();
+      default:
+        return true;
+    }
+  }
+
+  private applyHistorySnapshot(item: WorkflowRequestHistoryItem): void {
+    switch (item.workflow) {
+      case 'apply-leave':
+        this.leaveForm = { ...this.leaveForm, ...(item.formSnapshot as typeof this.leaveForm) };
+        break;
+      case 'regularize-swipe':
+        this.swipeForm = { ...this.swipeForm, ...(item.formSnapshot as typeof this.swipeForm) };
+        break;
+      case 'permission-request':
+        this.permissionForm = { ...this.permissionForm, ...(item.formSnapshot as typeof this.permissionForm) };
+        break;
+      case 'request-od':
+        this.odForm = { ...this.odForm, ...(item.formSnapshot as typeof this.odForm) };
+        break;
+      case 'raise-query':
+        this.queryForm = { ...this.queryForm, ...(item.formSnapshot as typeof this.queryForm) };
+        break;
+    }
+  }
+
+  private buildHistoryItemFromCurrentWorkflow(status: RequestTableStatus): WorkflowRequestHistoryItem | null {
+    switch (this.config.key) {
+      case 'apply-leave':
+        return this.createHistoryItem(
+          'apply-leave',
+          this.buildDateRangeLabel(this.leaveForm.fromDate, this.leaveForm.toDate),
+          `${this.leaveForm.reason}`.trim() || `${this.leaveForm.leaveType} leave request`,
+          status,
+          { ...this.leaveForm }
+        );
+      case 'regularize-swipe':
+        return this.createHistoryItem(
+          'regularize-swipe',
+          `${this.formatShortDate(this.swipeForm.attendanceDate)} | ${this.swipeForm.actualIn} - ${this.swipeForm.actualOut}`,
+          `${this.swipeForm.reason}`.trim() || 'Swipe regularization request',
+          status,
+          { ...this.swipeForm }
+        );
+      case 'permission-request':
+        return this.createHistoryItem(
+          'permission-request',
+          `${this.formatShortDate(this.permissionForm.permissionDate)} | ${this.permissionForm.startTime} - ${this.permissionForm.endTime}`,
+          `${this.permissionForm.reason}`.trim() || `${this.permissionForm.permissionType} permission request`,
+          status,
+          { ...this.permissionForm }
+        );
+      case 'request-od':
+        return this.createHistoryItem(
+          'request-od',
+          this.buildDateRangeLabel(this.odForm.from_date, this.odForm.to_date),
+          `${this.odForm.purpose_of_visit}`.trim() || `${this.odForm.comments}`.trim() || 'On duty movement request',
+          status,
+          { ...this.odForm }
+        );
+      case 'raise-query':
+        return this.createHistoryItem(
+          'raise-query',
+          this.formatShortDate(this.selectedDate),
+          `${this.queryForm.subject}`.trim() || `${this.queryForm.description}`.trim() || 'Support query',
+          status,
+          { ...this.queryForm }
+        );
+      default:
+        return null;
+    }
+  }
+
+  private createHistoryItem(
+    workflow: WorkflowKey,
+    dateTime: string,
+    reason: string,
+    status: RequestTableStatus,
+    formSnapshot: Record<string, unknown>
+  ): WorkflowRequestHistoryItem {
+    return {
+      id: `REQ-${++this.historySequence}`,
+      workflow,
+      requestType: this.workflowConfigs[workflow].title,
+      dateTime,
+      reason,
+      status,
+      createdAt: this.formatHistoryTimestamp(new Date()),
+      formSnapshot,
+    };
+  }
+  getondutylist(): void {
+    this.apiService.getondutylist(this.empid).subscribe({
+      next: (data: any) => {
+        const requests = this.extractOnDutyRequests(data);
+        this.requestHistory = requests.map((item) => this.mapOnDutyRequestToHistoryItem(item));
+        this.selectedHistoryRequestId = this.requestHistory[0]?.id || '';
+        this.updateHistoryPageIndex(true);
+      },
+      error: () => {
+        this.requestHistory = [];
+        this.selectedHistoryRequestId = '';
+        this.updateHistoryPageIndex(true);
+        this.feedback.error('Failed to load OD request history.');
+      },
+    });
+  }
+
+  private loadWorkflowHistory(): void {
+    if (this.config.key === 'request-od') {
+      this.getondutylist();
+      return;
+    }
+
+    this.requestHistory = this.buildSeedHistory();
+    this.selectedHistoryRequestId = this.requestHistory[0]?.id || '';
+    this.updateHistoryPageIndex(true);
+  }
+
+  private extractOnDutyRequests(data: any): OnDutyRequestApiItem[] {
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (Array.isArray(data?.data)) {
+      return data.data;
+    }
+
+    if (Array.isArray(data?.result)) {
+      return data.result;
+    }
+
+    return [];
+  }
+
+  private mapOnDutyRequestToHistoryItem(item: OnDutyRequestApiItem): WorkflowRequestHistoryItem {
+    const normalizedStatus = this.normalizeRequestStatus(item.approved_status);
+    const reasonParts = [`${item.place_of_visit || ''}`.trim(), `${item.purpose_of_visit || ''}`.trim()].filter(Boolean);
+    const reason = reasonParts.join(' | ') || `${item.comments || ''}`.trim() || 'On duty request';
+
+    return {
+      id: `OD-${item.id}`,
+      workflow: 'request-od',
+      requestType: this.workflowConfigs['request-od'].title,
+      dateTime: this.buildDateRangeLabel(item.from_date, item.to_date),
+      reason,
+      status: normalizedStatus,
+      createdAt: this.formatApiTimestamp(item.created_date || item.updated_date),
+      formSnapshot: {
+        id: item.id,
+        empid: `${item.empid ?? this.empid}`,
+        from_date: item.from_date,
+        to_date: item.to_date,
+        place_of_visit: item.place_of_visit || '',
+        purpose_of_visit: item.purpose_of_visit || '',
+        comments: item.comments || '',
+        approved_by: `${item.approved_by ?? ''}`,
+        approved_status: item.approved_status || 'Pending',
+        isapproved: normalizedStatus === 'Approved',
+        employee_name: item.employee_name || '',
+        no_of_days: item.no_of_days || 0,
+        created_date: item.created_date || '',
+        updated_date: item.updated_date || '',
+      },
+    };
+  }
+
+
+  private buildOnDutyDialogRequest(item: WorkflowRequestHistoryItem): any {
+    const snapshot = item.formSnapshot as Record<string, any>;
+
+    return {
+      id: Number(snapshot.id || this.extractOnDutyRequestId(item)),
+      empid: Number(snapshot.empid || this.empid || 0),
+      employee_name: snapshot.employee_name || '',
+      from_date: snapshot.from_date || '',
+      to_date: snapshot.to_date || '',
+      place_of_visit: snapshot.place_of_visit || '',
+      purpose_of_visit: snapshot.purpose_of_visit || '',
+      comments: snapshot.comments || '',
+      approved_by: snapshot.approved_by || '',
+      approved_status: snapshot.approved_status || item.status,
+      isapproved: snapshot.isapproved ?? item.status === 'Approved',
+      no_of_days: Number(snapshot.no_of_days || 0),
+      created_date: snapshot.created_date || item.createdAt,
+      updated_date: snapshot.updated_date || '',
+      display_id: item.id,
+      display_status: item.status,
+      display_date_time: item.dateTime,
+      display_created_at: item.createdAt,
+      display_reason: item.reason,
+      request_type: item.requestType,
+    };
+  }
+
+  private extractOnDutyRequestId(item: WorkflowRequestHistoryItem): number {
+    const snapshot = item.formSnapshot as Record<string, any>;
+    const rawId = snapshot.id || `${item.id}`.replace(/^OD-/, '');
+    const requestId = Number(rawId);
+    return Number.isFinite(requestId) && requestId > 0 ? requestId : 0;
+  }
+
+  private runDeleteOndutyRequest(item: WorkflowRequestHistoryItem): void {
+    const requestId = this.extractOnDutyRequestId(item);
+    if (!requestId) {
+      this.feedback.error('OD request id is not available.');
+      return;
+    }
+
+    this.deletingHistoryRequestIds.add(item.id);
+    this.apiService.getDeleteOndutyRequest(requestId)
+      .pipe(finalize(() => this.deletingHistoryRequestIds.delete(item.id)))
+      .subscribe({
+        next: () => {
+          this.getondutylist();
+          this.feedback.success('OD request deleted successfully.');
+        },
+        error: () => {
+          this.feedback.error('Failed to delete OD request. Please try again.');
+        },
+      });
+  }
+  private buildSeedHistory(): WorkflowRequestHistoryItem[] {
+    return [
+      this.createHistoryItem('apply-leave', '18 Mar 2026 to 20 Mar 2026', 'Family function leave request', 'Approved', {
+        fromDate: '2026-03-18',
+        toDate: '2026-03-20',
+        startDay: 'full',
+        endDay: 'first_half',
+        leaveType: 'CL',
+        reason: 'Family function leave request',
+      }),
+      this.createHistoryItem('request-od', '17 Mar 2026 to 17 Mar 2026', 'Client visit at Chennai branch', 'Pending', {
+        empid: this.resolveEmployeeId(),
+        from_date: '2026-03-17',
+        to_date: '2026-03-17',
+        place_of_visit: 'Chennai Branch',
+        purpose_of_visit: 'Client visit at Chennai branch',
+        comments: 'Meeting with the implementation team.',
+        approved_by: '',
+        approved_status: 'Pending',
+        isapproved: false,
+      }),
+      this.createHistoryItem('regularize-swipe', '16 Mar 2026 | 09:20 - 18:24', 'Swipe missed due to biometric downtime', 'Rejected', {
+        attendanceDate: '2026-03-16',
+        expectedIn: '09:00',
+        expectedOut: '18:00',
+        actualIn: '09:20',
+        actualOut: '18:24',
+        reason: 'Swipe missed due to biometric downtime',
+      }),
+      this.createHistoryItem('permission-request', '15 Mar 2026 | 14:00 - 16:00', 'Medical consultation permission', 'Approved', {
+        permissionDate: '2026-03-15',
+        permissionType: 'Medical',
+        startTime: '14:00',
+        endTime: '16:00',
+        reason: 'Medical consultation permission',
+      }),
+      this.createHistoryItem('apply-leave', '11 Mar 2026 to 11 Mar 2026', 'Personal work for one day', 'Pending', {
+        fromDate: '2026-03-11',
+        toDate: '2026-03-11',
+        startDay: 'full',
+        endDay: 'first_half',
+        leaveType: 'Permission',
+        reason: 'Personal work for one day',
+      }),
+    ];
+  }
+
+  private buildDateRangeLabel(fromDate: string | Date, toDate: string | Date): string {
+    return `${this.formatShortDate(fromDate)} to ${this.formatShortDate(toDate)}`;
+  }
+
+  private formatShortDate(value: string | Date): string {
+    const normalizedValue = this.normalizeDateValue(value);
+    if (!normalizedValue) {
+      return 'Date not set';
+    }
+
+    const date = new Date(normalizedValue);
+    if (Number.isNaN(date.getTime())) {
+      return normalizedValue;
+    }
+
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  private formatHistoryTimestamp(date: Date): string {
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  private formatApiTimestamp(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value || 'Date not available';
+    }
+
+    return this.formatHistoryTimestamp(date);
+  }
+
+  private normalizeRequestStatus(status: string): RequestTableStatus {
+    return `${status}`.trim().toLowerCase() === 'approved' ? 'Approved' : `${status}`.trim().toLowerCase() === 'rejeted' ? 'Rejected' : 'Pending';
+  }
+
+  private stopLocalLoading(): void {
+    const elapsed = Date.now() - this.loadingStartedAt;
+    const remaining = Math.max(0, 900 - elapsed);
+
+    window.setTimeout(() => {
+      this.isSubmitting = false;
+      this.loadingHeadline = '';
+      this.loadingCaption = '';
+      this.loadingStartedAt = 0;
+    }, remaining);
   }
 
   private normalizeDateValue(value: string | Date): string {
@@ -383,7 +1272,7 @@ export class AttendanceWorkflowComponent implements OnInit {
     return `${value}`;
   }
 
-  private resolveEmployeeId(): string {
-    return this.authService.getUsername() || '';
+  private resolveEmployeeId(): any {
+    return this.authService.getID() || '';
   }
 }

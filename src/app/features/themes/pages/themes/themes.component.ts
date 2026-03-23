@@ -7,13 +7,15 @@ import { ThemeService } from 'src/app/core/services/theme.service';
   styleUrls: ['./themes.component.scss'],
 })
 export class ThemesComponent {
-  themeCards = this.themeService.themePresets;
-  activeThemeId = this.themeService.currentPresetId;
-
+  readonly themeCards = this.themeService.themePresets;
   selectedThemeId = '';
   applyingThemeId = '';
 
   constructor(private themeService: ThemeService) {}
+
+  get activeThemeId(): string {
+    return this.themeService.currentPresetId;
+  }
 
   selectTheme(themeId: string): void {
     this.selectedThemeId = themeId;
@@ -24,9 +26,8 @@ export class ThemesComponent {
 
     setTimeout(() => {
       this.themeService.applyThemeById(themeId);
-      this.activeThemeId = themeId;
       this.selectedThemeId = '';
       this.applyingThemeId = '';
-    }, 800);
+    }, 400);
   }
 }

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-header',
@@ -27,7 +28,10 @@ export class HeaderComponent implements OnInit {
     { title: 'Directory refresh complete', description: 'Employee directory was updated with the latest team data.', time: '1 hour ago', icon: 'groups' },
   ];
 
-  constructor(private authService: AuthService) { }
+  constructor(
+    private authService: AuthService,
+    private themeService: ThemeService,
+  ) { }
 
   ngOnInit(): void {
     this.updateViewportState();
@@ -37,7 +41,6 @@ export class HeaderComponent implements OnInit {
     const rawRole = this.authService.getRole();
     if (!rawRole) return 'Guest';
 
-    // Convert ROLE_* to user-friendly names
     switch (rawRole) {
       case 'ROLE_ADMIN': return 'Admin';
       case 'ROLE_COMPANY': return 'Company';
@@ -54,6 +57,7 @@ export class HeaderComponent implements OnInit {
   get username(): string {
     return this.authService.getUsername() || 'User';
   }
+
   get empname(): string {
     return this.authService.getEmpname() || 'Employee';
   }
@@ -77,6 +81,26 @@ export class HeaderComponent implements OnInit {
       .join('');
 
     return initials || 'US';
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.currentMode === 'dark';
+  }
+
+  get themeToggleLabel(): string {
+    return this.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode';
+  }
+
+  get themeModeLabel(): string {
+    return this.isDarkMode ? 'Dark mode' : 'Light mode';
+  }
+
+  get themeModeHint(): string {
+    return this.isDarkMode ? 'Use light workspace' : 'Use dark workspace';
+  }
+
+  toggleThemeMode(): void {
+    this.themeService.toggleMode();
   }
 
   @HostListener('document:keydown.escape')
@@ -188,8 +212,8 @@ export class HeaderComponent implements OnInit {
   }
 
   onToggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen; // toggle state
-    this.toggleSidebar.emit(); // notify parent
+    this.isSidebarOpen = !this.isSidebarOpen;
+    this.toggleSidebar.emit();
   }
 
   private updateViewportState(): void {

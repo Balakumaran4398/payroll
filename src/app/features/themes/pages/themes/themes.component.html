@@ -1,7 +1,9 @@
 <section class="themes-page">
   <div class="themes-head">
-    <h2>Theme Selection</h2>
-    <p>Choose a dashboard style and apply it globally.</p>
+    <div>
+      <h2>Theme Colors</h2>
+      <p>Choose one of 12 color themes for the full application. Light and dark mode are controlled from the header.</p>
+    </div>
   </div>
 
   <div class="themes-grid">
@@ -12,8 +14,19 @@
       [class.theme-card--selected]="selectedThemeId === card.id"
       (click)="selectTheme(card.id)"
     >
-      <div class="theme-card__preview" [ngStyle]="{ background: card.preview }">
-        <span class="mode-chip">{{ card.mode === 'dark' ? 'Dark' : 'Light' }}</span>
+      <div class="theme-card__preview" [style.background]="card.previewSurface">
+        <span class="theme-card__badge" *ngIf="activeThemeId === card.id">Active</span>
+
+        <div class="theme-card__swatches">
+          <span class="theme-card__swatch" [style.background]="card.preview"></span>
+          <span class="theme-card__swatch theme-card__swatch--accent" [style.background]="card.previewAccent"></span>
+        </div>
+
+        <div class="theme-card__frame">
+          <span class="theme-card__frame-bar" [style.background]="card.preview"></span>
+          <span class="theme-card__frame-line"></span>
+          <span class="theme-card__frame-line theme-card__frame-line--short"></span>
+        </div>
       </div>
 
       <div class="theme-card__content">
@@ -28,7 +41,7 @@
           (click)="applySelectedTheme(card.id); $event.stopPropagation()"
           [disabled]="selectedThemeId !== card.id || applyingThemeId === card.id"
         >
-          <span *ngIf="applyingThemeId !== card.id">Confirm</span>
+          <span *ngIf="applyingThemeId !== card.id">Apply Theme</span>
           <span class="loading" *ngIf="applyingThemeId === card.id">
             <span class="loading__dot"></span>
             Applying...

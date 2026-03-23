@@ -160,10 +160,9 @@
             </div>
             <small class="error-text" *ngIf="hasControlError(signUpForm, 'password', 'required')">Password is
               required.</small>
-            <small class="error-text" *ngIf="hasControlError(signUpForm, 'password', 'pattern')">Use at least 8
-              characters including a letter and number.</small>
-
-           
+            <!-- <small class="error-text" *ngIf="hasControlError(signUpForm, 'password', 'pattern')">Use at least 8
+              characters including a letter and number.</small> -->
+          
             <div class="action-row">
               <button class="btn-secondary" type="button" (click)="resetSignUpForm()" [disabled]="loading">Clear</button>
               <button class="btn-primary" type="submit" [disabled]="loading || loadingBusinessUnitTypes || !businessUnitTypes.length">

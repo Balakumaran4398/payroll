@@ -1,0 +1,77 @@
+<div class="od-view-dialog">
+  <div class="od-view-dialog__head">
+    <div class="od-view-dialog__head-copy">
+      <p class="od-view-dialog__eyebrow">OD request details</p>
+      <h2>{{ data.request.request_type }}</h2>
+      <p>{{ data.request.employee_name || 'Employee #' + data.request.empid }} • {{ data.request.display_date_time }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close OD request dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="od-view-dialog__body">
+    <div class="od-view-dialog__badges">
+      <span class="badge">{{ data.request.display_status }}</span>
+      <span class="badge badge--soft">{{ data.request.display_id }}</span>
+      <span class="badge badge--soft">{{ data.request.display_created_at }}</span>
+    </div>
+
+    <div class="od-view-dialog__grid">
+      <div class="detail-card">
+        <p class="detail-label">Employee</p>
+        <p class="detail-value">{{ data.request.employee_name || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Employee Id</p>
+        <p class="detail-value">{{ data.request.empid || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">From Date</p>
+        <p class="detail-value">{{ data.request.from_date || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">To Date</p>
+        <p class="detail-value">{{ data.request.to_date || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Place of Visit</p>
+        <p class="detail-value">{{ data.request.place_of_visit || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Purpose of Visit</p>
+        <p class="detail-value">{{ data.request.purpose_of_visit || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Comments</p>
+        <p class="detail-value">{{ data.request.comments || 'No comments' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">No. of Days</p>
+        <p class="detail-value">{{ data.request.no_of_days || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Approved By</p>
+        <p class="detail-value">{{ data.request.approved_by || 'Pending' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Approval Status</p>
+        <p class="detail-value">{{ data.request.approved_status || 'Pending' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="od-view-dialog__actions">
+    <button mat-stroked-button (click)="close()">Close</button>
+  </div>
+</div>

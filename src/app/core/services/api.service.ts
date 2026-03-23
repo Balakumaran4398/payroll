@@ -17,12 +17,13 @@ export class ApiService {
         private authService: AuthService
     ) { }
 
-    private getHeaders(): HttpHeaders {
+    private getAuthHeaders(): HttpHeaders {
         const token = this.authService.getToken();
-        return new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : ''
-        });
+        return token ? new HttpHeaders({ 'Authorization': `Bearer ${token}` }) : new HttpHeaders();
+    }
+
+    private getHeaders(): HttpHeaders {
+        return this.getAuthHeaders().set('Content-Type', 'application/json');
     }
 
     // Role-based API endpoint builder
@@ -146,12 +147,16 @@ export class ApiService {
             headers: this.getHeaders()
         });
     }
+    getondutylist(employee_id: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getondutylist?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
     getAttendanceDetails(): Observable<any> {
         const url = this.getRoleBasedUrl('attendance/attendancedetails');
         return this.http.get(url, { headers: this.getHeaders() });
     }
-    getDeleteOndutyRequest(): Observable<any> {
-        const url = this.getRoleBasedUrl('attendance/deleteondutyrequest');
+    getDeleteOndutyRequest(requestId: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/deleteondutyrequest?id=' + requestId);
         return this.http.delete(url, { headers: this.getHeaders() });
     }
 
@@ -182,6 +187,30 @@ export class ApiService {
         const url = this.getRoleBasedUrl('attendance/deleteholiday');
         return this.http.delete(url, { headers: this.getHeaders() });
     }
+    getholidays(companyid: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getholidays?companyid=' + companyid);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+
+    //Leave Type
+    createLeave(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/requestforleave');
+        const headers = requestbody instanceof FormData ? this.getAuthHeaders() : this.getHeaders();
+        return this.http.post(url, requestbody, {
+            headers
+        });
+    }
+    getleavetype(): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getleavetype');
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    editleavedetails(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/editleavedetails');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+
     // Reports APIs
     getReports(): Observable<any> {
         const url = this.getRoleBasedUrl('getreports');

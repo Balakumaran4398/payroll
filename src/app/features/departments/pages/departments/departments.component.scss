@@ -45,13 +45,13 @@
 :host ::ng-deep .toolbar-field .mat-form-field-flex {
   align-items: center;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: color-mix(in srgb, var(--theme-surface) 92%, rgba(255, 255, 255, 0.08));
 }
 
 :host ::ng-deep .toolbar-field .mat-form-field-outline-start,
 :host ::ng-deep .toolbar-field .mat-form-field-outline-gap,
 :host ::ng-deep .toolbar-field .mat-form-field-outline-end {
-  border-color: rgba(148, 163, 184, 0.22) !important;
+  border-color: color-mix(in srgb, var(--theme-border-soft) 80%, transparent) !important;
 }
 
 :host ::ng-deep .toolbar-field .mat-form-field-label,
@@ -73,10 +73,10 @@
   position: relative;
   width: 3.2rem;
   height: 3.2rem;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 78%, transparent);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  background: color-mix(in srgb, var(--theme-surface) 94%, rgba(255, 255, 255, 0.08));
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--theme-shadow-soft) 70%, transparent);
 }
 
 .icon-shell__dot {
@@ -92,8 +92,9 @@
 .breakdown-card,
 .department-card {
   border-radius: 28px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.06);
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
+  box-shadow: 0 20px 44px color-mix(in srgb, var(--theme-shadow-soft) 72%, transparent);
+  background: color-mix(in srgb, var(--theme-surface) 95%, rgba(255, 255, 255, 0.06));
 }
 
 .breakdown-card {
@@ -147,31 +148,31 @@
   background:
     repeating-linear-gradient(
       to right,
-      rgba(148, 163, 184, 0.12) 0,
-      rgba(148, 163, 184, 0.12) calc(25% - 1px),
-      rgba(148, 163, 184, 0.22) calc(25% - 1px),
-      rgba(148, 163, 184, 0.22) 25%
+      color-mix(in srgb, var(--theme-border-soft) 40%, transparent) 0,
+      color-mix(in srgb, var(--theme-border-soft) 40%, transparent) calc(25% - 1px),
+      color-mix(in srgb, var(--theme-border-soft) 72%, transparent) calc(25% - 1px),
+      color-mix(in srgb, var(--theme-border-soft) 72%, transparent) 25%
     );
   overflow: visible;
 }
 
 .chart-row__track--active {
   background:
-    linear-gradient(0deg, rgba(59, 130, 246, 0.09), rgba(59, 130, 246, 0.09)),
+    linear-gradient(0deg, color-mix(in srgb, var(--theme-primary) 10%, transparent), color-mix(in srgb, var(--theme-primary) 10%, transparent)),
     repeating-linear-gradient(
       to right,
-      rgba(148, 163, 184, 0.12) 0,
-      rgba(148, 163, 184, 0.12) calc(25% - 1px),
-      rgba(148, 163, 184, 0.22) calc(25% - 1px),
-      rgba(148, 163, 184, 0.22) 25%
+      color-mix(in srgb, var(--theme-border-soft) 40%, transparent) 0,
+      color-mix(in srgb, var(--theme-border-soft) 40%, transparent) calc(25% - 1px),
+      color-mix(in srgb, var(--theme-border-soft) 72%, transparent) calc(25% - 1px),
+      color-mix(in srgb, var(--theme-border-soft) 72%, transparent) 25%
     );
 }
 
 .chart-row__bar {
   height: 100%;
   border-radius: 0.95rem;
-  background: #050505;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--theme-shadow-strong) 18%, transparent);
 }
 
 .chart-row__tooltip {
@@ -185,9 +186,10 @@
   min-width: 11rem;
   padding: 0.95rem 1rem;
   border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+  background: color-mix(in srgb, var(--theme-surface) 96%, rgba(255, 255, 255, 0.06));
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--theme-shadow-strong) 18%, transparent);
   color: var(--theme-text-primary);
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
 }
 
 .chart-row__tooltip strong {
@@ -200,7 +202,7 @@
   gap: 1rem;
   margin-top: 1rem;
   padding-left: 8.5rem;
-  color: #94a3b8;
+  color: var(--theme-text-muted);
   font-weight: 600;
 }
 
@@ -244,8 +246,8 @@
   width: 3rem;
   height: 3rem;
   border-radius: 1rem;
-  background: rgba(241, 245, 249, 0.95);
-  color: #334155;
+  background: color-mix(in srgb, var(--theme-primary) 12%, var(--theme-surface) 88%);
+  color: var(--theme-text-primary);
 }
 
 .department-card__header h3 {
@@ -265,7 +267,7 @@
 }
 
 .department-card__metric + .department-card__metric {
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  border-top: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
 }
 
 .department-card__metric span {

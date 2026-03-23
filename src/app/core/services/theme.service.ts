@@ -1,7 +1,19 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type ThemePalette = 'ocean' | 'violet' | 'forest' | 'slate' | 'sunset' | 'indigo';
+export type ThemePalette =
+  | 'ocean'
+  | 'sky'
+  | 'cobalt'
+  | 'violet'
+  | 'orchid'
+  | 'rose'
+  | 'sunset'
+  | 'amber'
+  | 'emerald'
+  | 'forest'
+  | 'slate'
+  | 'graphite';
 export type ThemeMode = 'light' | 'dark';
 
 export interface ThemePreset {
@@ -9,125 +21,144 @@ export interface ThemePreset {
   label: string;
   description: string;
   palette: ThemePalette;
-  mode: ThemeMode;
   preview: string;
+  previewAccent: string;
+  previewSurface: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
-  private readonly themeStorageKey = 'rbac-theme-preset';
+  private readonly paletteStorageKey = 'rbac-theme-palette';
+  private readonly modeStorageKey = 'rbac-theme-mode';
 
   readonly themePresets: ThemePreset[] = [
     {
-      id: 'ocean-light',
-      label: 'Ocean Light',
-      description: 'Calm blue tones for everyday dashboards.',
+      id: 'ocean',
+      label: 'Ocean',
+      description: 'Balanced blue with clean teal accents.',
       palette: 'ocean',
-      mode: 'light',
-      preview: 'linear-gradient(135deg, #2e4fae 0%, #33b4b2 100%)',
+      preview: '#2e4fae',
+      previewAccent: '#33b4b2',
+      previewSurface: '#edf2ff',
     },
     {
-      id: 'ocean-dark',
-      label: 'Ocean Dark',
-      description: 'Night-friendly ocean contrast.',
-      palette: 'ocean',
-      mode: 'dark',
-      preview: 'linear-gradient(135deg, #132966 0%, #1f3f8f 100%)',
+      id: 'sky',
+      label: 'Sky',
+      description: 'Bright blue theme with airy highlights.',
+      palette: 'sky',
+      preview: '#2386f6',
+      previewAccent: '#7cc7ff',
+      previewSurface: '#eef7ff',
     },
     {
-      id: 'violet-light',
-      label: 'Violet Light',
-      description: 'Modern purple with clean highlights.',
+      id: 'cobalt',
+      label: 'Cobalt',
+      description: 'Sharper blue for data-heavy screens.',
+      palette: 'cobalt',
+      preview: '#3452d1',
+      previewAccent: '#8393ff',
+      previewSurface: '#eef1ff',
+    },
+    {
+      id: 'violet',
+      label: 'Violet',
+      description: 'Confident purple with a modern feel.',
       palette: 'violet',
-      mode: 'light',
-      preview: 'linear-gradient(135deg, #5a46c0 0%, #7b63f2 100%)',
+      preview: '#6b4fd4',
+      previewAccent: '#a187ff',
+      previewSurface: '#f3efff',
     },
     {
-      id: 'violet-dark',
-      label: 'Violet Dark',
-      description: 'Deep violet for focused work.',
-      palette: 'violet',
-      mode: 'dark',
-      preview: 'linear-gradient(135deg, #2f2478 0%, #4f39a8 100%)',
+      id: 'orchid',
+      label: 'Orchid',
+      description: 'Creative magenta-purple mix with soft contrast.',
+      palette: 'orchid',
+      preview: '#a24cc4',
+      previewAccent: '#df95ff',
+      previewSurface: '#f8efff',
     },
     {
-      id: 'forest-light',
-      label: 'Forest Light',
-      description: 'Balanced green and mint accents.',
-      palette: 'forest',
-      mode: 'light',
-      preview: 'linear-gradient(135deg, #1f7c70 0%, #34b98c 100%)',
+      id: 'rose',
+      label: 'Rose',
+      description: 'Warm pink-red palette with gentle highlights.',
+      palette: 'rose',
+      preview: '#d14b7d',
+      previewAccent: '#ff9ab7',
+      previewSurface: '#fff0f5',
     },
     {
-      id: 'forest-dark',
-      label: 'Forest Dark',
-      description: 'Dark green palette with soft glow.',
-      palette: 'forest',
-      mode: 'dark',
-      preview: 'linear-gradient(135deg, #17584f 0%, #1f6f64 100%)',
-    },
-    {
-      id: 'slate-light',
-      label: 'Slate Light',
-      description: 'Neutral professional gray-blue.',
-      palette: 'slate',
-      mode: 'light',
-      preview: 'linear-gradient(135deg, #3c5a8b 0%, #6288b9 100%)',
-    },
-    {
-      id: 'slate-dark',
-      label: 'Slate Dark',
-      description: 'High-contrast slate for analytics.',
-      palette: 'slate',
-      mode: 'dark',
-      preview: 'linear-gradient(135deg, #1f2f52 0%, #32446d 100%)',
-    },
-    {
-      id: 'sunset-light',
-      label: 'Sunset Light',
-      description: 'Warm coral and amber blend.',
+      id: 'sunset',
+      label: 'Sunset',
+      description: 'Warm orange with softer golden accents.',
       palette: 'sunset',
-      mode: 'light',
-      preview: 'linear-gradient(135deg, #b85a46 0%, #e08d4b 100%)',
+      preview: '#c7633f',
+      previewAccent: '#f0a15c',
+      previewSurface: '#fff3eb',
     },
     {
-      id: 'sunset-dark',
-      label: 'Sunset Dark',
-      description: 'Muted warm tones for evening mode.',
-      palette: 'sunset',
-      mode: 'dark',
-      preview: 'linear-gradient(135deg, #6d2f24 0%, #8e4a32 100%)',
+      id: 'amber',
+      label: 'Amber',
+      description: 'Golden color set suited for bold panels.',
+      palette: 'amber',
+      preview: '#b67a12',
+      previewAccent: '#f2c566',
+      previewSurface: '#fff8ea',
     },
     {
-      id: 'indigo-light',
-      label: 'Indigo Light',
-      description: 'Classic SaaS indigo palette.',
-      palette: 'indigo',
-      mode: 'light',
-      preview: 'linear-gradient(135deg, #3f4ab4 0%, #5e76e2 100%)',
+      id: 'emerald',
+      label: 'Emerald',
+      description: 'Fresh green with brighter mint accents.',
+      palette: 'emerald',
+      preview: '#1d8d67',
+      previewAccent: '#48c89a',
+      previewSurface: '#edf9f4',
     },
     {
-      id: 'indigo-dark',
-      label: 'Indigo Dark',
-      description: 'Deep indigo with subtle glow.',
-      palette: 'indigo',
-      mode: 'dark',
-      preview: 'linear-gradient(135deg, #1f2c70 0%, #32429a 100%)',
+      id: 'forest',
+      label: 'Forest',
+      description: 'Natural green with calm earthy depth.',
+      palette: 'forest',
+      preview: '#2a7d4d',
+      previewAccent: '#75c87d',
+      previewSurface: '#f0f8f2',
+    },
+    {
+      id: 'slate',
+      label: 'Slate',
+      description: 'Professional gray-blue with restrained contrast.',
+      palette: 'slate',
+      preview: '#4f6987',
+      previewAccent: '#9ab0c9',
+      previewSurface: '#f1f5fa',
+    },
+    {
+      id: 'graphite',
+      label: 'Graphite',
+      description: 'Soft charcoal palette for a cleaner neutral look.',
+      palette: 'graphite',
+      preview: '#5b6476',
+      previewAccent: '#a6adba',
+      previewSurface: '#f3f4f7',
     },
   ];
 
   private readonly presetSubject = new BehaviorSubject<ThemePreset>(this.themePresets[0]);
+  private readonly modeSubject = new BehaviorSubject<ThemeMode>('light');
   readonly preset$ = this.presetSubject.asObservable();
+  readonly mode$ = this.modeSubject.asObservable();
 
   initializeTheme(): void {
-    const savedPresetId = this.read(this.themeStorageKey);
+    const savedPresetId = this.read(this.paletteStorageKey);
+    const savedMode = this.read(this.modeStorageKey);
     const matchedPreset = this.themePresets.find((preset) => preset.id === savedPresetId);
+    const modeToApply: ThemeMode = savedMode === 'dark' ? 'dark' : 'light';
     const presetToApply = matchedPreset || this.themePresets[0];
 
     this.presetSubject.next(presetToApply);
-    this.applyPresetToDocument(presetToApply);
+    this.modeSubject.next(modeToApply);
+    this.applyPresetToDocument(presetToApply, modeToApply);
   }
 
   applyThemeById(presetId: string): void {
@@ -137,22 +168,41 @@ export class ThemeService {
     }
 
     this.presetSubject.next(matchedPreset);
-    this.persist(this.themeStorageKey, matchedPreset.id);
-    this.applyPresetToDocument(matchedPreset);
+    this.persist(this.paletteStorageKey, matchedPreset.id);
+    this.applyPresetToDocument(matchedPreset, this.currentMode);
   }
 
   get currentPresetId(): string {
     return this.presetSubject.value.id;
   }
 
-  private applyPresetToDocument(preset: ThemePreset): void {
+  get currentPreset(): ThemePreset {
+    return this.presetSubject.value;
+  }
+
+  get currentMode(): ThemeMode {
+    return this.modeSubject.value;
+  }
+
+  toggleMode(): void {
+    const nextMode: ThemeMode = this.currentMode === 'dark' ? 'light' : 'dark';
+    this.setMode(nextMode);
+  }
+
+  setMode(mode: ThemeMode): void {
+    this.modeSubject.next(mode);
+    this.persist(this.modeStorageKey, mode);
+    this.applyPresetToDocument(this.currentPreset, mode);
+  }
+
+  private applyPresetToDocument(preset: ThemePreset, mode: ThemeMode): void {
     if (typeof document === 'undefined') {
       return;
     }
 
     const root = document.documentElement;
     root.setAttribute('data-theme', preset.palette);
-    root.setAttribute('data-mode', preset.mode);
+    root.setAttribute('data-mode', mode);
   }
 
   private persist(key: string, value: string): void {

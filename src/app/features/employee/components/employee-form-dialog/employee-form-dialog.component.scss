@@ -1,4 +1,5 @@
 .employee-form-dialog {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -9,6 +10,58 @@
   border-radius: 0;
   background: var(--theme-surface);
   color: var(--theme-text-primary);
+}
+
+.dialog-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.dialog-loading__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(246, 250, 255, 0.2);
+  backdrop-filter: blur(1.25px);
+}
+
+.dialog-loading__panel {
+  position: relative;
+  display: grid;
+  gap: 0.75rem;
+  width: min(320px, 100%);
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 14%, transparent);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--theme-shadow-soft) 60%, transparent);
+  text-align: center;
+}
+
+.dialog-loading__panel strong {
+  color: var(--theme-text-primary);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.dialog-loading__bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+}
+
+.dialog-loading__bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--theme-primary) 14%, transparent), var(--theme-primary), color-mix(in srgb, var(--theme-primary) 14%, transparent));
+  animation: employeeDialogLoader 1.1s ease-in-out infinite;
 }
 
 .dialog-head {
@@ -112,6 +165,24 @@
   flex-direction: column;
   min-height: 0;
   flex: 1;
+}
+
+.primary-action__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+
+@keyframes employeeDialogLoader {
+  0% {
+    transform: translateX(-65%);
+  }
+
+  100% {
+    transform: translateX(65%);
+  }
 }
 
 .dialog-body {

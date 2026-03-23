@@ -32,6 +32,7 @@ export interface LoginResponse {
   username: string;
   roles: string[];
   employee_name: string;
+  id: number;
 }
 
 export interface SignUpResponse {
@@ -62,7 +63,7 @@ export class AuthService {
     private router: Router,
     private http: HttpClient,
     private securityService: SecurityService
-  ) {}
+  ) { }
 
   login(payload: LoginPayload): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${AuthService.AUTH_URL()}/signin`, {
@@ -74,6 +75,7 @@ export class AuthService {
         this.storage.saveRole(res.roles);
         this.storage.saveUsername(res.username);
         this.storage.saveEmployee(res.employee_name);
+        this.storage.saveID(res.id);
         this.securityService.setLoginTimestamp();
       })
     );
@@ -161,6 +163,11 @@ export class AuthService {
 
   getToken(): string | null {
     return this.storage.getToken();
+  }
+  getID(): any | null {
+    console.log("ID ===============>",this.storage.getID());
+
+    return this.storage.getID();
   }
 
   getUsername(): string {

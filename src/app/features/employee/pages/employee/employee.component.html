@@ -2,8 +2,10 @@
   <div class="employee-shell">
     <mat-card class="table-card" [class.table-card--loading]="loading">
       <div *ngIf="loading" class="table-card__loading-overlay" aria-live="polite" aria-busy="true">
-        <mat-spinner diameter="44"></mat-spinner>
-        <p>{{ hasEmployees ? 'Refreshing employee data...' : 'Loading employees...' }}</p>
+        <div class="table-card__loading-copy">
+          <strong>{{ hasEmployees ? 'Updating...' : 'Loading...' }}</strong>
+          <div class="table-card__loading-bar"></div>
+        </div>
       </div>
 
       <mat-card-header>

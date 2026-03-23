@@ -60,7 +60,8 @@
 
 .brand-logo:hover,
 .icon-action:hover,
-.avatar-btn:hover {
+.avatar-btn:hover,
+.mode-switch:hover {
   filter: brightness(0.98);
 }
 
@@ -140,10 +141,60 @@
 
 .icon-action,
 .avatar-btn,
-.icon-btn {
+.icon-btn,
+.mode-switch {
   border: 0;
   cursor: pointer;
   font: inherit;
+}
+
+.mode-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px 0 8px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--theme-primary) 8%, transparent);
+  color: var(--theme-text-primary);
+  transition: background 0.22s ease, box-shadow 0.22s ease;
+}
+
+.mode-switch--dark {
+  background: color-mix(in srgb, var(--theme-primary) 14%, transparent);
+}
+
+.mode-switch__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--theme-button-gradient);
+  color: var(--theme-button-text);
+  box-shadow: 0 8px 16px color-mix(in srgb, var(--theme-shadow-strong) 18%, transparent);
+}
+
+.mode-switch__icon .mat-icon {
+  width: 17px;
+  height: 17px;
+  font-size: 17px;
+}
+
+.mode-switch__copy {
+  display: grid;
+  gap: 1px;
+  text-align: left;
+}
+
+.mode-switch__copy strong {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.mode-switch__copy small {
+  color: var(--theme-text-muted);
+  font-size: 0.72rem;
 }
 
 .icon-action {
@@ -638,6 +689,7 @@
 
   .brand-copy__subtitle,
   .avatar-btn__copy,
+  .mode-switch__copy,
   .topbar__search-shortcut {
     display: none;
   }

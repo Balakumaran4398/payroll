@@ -3,8 +3,9 @@ import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators }
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { AuthService, BusinessUnitType } from 'src/app/core/services/auth.service';
+import { AuthService, BusinessUnitType, LoginResponse } from 'src/app/core/services/auth.service';
 import { TokenStorageService } from 'src/app/core/services/token-storage.service';
+import { UiFeedbackService } from 'src/app/core/services/ui-feedback.service';
 
 type AuthView = 'signIn' | 'signUp' | 'forgot';
 
@@ -91,8 +92,9 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute, private storage: TokenStorageService,
-
+    private route: ActivatedRoute,
+    private storage: TokenStorageService,
+    private feedback: UiFeedbackService,
   ) {
     this.signInForm = this.fb.group({
       username: ['', [Validators.required, Validators.email]],
@@ -172,9 +174,15 @@ export class LoginComponent implements OnInit {
       .login(payload)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: () => {
+        next: (response) => {
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/app/dashboard';
-          this.router.navigateByUrl(returnUrl, { replaceUrl: true });
+          const welcomeMessage = this.buildWelcomeMessage(response);
+
+          this.router.navigateByUrl(returnUrl, { replaceUrl: true }).then((navigated) => {
+            if (navigated) {
+              this.feedback.welcome(welcomeMessage);
+            }
+          });
         },
         error: (err) => {
           if (err.status === 401) {
@@ -187,6 +195,22 @@ export class LoginComponent implements OnInit {
         }
       });
   }
+  private buildWelcomeMessage(response: LoginResponse): string {
+    const rawName = `${response.employee_name || response.username || 'Employee'}`.trim();
+    const displayName = rawName.includes('@') ? rawName.split('@')[0] : rawName;
+    const roleName = this.formatRoleLabel(response.roles?.[0] || '');
+    const roleMessage = roleName ? `Your ${roleName} workspace is ready.` : 'Your workspace is ready.';
+
+    return `Welcome ${displayName}. Have a nice day. ${roleMessage}`;
+  }
+
+  private formatRoleLabel(role: string): string {
+    const normalized = `${role || ''}`.replace(/^ROLE_/, '').replace(/_/g, ' ').trim();
+    return normalized
+      .toLowerCase()
+      .replace(/\b\w/g, (character) => character.toUpperCase());
+  }
+
   submitSignUp(): void {
     if (this.signUpForm.invalid) {
       this.signUpForm.markAllAsTouched();

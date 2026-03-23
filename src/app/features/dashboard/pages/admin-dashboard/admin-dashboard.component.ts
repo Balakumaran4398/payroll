@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
-import { Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import { ApiService } from '../../../../core/services/api.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 
@@ -129,7 +129,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applyChartTheme();
-    this.themeSubscription = this.themeService.preset$.subscribe(() => {
+    this.themeSubscription = merge(this.themeService.preset$, this.themeService.mode$).subscribe(() => {
       this.applyChartTheme();
     });
     this.loadDashboardData();

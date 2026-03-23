@@ -1,0 +1,65 @@
+<div class="od-form-dialog">
+  <div class="od-form-dialog__head">
+    <div class="od-form-dialog__head-copy">
+      <p class="od-form-dialog__eyebrow">Edit OD request</p>
+      <h2>{{ request.request_type || 'Request On Duty' }}</h2>
+      <p>{{ request.display_id }} • {{ request.employee_name || 'Employee #' + request.empid }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close OD edit dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="od-form-dialog__body">
+    <div class="od-form-grid">
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>From Date</mat-label>
+        <input matInput [matDatepicker]="fromPicker" [(ngModel)]="request.from_date">
+        <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>To Date</mat-label>
+        <input matInput [matDatepicker]="toPicker" [(ngModel)]="request.to_date">
+        <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Place of Visit</mat-label>
+        <input matInput type="text" [(ngModel)]="request.place_of_visit">
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Purpose of Visit</mat-label>
+        <input matInput type="text" [(ngModel)]="request.purpose_of_visit">
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Approval Status</mat-label>
+        <mat-select [(ngModel)]="request.approved_status">
+          <mat-option *ngFor="let status of approvalStatusOptions" [value]="status">{{ status === 'Rejeted' ? 'Rejected' : status }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Approved By</mat-label>
+        <input matInput type="text" [(ngModel)]="request.approved_by">
+      </mat-form-field>
+
+      <mat-form-field class="field field--full" appearance="outline">
+        <mat-label>Comments</mat-label>
+        <textarea matInput rows="5" [(ngModel)]="request.comments"></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="od-form-dialog__actions">
+    <button mat-stroked-button [disabled]="submitting" (click)="close()">Cancel</button>
+    <button mat-flat-button color="primary" [disabled]="submitting" (click)="save()">
+      {{ submitting ? 'Saving...' : 'Save Changes' }}
+    </button>
+  </div>
+</div>
