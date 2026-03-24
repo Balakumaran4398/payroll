@@ -6,17 +6,13 @@ import { PageEvent } from '@angular/material/paginator';
 import { Sort, SortDirection } from '@angular/material/sort';
 import { finalize } from 'rxjs/operators';
 import { ApiService } from '../../../../core/services/api.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AppRole, AuthService } from '../../../../core/services/auth.service';
 import { UiFeedbackService } from '../../../../core/services/ui-feedback.service';
-import { Employee, EmployeeFormMode } from '../../employee.types';
+import { Employee, EmployeeFormDialogResult, EmployeeFormMode } from '../../employee.types';
 import { EmployeeProfileDialogComponent } from '../../components/employee-profile-dialog/employee-profile-dialog.component';
 import { EmployeeFormDialogComponent } from '../../components/employee-form-dialog/employee-form-dialog.component';
 import { EmployeeDeleteDialogComponent } from '../../components/employee-delete-dialog/employee-delete-dialog.component';
 
-interface EmployeeFormDialogResult {
-  employee: Employee;
-  message?: string;
-}
 
 @Component({
   selector: 'app-employee',
@@ -38,6 +34,9 @@ export class EmployeeComponent implements OnInit {
   sortActive = 'profile';
   sortDirection: SortDirection = 'asc';
   readonly deletingEmployeeIds = new Set<number>();
+  currentRole: AppRole | null = null;
+  currentEmployeeId = 0;
+  currentUsername = '';
 
   displayedColumns: string[] = ['profile', 'contact', 'department', 'personal', 'employment', 'actions'];
 
@@ -75,6 +74,10 @@ export class EmployeeComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.currentRole = this.authService.getRole();
+    this.currentEmployeeId = Number(this.authService.getID() || 0) || 0;
+    this.currentUsername = `${this.authService.getUsername() || ''}`.trim().toLowerCase();
+
     const resolvedData = this.route.snapshot.data['employeeData'];
     if (resolvedData) {
       this.employees = resolvedData;
@@ -354,6 +357,12 @@ export class EmployeeComponent implements OnInit {
   }
 
   openAddEmployeeDialog(): void {
+    const reason = this.getCreateEmployeeDisabledReason();
+    if (reason) {
+      this.feedback.warning(reason);
+      return;
+    }
+
     this.openEmployeeFormDialog('add');
   }
 
@@ -361,11 +370,95 @@ export class EmployeeComponent implements OnInit {
     this.openProfileDialog(employee);
   }
 
+  canCreateEmployee(): boolean {
+    return this.hasFullEmployeeAccess();
+  }
+
+  canEditEmployee(employee: Employee): boolean {
+    if (this.hasFullEmployeeAccess()) {
+      return true;
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return this.isTeamMember(employee);
+    }
+
+    if (this.currentRole === 'ROLE_EMPLOYEE') {
+      return this.isOwnEmployeeRecord(employee);
+    }
+
+    return false;
+  }
+
+  canDeleteEmployee(employee: Employee): boolean {
+    if (this.hasFullEmployeeAccess()) {
+      return true;
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return this.isTeamMember(employee);
+    }
+
+    return false;
+  }
+
+  getCreateEmployeeDisabledReason(): string {
+    return this.canCreateEmployee() ? '' : 'Only admin or company users can add employees.';
+  }
+
+  getEmployeeEditDisabledReason(employee: Employee): string {
+    if (this.canEditEmployee(employee)) {
+      return '';
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return 'Managers can edit only their team members.';
+    }
+
+    if (this.currentRole === 'ROLE_EMPLOYEE') {
+      return 'Employees can edit only their own records.';
+    }
+
+    return 'You do not have permission to edit this employee.';
+  }
+
+  getEmployeeDeleteDisabledReason(employee: Employee): string {
+    if (!employee.isactive) {
+      return 'Only active employees can be deleted.';
+    }
+
+    if (this.canDeleteEmployee(employee)) {
+      return '';
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return 'Managers can delete only their team members.';
+    }
+
+    if (this.currentRole === 'ROLE_EMPLOYEE') {
+      return 'Employees are not allowed to delete employee records.';
+    }
+
+    return 'You do not have permission to delete this employee.';
+  }
+
   editEmployee(employee: Employee): void {
+    const reason = this.getEmployeeEditDisabledReason(employee);
+    if (reason) {
+      this.feedback.warning(reason);
+      return;
+    }
+
     this.openEmployeeFormDialog('edit', employee);
   }
 
   deleteEmployee(employee: Employee): void {
+    const reason = this.getEmployeeDeleteDisabledReason(employee);
+    if (reason) {
+      this.feedback.warning(reason);
+      return;
+    }
+
     const dialogRef = this.dialog.open(EmployeeDeleteDialogComponent, {
       width: '460px',
       height: 'calc(100vh - 64px)',
@@ -401,6 +494,25 @@ export class EmployeeComponent implements OnInit {
     this.searchTerm = '';
     this.statusFilter = 'all';
     this.applyFilters();
+  }
+
+  private hasFullEmployeeAccess(): boolean {
+    return this.currentRole === 'ROLE_ADMIN' || this.currentRole === 'ROLE_COMPANY';
+  }
+
+  private isOwnEmployeeRecord(employee: Employee): boolean {
+    const employeeId = Number(employee.id || 0);
+    const employeeUsername = `${employee.username || employee.email || ''}`.trim().toLowerCase();
+
+    return (!!this.currentEmployeeId && employeeId === this.currentEmployeeId) || (!!this.currentUsername && employeeUsername === this.currentUsername);
+  }
+
+  private isTeamMember(employee: Employee): boolean {
+    if (!this.currentEmployeeId) {
+      return false;
+    }
+
+    return Number(employee.managerid || 0) === this.currentEmployeeId || Number(employee.sub_manager_id || 0) === this.currentEmployeeId;
   }
 
   private openEmployeeFormDialog(mode: EmployeeFormMode, employee?: Employee): void {

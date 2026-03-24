@@ -38,4 +38,9 @@ export interface Employee {
   profile_image_url: string;
 }
 
+export interface EmployeeFormDialogResult {
+  employee: Employee;
+  message?: string;
+}
+
 export type EmployeeFormMode = 'add' | 'edit';

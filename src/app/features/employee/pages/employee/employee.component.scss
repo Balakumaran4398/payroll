@@ -753,29 +753,19 @@
 
 .action-buttons {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+}
 
-  button {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    color: var(--employee-accent-strong);
-    background: var(--employee-hover-surface);
-    transition: transform 0.2s ease, background-color 0.2s ease;
+.action-buttons .theme-action-button,
+.employee-mobile-card__actions .theme-action-button {
+  min-width: 72px;
+}
 
-    &:hover {
-      transform: translateY(-1px);
-      background: var(--employee-accent-soft);
-    }
-
-    &[disabled] {
-      opacity: 0.55;
-    }
-
-    .mat-mdc-progress-spinner {
-      margin: auto;
-    }
-  }
+.action-buttons .mat-mdc-progress-spinner,
+.employee-mobile-card__actions .mat-mdc-progress-spinner {
+  margin: auto;
 }
 
 .employee-mobile-card {
@@ -851,19 +841,6 @@
   flex-wrap: wrap;
   gap: 10px;
   padding-top: 4px;
-
-  button {
-    border-radius: 14px;
-  }
-
-  .mat-mdc-progress-spinner {
-    margin: auto;
-  }
-}
-
-.mobile-delete-btn {
-  background: var(--theme-danger-bg) !important;
-  color: var(--theme-danger-text) !important;
 }
 
 @media (max-width: 1100px) {

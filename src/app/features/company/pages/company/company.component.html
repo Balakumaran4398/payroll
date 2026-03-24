@@ -1,4 +1,216 @@
-<mat-card>
-  <h2>Company Module</h2>
-  <p>Company admins can track organization-level operations here.</p>
-</mat-card>
+<section class="holiday-page">
+  <div class="holiday-page__glow holiday-page__glow--primary" aria-hidden="true"></div>
+  <div class="holiday-page__glow holiday-page__glow--accent" aria-hidden="true"></div>
+
+  <header class="page-header glass-panel">
+    <div class="page-header__copy">
+      <span class="page-header__icon">
+        <mat-icon>calendar_month</mat-icon>
+      </span>
+
+      <div>
+        <h1>Holiday Calendar Management</h1>
+        <p>Configure holidays and weekly offs with a clean, policy-first calendar workspace.</p>
+      </div>
+    </div>
+
+    <div class="year-pill">
+      <span class="year-pill__label">Year</span>
+      <mat-form-field appearance="outline" class="holiday-field holiday-field--pill">
+        <mat-select [(value)]="selectedYear" (valueChange)="onYearChange()">
+          <mat-option *ngFor="let year of years; trackBy: trackByYear" [value]="year">{{ year }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <ng-container *ngIf="!isLoading; else statsSkeleton">
+      <article class="stat-card glass-panel" *ngFor="let card of statsCards; trackBy: trackByLabel"
+        [class]="'stat-card glass-panel stat-card--' + card.tone">
+        <div class="stat-card__icon">
+          <mat-icon>{{ card.icon }}</mat-icon>
+        </div>
+
+        <div class="stat-card__copy">
+          <span>{{ card.label }}</span>
+          <strong>{{ card.count }}</strong>
+          <small>{{ card.hint }}</small>
+        </div>
+      </article>
+    </ng-container>
+  </section>
+
+  <ng-template #statsSkeleton>
+    <article class="stat-card stat-card--skeleton glass-panel" *ngFor="let placeholder of [1, 2, 3, 4]">
+      <span class="skeleton-block skeleton-block--icon"></span>
+      <div class="stat-card__copy">
+        <span class="skeleton-block skeleton-block--line"></span>
+        <span class="skeleton-block skeleton-block--value"></span>
+        <span class="skeleton-block skeleton-block--line short"></span>
+      </div>
+    </article>
+  </ng-template>
+
+  <section *ngIf="canManageHolidayActions" class="config-panel glass-panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Policy Setup</p>
+        <h2>Weekly Off Configuration</h2>
+      </div>
+
+      <span class="section-chip">Theme aware</span>
+    </div>
+
+    <div class="weekday-pills">
+      <button type="button" class="weekday-pill" *ngFor="let day of weekDays; trackBy: trackByValue"
+        [class.is-selected]="isWeeklyOff(day.value)" (click)="toggleWeeklyOff(day.value)">
+        <span>{{ day.label }}</span>
+        <small>{{ isWeeklyOff(day.value) ? 'Weekly off' : 'Working day' }}</small>
+      </button>
+    </div>
+
+    <div class="config-panel__divider"></div>
+
+    <div class="section-heading section-heading--compact">
+      <div>
+        <p class="eyebrow">Weekend Rules</p>
+        <h2>Saturday Configuration</h2>
+      </div>
+    </div>
+
+    <div class="saturday-grid">
+      <button type="button" class="saturday-option" *ngFor="let option of saturdayOptions; trackBy: trackByValue"
+        [class.is-selected]="selectedSaturdayPolicy === option.value" (click)="selectSaturdayPolicy(option.value)">
+        <span class="saturday-option__icon">
+          <mat-icon>{{ option.icon }}</mat-icon>
+        </span>
+        <span class="saturday-option__content">
+          <strong>{{ option.title }}</strong>
+          <small>{{ option.subtitle }}</small>
+        </span>
+      </button>
+    </div>
+
+    <p class="selection-note">
+      Selected weekly offs:
+      <strong>{{ selectedWeeklyOffSummary }}</strong>
+    </p>
+  </section>
+
+  <section class="holiday-panel glass-panel">
+    <div class="section-heading section-heading--space-between">
+      <div>
+        <p class="eyebrow">Manage</p>
+        <h2>Holiday List</h2>
+      </div>
+
+      <button *ngIf="canManageHolidayActions" type="button" class="action-button action-button--primary" (click)="openAddHolidayDialog()">
+        <mat-icon>add</mat-icon>
+        Add Holiday
+      </button>
+    </div>
+
+    <div class="filter-bar">
+      <mat-form-field appearance="outline" class="holiday-field holiday-field--search">
+        <mat-label>Search holidays</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [(ngModel)]="searchTerm" placeholder="Search holidays, descriptions, or dates" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="holiday-field">
+        <mat-label>Filter by type</mat-label>
+        <mat-icon matPrefix>filter_list</mat-icon>
+        <mat-select [(ngModel)]="selectedTypeFilter">
+          <mat-option *ngFor="let option of holidayTypeOptions; trackBy: trackByValue" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="filter-meta">
+        <span>{{ totalFilteredHolidays }} holiday{{ totalFilteredHolidays === 1 ? '' : 's' }}</span>
+        <button type="button" class="link-button" *ngIf="hasActiveFilters" (click)="clearFilters()">Reset</button>
+      </div>
+    </div>
+
+    <div class="holiday-list" *ngIf="!isLoading; else listSkeleton">
+      <ng-container *ngIf="holidayGroups.length; else emptyState">
+        <section class="month-group" *ngFor="let group of holidayGroups; trackBy: trackByMonth">
+          <div class="month-group__header">
+            <h3>{{ group.monthLabel }}</h3>
+            <span>{{ group.items.length }} item{{ group.items.length === 1 ? '' : 's' }}</span>
+          </div>
+
+          <article class="holiday-item" *ngFor="let holiday of group.items; trackBy: trackByHolidayId">
+            <div class="holiday-item__date">
+              <strong>{{ holiday.dateLabel }}</strong>
+              <span>{{ holiday.dayLabel }}</span>
+            </div>
+
+            <div class="holiday-item__content">
+              <h4>{{ holiday.name }}</h4>
+              <p>{{ holiday.description }}</p>
+            </div>
+
+            <div class="holiday-item__actions">
+              <span class="type-chip" [class]="'type-chip type-chip--' + holiday.type">
+                {{ holiday.typeLabel }}
+              </span>
+
+              <div class="action-buttons">
+                <button type="button" class="theme-action-button theme-action-button--edit" (click)="openEditHolidayDialog(holiday)"
+                  [disabled]="!canManageHolidayActions"
+                  [attr.aria-label]="getHolidayActionDisabledReason() || 'Edit holiday'"
+                  [attr.title]="getHolidayActionDisabledReason() || null">
+                  Edit
+                </button>
+
+                <button type="button" class="theme-action-button theme-action-button--delete" (click)="openDeleteHolidayDialog(holiday)"
+                  [disabled]="!canManageHolidayActions"
+                  [attr.aria-label]="getHolidayActionDisabledReason() || 'Delete holiday'"
+                  [attr.title]="getHolidayActionDisabledReason() || null">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </article>
+        </section>
+      </ng-container>
+    </div>
+  </section>
+
+  <ng-template #listSkeleton>
+    <div class="holiday-list holiday-list--loading">
+      <article class="holiday-item holiday-item--skeleton" *ngFor="let placeholder of [1, 2, 3, 4]">
+        <div class="holiday-item__date">
+          <span class="skeleton-block skeleton-block--value"></span>
+          <span class="skeleton-block skeleton-block--line short"></span>
+        </div>
+
+        <div class="holiday-item__content">
+          <span class="skeleton-block skeleton-block--line medium"></span>
+          <span class="skeleton-block skeleton-block--line"></span>
+        </div>
+
+        <div class="holiday-item__actions">
+          <span class="skeleton-block skeleton-block--chip"></span>
+        </div>
+      </article>
+    </div>
+  </ng-template>
+
+  <ng-template #emptyState>
+    <section class="empty-state">
+      <div class="empty-state__art" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <mat-icon>event_busy</mat-icon>
+      <h3>No holidays match the current filters</h3>
+      <p>Try another search, switch the holiday type filter, or add a new holiday entry for {{ selectedYear }}.</p>
+      <button type="button" class="action-button action-button--ghost" (click)="clearFilters()">Clear Filters</button>
+    </section>
+  </ng-template>
+</section>

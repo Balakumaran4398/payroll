@@ -151,10 +151,7 @@ export class ApiService {
         const url = this.getRoleBasedUrl('attendance/getondutylist?employee_id=' + employee_id);
         return this.http.get(url, { headers: this.getHeaders() });
     }
-    getAttendanceDetails(): Observable<any> {
-        const url = this.getRoleBasedUrl('attendance/attendancedetails');
-        return this.http.get(url, { headers: this.getHeaders() });
-    }
+
     getDeleteOndutyRequest(requestId: number): Observable<any> {
         const url = this.getRoleBasedUrl('attendance/deleteondutyrequest?id=' + requestId);
         return this.http.delete(url, { headers: this.getHeaders() });
@@ -171,6 +168,7 @@ export class ApiService {
         return this.http.post(url, {}, { headers: this.getHeaders() });
     }
     // Holiday
+
     createHoliday(requestbody: any): Observable<any> {
         const url = this.getRoleBasedUrl('attendance/createholiday');
         return this.http.post(url, requestbody, {
@@ -183,18 +181,42 @@ export class ApiService {
             headers: this.getHeaders()
         });
     }
-    getDeleteholiday(): Observable<any> {
-        const url = this.getRoleBasedUrl('attendance/deleteholiday');
+    getDeleteholiday(id: number, createdby: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/deleteholiday?id=' + id + '&createdby=' + createdby);
         return this.http.delete(url, { headers: this.getHeaders() });
     }
     getholidays(companyid: any): Observable<any> {
         const url = this.getRoleBasedUrl('attendance/getholidays?companyid=' + companyid);
         return this.http.get(url, { headers: this.getHeaders() });
     }
-
+    updateweekendsettings(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/updateweekendsettings');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
     //Leave Type
     createLeave(requestbody: any): Observable<any> {
         const url = this.getRoleBasedUrl('attendance/requestforleave');
+        const headers = requestbody instanceof FormData ? this.getAuthHeaders() : this.getHeaders();
+        return this.http.post(url, requestbody, {
+            headers
+        });
+    }
+    getLeaveDetails(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getleavedetails?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    editleavedetails(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/editleavedetails');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+
+    // Leave Settings
+    updateleavesettings(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/updateleavesettings');
         const headers = requestbody instanceof FormData ? this.getAuthHeaders() : this.getHeaders();
         return this.http.post(url, requestbody, {
             headers
@@ -204,11 +226,11 @@ export class ApiService {
         const url = this.getRoleBasedUrl('attendance/getleavetype');
         return this.http.get(url, { headers: this.getHeaders() });
     }
-    editleavedetails(requestbody: any): Observable<any> {
-        const url = this.getRoleBasedUrl('attendance/editleavedetails');
-        return this.http.post(url, requestbody, {
-            headers: this.getHeaders()
-        });
+
+    // Calendor
+    getAttendanceDetails(employee_id: number, month: string, year: string): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getLeaveDetails?employee_id=' + employee_id + '&month=' + month + '&year=' + year);
+        return this.http.get(url, { headers: this.getHeaders() });
     }
 
     // Reports APIs
@@ -227,6 +249,9 @@ export class ApiService {
         const url = this.getRoleBasedUrl('updatesettings');
         return this.http.put(url, settings, { headers: this.getHeaders() });
     }
+
+
+
 
     // Themes APIs
     getThemes(): Observable<any> {

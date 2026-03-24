@@ -29,7 +29,7 @@
             <p class="table-toolbar__text">Search employees, filter by status, and manage records from one responsive table card.</p>
           </div>
 
-          <button mat-flat-button class="add-employee-btn" (click)="openAddEmployeeDialog()">
+          <button mat-flat-button class="add-employee-btn" (click)="openAddEmployeeDialog()" [disabled]="!canCreateEmployee()" [attr.aria-label]="getCreateEmployeeDisabledReason() || 'Add Employee'">
             <mat-icon>add</mat-icon>
             Add Employee
           </button>
@@ -131,21 +131,21 @@
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let employee">
                 <div class="action-buttons">
-                  <button mat-icon-button matTooltip="View Details" (click)="viewEmployeeDetails(employee)"
+                  <button type="button" class="theme-action-button theme-action-button--view" matTooltip="View Details" (click)="viewEmployeeDetails(employee)"
                     [disabled]="isEmployeeDeleting(employee.id)">
-                    <mat-icon>visibility</mat-icon>
+                    View
                   </button>
-                  <button mat-icon-button matTooltip="Edit Employee" (click)="editEmployee(employee)"
-                    [disabled]="isEmployeeDeleting(employee.id)">
-                    <mat-icon>edit</mat-icon>
+                  <button type="button" class="theme-action-button theme-action-button--edit" [matTooltip]="getEmployeeEditDisabledReason(employee) || 'Edit Employee'" (click)="editEmployee(employee)"
+                    [disabled]="!!getEmployeeEditDisabledReason(employee) || isEmployeeDeleting(employee.id)">
+                    Edit
                   </button>
-                  <button mat-icon-button matTooltip="Delete Employee" (click)="deleteEmployee(employee)"
-                    [disabled]="!employee.isactive || isEmployeeDeleting(employee.id)"
-                    [attr.aria-label]="isEmployeeDeleting(employee.id) ? 'Deleting employee' : 'Delete Employee'">
+                  <button type="button" class="theme-action-button theme-action-button--delete" [matTooltip]="getEmployeeDeleteDisabledReason(employee) || 'Delete Employee'" (click)="deleteEmployee(employee)"
+                    [disabled]="!!getEmployeeDeleteDisabledReason(employee) || isEmployeeDeleting(employee.id)"
+                    [attr.aria-label]="isEmployeeDeleting(employee.id) ? 'Deleting employee' : (getEmployeeDeleteDisabledReason(employee) || 'Delete Employee')">
                     <mat-spinner *ngIf="isEmployeeDeleting(employee.id); else deleteIcon" diameter="18"
                       strokeWidth="3"></mat-spinner>
                     <ng-template #deleteIcon>
-                      <mat-icon>delete</mat-icon>
+                      Delete
                     </ng-template>
                   </button>
                 </div>
@@ -227,20 +227,18 @@
             </div>
 
             <div class="employee-mobile-card__actions">
-              <button mat-stroked-button (click)="openProfileDialog(employee)" [disabled]="isEmployeeDeleting(employee.id)">
-                <mat-icon>visibility</mat-icon>
-                Profile
+              <button type="button" class="theme-action-button theme-action-button--view" (click)="openProfileDialog(employee)" [disabled]="isEmployeeDeleting(employee.id)">
+                View
               </button>
-              <button mat-stroked-button (click)="editEmployee(employee)" [disabled]="isEmployeeDeleting(employee.id)">
-                <mat-icon>edit</mat-icon>
+              <button type="button" class="theme-action-button theme-action-button--edit" (click)="editEmployee(employee)" [disabled]="!!getEmployeeEditDisabledReason(employee) || isEmployeeDeleting(employee.id)" [attr.aria-label]="getEmployeeEditDisabledReason(employee) || 'Edit employee'">
                 Edit
               </button>
-              <button mat-flat-button class="mobile-delete-btn" (click)="deleteEmployee(employee)"
-                [disabled]="!employee.isactive || isEmployeeDeleting(employee.id)">
+              <button type="button" class="theme-action-button theme-action-button--delete" (click)="deleteEmployee(employee)"
+                [disabled]="!!getEmployeeDeleteDisabledReason(employee) || isEmployeeDeleting(employee.id)"
+                [attr.aria-label]="getEmployeeDeleteDisabledReason(employee) || 'Delete employee'">
                 <mat-spinner *ngIf="isEmployeeDeleting(employee.id); else mobileDeleteLabel" diameter="18"
                   strokeWidth="3"></mat-spinner>
                 <ng-template #mobileDeleteLabel>
-                  <mat-icon>delete</mat-icon>
                   Delete
                 </ng-template>
               </button>

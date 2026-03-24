@@ -35,7 +35,7 @@ const routes: Routes = [
         path: 'company',
         canLoad: [RoleGuard],
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER'] },
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
         loadChildren: () =>
           import('./features/company/company.module').then((m) => m.CompanyModule),
       },

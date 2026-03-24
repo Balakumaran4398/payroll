@@ -356,13 +356,13 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   openQuickAction(action: QuickAction): void {
-    this.router.navigateByUrl(action.route);
+    this.navigateToActionRoute(action.route);
   }
 
   openCalendarAction(action: QuickAction): void {
     const selectedDate = this.selectedCalendarDay?.date;
     const queryParams = selectedDate ? { date: this.toIsoDate(selectedDate) } : undefined;
-    this.router.navigate(['/', ...action.route.split('/').filter(Boolean)], { queryParams });
+    this.navigateToActionRoute(action.route, queryParams);
   }
 
   get selectedDateLabel(): string {
@@ -642,6 +642,11 @@ export class EmployeeDashboardComponent implements OnInit {
       .split('_')
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
+  }
+
+  private navigateToActionRoute(route: string, queryParams?: Record<string, string>): void {
+    this.closeAttendanceDialog();
+    this.router.navigate(['/', ...route.split('/').filter(Boolean)], { queryParams });
   }
 
   private buildFallbackAvatar(name: string): string {

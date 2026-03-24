@@ -1,0 +1,41 @@
+<div class="holiday-delete-dialog">
+  <div class="dialog-loading" *ngIf="submitting" aria-live="polite" aria-busy="true">
+    <div class="dialog-loading__backdrop"></div>
+    <div class="dialog-loading__panel">
+      <strong>Deleting holiday...</strong>
+      <div class="dialog-loading__bar"></div>
+    </div>
+  </div>
+
+  <div class="holiday-delete-dialog__head">
+    <div class="holiday-delete-dialog__head-copy">
+      <p class="holiday-delete-dialog__eyebrow">Confirm action</p>
+      <h2>Delete {{ data.holiday.name }}?</h2>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" [disabled]="submitting" aria-label="Close holiday delete dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="holiday-delete-dialog__body">
+    <div class="holiday-delete-dialog__icon">
+      <mat-icon>delete_forever</mat-icon>
+    </div>
+
+    <p class="holiday-delete-dialog__copy">This removes the holiday from the selected year calendar. The weekly-off configuration stays unchanged.</p>
+
+    <div class="holiday-delete-dialog__meta">
+      <span>{{ data.holiday.date }}</span>
+      <span>{{ data.holiday.type | titlecase }}</span>
+      <span>{{ data.holiday.description }}</span>
+    </div>
+  </div>
+
+  <div class="holiday-delete-dialog__actions">
+    <button mat-stroked-button (click)="close()" [disabled]="submitting">Cancel</button>
+    <button mat-flat-button class="danger-action" (click)="confirm()" [disabled]="submitting">
+      {{ submitting ? 'Deleting...' : 'Delete' }}
+    </button>
+  </div>
+</div>

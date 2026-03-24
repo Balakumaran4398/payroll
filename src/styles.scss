@@ -63,6 +63,9 @@
   --theme-button-gradient: #2e4fae;
   --theme-button-hover: #264392;
   --theme-button-text: #ffffff;
+  --theme-action-view-base: #2563eb;
+  --theme-action-edit-base: #f59e0b;
+  --theme-action-delete-base: #dc2626;
 
   --theme-success-bg: #e7f7ee;
   --theme-success-text: #1f7a43;
@@ -293,6 +296,9 @@
   --theme-danger-text: #ffb9b2;
   --theme-button-hover: color-mix(in srgb, var(--theme-primary) 86%, black 14%);
   --theme-button-text: #ffffff;
+  --theme-action-view-base: #7db5ff;
+  --theme-action-edit-base: #f6b73c;
+  --theme-action-delete-base: #ff8e86;
 }
 
 html,
@@ -340,6 +346,88 @@ textarea,
 
 a {
   color: var(--theme-primary);
+}
+
+.theme-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--action-button-border, transparent);
+  border-radius: 999px;
+  background: var(--action-button-bg, transparent);
+  color: var(--action-button-text, var(--theme-text-primary));
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 8px 18px var(--action-button-shadow, transparent);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.theme-action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--action-button-bg-hover, var(--action-button-bg, transparent));
+  border-color: var(--action-button-border-hover, var(--action-button-border, transparent));
+  color: var(--action-button-text-hover, var(--action-button-text, var(--theme-text-primary)));
+  box-shadow: 0 12px 22px var(--action-button-shadow-hover, var(--action-button-shadow, transparent));
+}
+
+.theme-action-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--action-button-focus-ring, color-mix(in srgb, var(--theme-primary) 20%, transparent)),
+    0 12px 22px var(--action-button-shadow-hover, var(--action-button-shadow, transparent));
+}
+
+.theme-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  transform: none;
+  box-shadow: none;
+}
+
+.theme-action-button--view {
+  --action-button-bg: color-mix(in srgb, var(--theme-action-view-base) 12%, var(--theme-surface) 88%);
+  --action-button-border: color-mix(in srgb, var(--theme-action-view-base) 24%, transparent);
+  --action-button-text: var(--theme-action-view-base);
+  --action-button-bg-hover: color-mix(in srgb, var(--theme-action-view-base) 18%, var(--theme-surface) 82%);
+  --action-button-border-hover: color-mix(in srgb, var(--theme-action-view-base) 34%, transparent);
+  --action-button-shadow: color-mix(in srgb, var(--theme-action-view-base) 14%, transparent);
+  --action-button-shadow-hover: color-mix(in srgb, var(--theme-action-view-base) 20%, transparent);
+  --action-button-focus-ring: color-mix(in srgb, var(--theme-action-view-base) 24%, transparent);
+}
+
+.theme-action-button--edit {
+  --action-button-bg: color-mix(in srgb, var(--theme-action-edit-base) 14%, var(--theme-surface) 86%);
+  --action-button-border: color-mix(in srgb, var(--theme-action-edit-base) 28%, transparent);
+  --action-button-text: color-mix(in srgb, var(--theme-action-edit-base) 92%, black 8%);
+  --action-button-bg-hover: color-mix(in srgb, var(--theme-action-edit-base) 20%, var(--theme-surface) 80%);
+  --action-button-border-hover: color-mix(in srgb, var(--theme-action-edit-base) 36%, transparent);
+  --action-button-shadow: color-mix(in srgb, var(--theme-action-edit-base) 16%, transparent);
+  --action-button-shadow-hover: color-mix(in srgb, var(--theme-action-edit-base) 22%, transparent);
+  --action-button-focus-ring: color-mix(in srgb, var(--theme-action-edit-base) 24%, transparent);
+}
+
+.theme-action-button--delete {
+  --action-button-bg: color-mix(in srgb, var(--theme-action-delete-base) 12%, var(--theme-surface) 88%);
+  --action-button-border: color-mix(in srgb, var(--theme-action-delete-base) 24%, transparent);
+  --action-button-text: color-mix(in srgb, var(--theme-action-delete-base) 90%, var(--theme-danger-text) 10%);
+  --action-button-bg-hover: color-mix(in srgb, var(--theme-action-delete-base) 18%, var(--theme-surface) 82%);
+  --action-button-border-hover: color-mix(in srgb, var(--theme-action-delete-base) 34%, transparent);
+  --action-button-shadow: color-mix(in srgb, var(--theme-action-delete-base) 14%, transparent);
+  --action-button-shadow-hover: color-mix(in srgb, var(--theme-action-delete-base) 20%, transparent);
+  --action-button-focus-ring: color-mix(in srgb, var(--theme-action-delete-base) 24%, transparent);
 }
 
 h1,

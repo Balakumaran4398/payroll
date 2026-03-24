@@ -1,0 +1,201 @@
+.holiday-delete-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--theme-surface);
+  color: var(--theme-text-primary);
+  overflow: hidden;
+}
+
+.dialog-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.dialog-loading__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--theme-surface) 78%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.dialog-loading__panel {
+  position: relative;
+  display: grid;
+  gap: 0.75rem;
+  width: min(320px, 100%);
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--theme-danger-text) 18%, transparent);
+  background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--theme-shadow-soft) 60%, transparent);
+  text-align: center;
+}
+
+.dialog-loading__panel strong {
+  color: var(--theme-text-primary);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.dialog-loading__bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--theme-danger-bg) 72%, transparent);
+}
+
+.dialog-loading__bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -38%;
+  width: 38%;
+  border-radius: inherit;
+  background: var(--theme-danger-text);
+  animation: holidayDeleteLoader 1.05s ease-in-out infinite;
+}
+
+.holiday-delete-dialog__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px 28px 20px;
+  border-bottom: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface);
+}
+
+.holiday-delete-dialog__head-copy {
+  max-width: 34ch;
+}
+
+.holiday-delete-dialog__eyebrow {
+  margin: 0 0 10px;
+  color: var(--theme-danger-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.holiday-delete-dialog h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.close-button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--theme-text-muted);
+  background: color-mix(in srgb, var(--theme-text-primary) 6%, transparent);
+  border-radius: 50%;
+  transition: transform 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease, color 0.22s ease;
+}
+
+.close-button:hover:not(:disabled),
+.close-button:focus-visible:not(:disabled) {
+  color: var(--theme-primary);
+  background: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--theme-shadow-soft) 72%, transparent);
+}
+
+.holiday-delete-dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0;
+  padding: 28px 28px 26px;
+  text-align: center;
+}
+
+.holiday-delete-dialog__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 18px;
+  border-radius: 24px;
+  background: var(--theme-danger-bg);
+  color: var(--theme-danger-text);
+}
+
+.holiday-delete-dialog__copy {
+  max-width: 42ch;
+  margin: 12px auto 0;
+  color: var(--theme-text-muted);
+  line-height: 1.65;
+}
+
+.holiday-delete-dialog__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.holiday-delete-dialog__meta span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--theme-sidebar-item-hover-bg);
+  color: var(--theme-text-muted);
+  font-size: 0.88rem;
+  max-width: 100%;
+}
+
+.holiday-delete-dialog__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 28px 22px;
+  border-top: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface);
+}
+
+.danger-action {
+  background: var(--theme-danger-bg) !important;
+  color: var(--theme-danger-text) !important;
+}
+
+@keyframes holidayDeleteLoader {
+  0% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(185%);
+  }
+
+  100% {
+    transform: translateX(370%);
+  }
+}
+
+@media (max-width: 700px) {
+  .holiday-delete-dialog__head,
+  .holiday-delete-dialog__body,
+  .holiday-delete-dialog__actions {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}

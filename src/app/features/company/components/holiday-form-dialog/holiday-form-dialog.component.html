@@ -1,0 +1,83 @@
+<div class="holiday-form-dialog">
+  <div class="dialog-loading" *ngIf="submitting" aria-live="polite" aria-busy="true">
+    <div class="dialog-loading__backdrop"></div>
+    <div class="dialog-loading__panel">
+      <strong>{{ data.mode === 'add' ? 'Creating holiday...' : 'Updating holiday...' }}</strong>
+      <div class="dialog-loading__bar"></div>
+    </div>
+  </div>
+
+  <div class="holiday-form-dialog__head">
+    <div class="holiday-form-dialog__copy">
+      <p class="holiday-form-dialog__eyebrow">Holiday calendar</p>
+      <h2>{{ title }}</h2>
+      <p>{{ data.mode === 'add'
+        ? 'Create a holiday entry using the same right-side workflow as employee editing.'
+        : 'Update this holiday entry using the same right-side workflow as employee editing.' }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" [disabled]="submitting" aria-label="Close holiday form dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="holiday-form-dialog__form">
+    <div class="holiday-form-dialog__body">
+      <section class="holiday-section">
+        <div class="holiday-section__header">
+          <span class="holiday-section__icon">
+            <mat-icon>event</mat-icon>
+          </span>
+          <div>
+            <p class="holiday-section__eyebrow">Holiday details</p>
+            <h4>Configure the selected holiday</h4>
+          </div>
+        </div>
+
+        <div class="holiday-form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="holidayDatePicker" formControlName="date" />
+            <mat-datepicker-toggle matSuffix [for]="holidayDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #holidayDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Holiday name</mat-label>
+            <input matInput formControlName="name" placeholder="e.g., Independence Day" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="national">National</mat-option>
+              <mat-option value="religious">Religious</mat-option>
+              <mat-option value="company">Company</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="holiday-type-preview" [class]="'holiday-type-preview holiday-type-preview--' + selectedType">
+            <mat-icon>{{ selectedType === 'national' ? 'flag' : selectedType === 'religious' ? 'auto_awesome' : 'apartment' }}</mat-icon>
+            <div>
+              <strong>{{ selectedType | titlecase }}</strong>
+              <small>Theme-aware badge preview</small>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="holiday-form-grid__full">
+            <mat-label>Description</mat-label>
+            <textarea matInput rows="4" formControlName="description"
+              placeholder="Add a short description or policy note"></textarea>
+          </mat-form-field>
+        </div>
+      </section>
+    </div>
+
+    <div class="holiday-form-dialog__actions">
+      <button mat-stroked-button type="button" (click)="close()" [disabled]="submitting">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting">
+        {{ submitting ? (data.mode === 'add' ? 'Saving...' : 'Updating...') : actionLabel }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -4,7 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { UiFeedbackService } from 'src/app/core/services/ui-feedback.service';
-import { Employee, EmployeeFormMode } from '../../employee.types';
+import { Employee, EmployeeFormDialogResult, EmployeeFormMode } from '../../employee.types';
 import { ApiService } from 'src/app/core/services/api.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 
@@ -14,10 +14,6 @@ interface RoleOption {
   value: string;
 }
 
-interface EmployeeFormDialogResult {
-  employee: Employee;
-  message?: string;
-}
 
 @Component({
   selector: 'app-employee-form-dialog',

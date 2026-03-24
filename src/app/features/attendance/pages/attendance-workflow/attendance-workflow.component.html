@@ -244,12 +244,22 @@
             <textarea matInput rows="5" [(ngModel)]="odForm.comments" placeholder="Add travel, meeting, or purpose details"></textarea>
           </mat-form-field>
 
-          <section class="approval-panel field field--full" *ngIf="showManagerApprovalPanel">
+          <section class="approval-panel field field--full" *ngIf="showManagerSelfOdNotice">
+            <div class="approval-panel__header">
+              <div>
+                <p class="approval-panel__eyebrow">Approval Route</p>
+                <h3>Admin Review Required</h3>
+                <p>Your own OD request cannot be self-approved. It will stay pending and move to admin for approval.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="approval-panel field field--full" *ngIf="showOdApprovalPanel">
             <div class="approval-panel__header">
               <div>
                 <p class="approval-panel__eyebrow">Manager Approval</p>
                 <h3>Approval Decision</h3>
-                <p>Choose the final status and approval flag before sending the OD request.</p>
+                <p>Use these controls only while reviewing and updating a team member's OD request.</p>
               </div>
             </div>
 
@@ -495,13 +505,15 @@
               </td>
               <td>
                 <div class="history-actions">
-                  <button type="button" class="history-action history-action--view" (click)="viewHistoryRequest(item)">View</button>
-                  <button type="button" class="history-action history-action--edit" (click)="editHistoryRequest(item)">Edit</button>
+                  <button type="button" class="theme-action-button theme-action-button--view history-action" (click)="viewHistoryRequest(item)">View</button>
+                  <button type="button" class="theme-action-button theme-action-button--edit history-action" (click)="editHistoryRequest(item)" [disabled]="!!getHistoryEditDisabledReason(item)" [attr.aria-label]="getHistoryEditDisabledReason(item) || 'Edit request'" [attr.title]="getHistoryEditDisabledReason(item) || null">Edit</button>
                   <button
                     type="button"
-                    class="history-action history-action--cancel"
+                    class="theme-action-button theme-action-button--delete history-action"
+                    [disabled]="!!getHistoryDeleteDisabledReason(item) || deletingHistoryRequestIds.has(item.id)"
+                    [attr.aria-label]="deletingHistoryRequestIds.has(item.id) ? 'Deleting request' : (getHistoryDeleteDisabledReason(item) || 'Cancel request')"
+                    [attr.title]="getHistoryDeleteDisabledReason(item) || null"
                     (click)="cancelHistoryRequest(item)"
-                    [disabled]="deletingHistoryRequestIds.has(item.id)"
                   >
                     {{ item.workflow === 'request-od' ? 'Delete' : 'Cancel' }}
                   </button>
@@ -535,13 +547,15 @@
               </div>
             </div>
             <div class="history-actions">
-              <button type="button" class="history-action history-action--view" (click)="viewHistoryRequest(item)">View</button>
-              <button type="button" class="history-action history-action--edit" (click)="editHistoryRequest(item)">Edit</button>
+              <button type="button" class="theme-action-button theme-action-button--view history-action" (click)="viewHistoryRequest(item)">View</button>
+              <button type="button" class="theme-action-button theme-action-button--edit history-action" (click)="editHistoryRequest(item)" [disabled]="!!getHistoryEditDisabledReason(item)" [attr.aria-label]="getHistoryEditDisabledReason(item) || 'Edit request'" [attr.title]="getHistoryEditDisabledReason(item) || null">Edit</button>
               <button
                 type="button"
-                class="history-action history-action--cancel"
+                class="theme-action-button theme-action-button--delete history-action"
+                [disabled]="!!getHistoryDeleteDisabledReason(item) || deletingHistoryRequestIds.has(item.id)"
+                [attr.aria-label]="deletingHistoryRequestIds.has(item.id) ? 'Deleting request' : (getHistoryDeleteDisabledReason(item) || 'Cancel request')"
+                [attr.title]="getHistoryDeleteDisabledReason(item) || null"
                 (click)="cancelHistoryRequest(item)"
-                [disabled]="deletingHistoryRequestIds.has(item.id)"
               >
                 {{ item.workflow === 'request-od' ? 'Delete' : 'Cancel' }}
               </button>

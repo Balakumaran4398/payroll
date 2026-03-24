@@ -5,7 +5,7 @@ import { timer } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AdminRequestCenterService, AdminRequestItem } from '../../../../core/services/admin-request-center.service';
 import { ApiService } from '../../../../core/services/api.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AppRole, AuthService } from '../../../../core/services/auth.service';
 import { UiFeedbackService } from '../../../../core/services/ui-feedback.service';
 import { OnDutyRequestViewDialogComponent } from '../../components/onduty-request-view-dialog/onduty-request-view-dialog.component';
 import { OnDutyRequestFormDialogComponent } from '../../components/onduty-request-form-dialog/onduty-request-form-dialog.component';
@@ -60,6 +60,7 @@ interface WorkflowRequestHistoryItem {
   reason: string;
   status: RequestTableStatus;
   createdAt: string;
+  ownerEmpId: number;
   formSnapshot: Record<string, unknown>;
 }
 
@@ -79,6 +80,25 @@ interface OnDutyRequestApiItem {
   created_date: string;
   updated_date: string;
   employee_name: string;
+}
+
+interface LeaveRequestApiItem {
+  id: number;
+  empid: number;
+  leave_type_id: number;
+  fromdate: string;
+  todate: string;
+  leave_mode: string;
+  totaldays: number;
+  reason: string;
+  doc_url: string | null;
+  status: string;
+  approved_by: number | string | null;
+  isactive: boolean;
+  isdelete: boolean;
+  createddate: string;
+  updateddate: string;
+  filename: string | null;
 }
 
 @Component({
@@ -260,6 +280,8 @@ export class AttendanceWorkflowComponent implements OnInit {
 
   config: WorkflowConfig = this.workflowConfigs['apply-leave'];
   empid: any;
+  currentRole: AppRole | null = null;
+  currentEmployeeId = 0;
   constructor(
     private route: ActivatedRoute,
     private requestCenter: AdminRequestCenterService,
@@ -270,13 +292,16 @@ export class AttendanceWorkflowComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.empid = this.resolveEmployeeId();
+    this.currentRole = this.authService.getRole();
+    this.currentEmployeeId = Number(this.resolveEmployeeId() || 0) || 0;
+    this.empid = this.currentEmployeeId;
     this.loadLeaveTypes();
     this.route.data.subscribe((data) => {
       const workflow = (data.workflow as WorkflowKey) || 'apply-leave';
       this.config = this.workflowConfigs[workflow];
       this.requestType = this.config.title;
       this.loadWorkflowHistory();
+      this.syncOdApprovalState();
     });
 
     this.route.queryParamMap.subscribe((params) => {
@@ -288,6 +313,7 @@ export class AttendanceWorkflowComponent implements OnInit {
       this.appDate = this.formatDisplayDate(new Date());
       this.patchDates(selectedDate);
       this.patchReviewContext();
+      this.syncOdApprovalState();
     });
 
     if (!this.selectedHistoryRequestId && this.requestHistory.length) {
@@ -318,8 +344,24 @@ export class AttendanceWorkflowComponent implements OnInit {
     return this.loadingHeadline || 'Loading...';
   }
 
-  get showManagerApprovalPanel(): boolean {
-    return this.authService.hasAnyRole(['ROLE_MANAGER']) && this.config.key === 'request-od';
+  get showOdApprovalPanel(): boolean {
+    if (this.config.key !== 'request-od') {
+      return false;
+    }
+
+    if (this.currentRole === 'ROLE_ADMIN' || this.currentRole === 'ROLE_COMPANY') {
+      return true;
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return this.isManagerReviewingTeamOdRequest();
+    }
+
+    return false;
+  }
+
+  get showManagerSelfOdNotice(): boolean {
+    return this.currentRole === 'ROLE_MANAGER' && this.config.key === 'request-od' && !this.showOdApprovalPanel;
   }
 
   get showPageApiLoading(): boolean {
@@ -374,6 +416,62 @@ export class AttendanceWorkflowComponent implements OnInit {
 
   get selectedHistoryRequest(): WorkflowRequestHistoryItem | null {
     return this.requestHistory.find((item) => item.id === this.selectedHistoryRequestId) || null;
+  }
+
+  canEditHistoryRequest(item: WorkflowRequestHistoryItem): boolean {
+    if (this.hasFullHistoryAccess()) {
+      return true;
+    }
+
+    if (this.currentRole === 'ROLE_EMPLOYEE') {
+      return this.isOwnHistoryRequest(item);
+    }
+
+    return false;
+  }
+
+  canDeleteHistoryRequest(item: WorkflowRequestHistoryItem): boolean {
+    if (this.hasFullHistoryAccess()) {
+      return true;
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return this.isTeamHistoryRequest(item);
+    }
+
+    return false;
+  }
+
+  getHistoryEditDisabledReason(item: WorkflowRequestHistoryItem): string {
+    if (this.canEditHistoryRequest(item)) {
+      return '';
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return "Managers can edit only their team members' requests.";
+    }
+
+    if (this.currentRole === 'ROLE_EMPLOYEE') {
+      return 'Employees can edit only their own requests.';
+    }
+
+    return 'You do not have permission to edit this request.';
+  }
+
+  getHistoryDeleteDisabledReason(item: WorkflowRequestHistoryItem): string {
+    if (this.canDeleteHistoryRequest(item)) {
+      return '';
+    }
+
+    if (this.currentRole === 'ROLE_MANAGER') {
+      return "Managers can delete only their team members' requests.";
+    }
+
+    if (this.currentRole === 'ROLE_EMPLOYEE') {
+      return 'Employees are not allowed to delete requests.';
+    }
+
+    return 'You do not have permission to delete this request.';
   }
 
   get approvedHistoryCount(): number {
@@ -473,6 +571,12 @@ export class AttendanceWorkflowComponent implements OnInit {
   editHistoryRequest(item: WorkflowRequestHistoryItem): void {
     this.selectedHistoryRequestId = item.id;
 
+    const reason = this.getHistoryEditDisabledReason(item);
+    if (reason) {
+      this.feedback.warning(reason);
+      return;
+    }
+
     if (item.workflow !== 'request-od') {
       if (item.workflow !== this.config.key) {
         this.feedback.info(`Open the ${item.requestType} page to edit this request.`);
@@ -514,6 +618,12 @@ export class AttendanceWorkflowComponent implements OnInit {
 
   cancelHistoryRequest(item: WorkflowRequestHistoryItem): void {
     this.selectedHistoryRequestId = item.id;
+
+    const reason = this.getHistoryDeleteDisabledReason(item);
+    if (reason) {
+      this.feedback.warning(reason);
+      return;
+    }
 
     if (item.workflow !== 'request-od') {
       if (item.status === 'Rejected') {
@@ -631,11 +741,21 @@ export class AttendanceWorkflowComponent implements OnInit {
   }
 
   setApprovedStatus(status: ApprovalStatus): void {
+    if (!this.showOdApprovalPanel) {
+      this.syncOdApprovalState();
+      return;
+    }
+
     this.odForm.approved_status = status;
     this.odForm.isapproved = status === 'Approved';
   }
 
   setApprovalFlag(isApproved: boolean): void {
+    if (!this.showOdApprovalPanel) {
+      this.syncOdApprovalState();
+      return;
+    }
+
     this.odForm.isapproved = isApproved;
     this.odForm.approved_status = isApproved ? 'Approved' : 'Rejeted';
   }
@@ -770,7 +890,9 @@ export class AttendanceWorkflowComponent implements OnInit {
   }
 
   private submitOdRequest(): void {
-    const isManagerApproved = this.showManagerApprovalPanel && this.odForm.isapproved;
+    const canSetApprovalDecision = this.showOdApprovalPanel;
+    const isManagerApproved = canSetApprovalDecision && this.odForm.isapproved;
+    const requiresAdminReview = this.currentRole === 'ROLE_MANAGER' && !canSetApprovalDecision;
 
     const payload = {
       ...this.odForm,
@@ -780,8 +902,8 @@ export class AttendanceWorkflowComponent implements OnInit {
       place_of_visit: `${this.odForm.place_of_visit}`.trim(),
       purpose_of_visit: `${this.odForm.purpose_of_visit}`.trim(),
       comments: `${this.odForm.comments}`.trim(),
-      approved_by: this.showManagerApprovalPanel ? this.authService.getUsername() : '',
-      approved_status: this.showManagerApprovalPanel ? (isManagerApproved ? 'Approved' : 'Rejeted') : 'Pending',
+      approved_by: canSetApprovalDecision ? this.authService.getUsername() : '',
+      approved_status: canSetApprovalDecision ? (isManagerApproved ? 'Approved' : 'Rejeted') : 'Pending',
       isapproved: isManagerApproved,
     };
 
@@ -795,8 +917,9 @@ export class AttendanceWorkflowComponent implements OnInit {
       .pipe(finalize(() => this.stopLocalLoading()))
       .subscribe({
         next: () => {
+          this.resetActiveWorkflowForm();
           this.getondutylist();
-          this.feedback.success('OD request submitted successfully.');
+          this.feedback.success(requiresAdminReview ? 'OD request submitted successfully. It is pending admin approval.' : 'OD request submitted successfully.');
         },
         error: () => {
           this.feedback.error('Failed to submit OD request. Please try again.');
@@ -871,10 +994,8 @@ export class AttendanceWorkflowComponent implements OnInit {
       .pipe(finalize(() => this.stopLocalLoading()))
       .subscribe({
         next: () => {
-          const historyItem = this.buildHistoryItemFromCurrentWorkflow('Pending');
-          if (historyItem) {
-            this.addHistoryItem(historyItem);
-          }
+          this.resetActiveWorkflowForm();
+          this.getLeaveDetails();
           this.feedback.success('Leave request submitted successfully.');
         },
         error: () => {
@@ -948,6 +1069,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         break;
       case 'request-od':
         this.odForm = { ...this.odForm, ...(item.formSnapshot as typeof this.odForm) };
+        this.syncOdApprovalState();
         break;
       case 'raise-query':
         this.queryForm = { ...this.queryForm, ...(item.formSnapshot as typeof this.queryForm) };
@@ -1017,13 +1139,14 @@ export class AttendanceWorkflowComponent implements OnInit {
       reason,
       status,
       createdAt: this.formatHistoryTimestamp(new Date()),
+      ownerEmpId: Number(formSnapshot['empid'] || this.currentEmployeeId || 0),
       formSnapshot,
     };
   }
   getondutylist(): void {
     this.apiService.getondutylist(this.empid).subscribe({
       next: (data: any) => {
-        const requests = this.extractOnDutyRequests(data);
+        const requests = this.extractRequestList<OnDutyRequestApiItem>(data);
         this.requestHistory = requests.map((item) => this.mapOnDutyRequestToHistoryItem(item));
         this.selectedHistoryRequestId = this.requestHistory[0]?.id || '';
         this.updateHistoryPageIndex(true);
@@ -1037,9 +1160,31 @@ export class AttendanceWorkflowComponent implements OnInit {
     });
   }
 
+  getLeaveDetails(): void {
+    this.apiService.getLeaveDetails(this.empid).subscribe({
+      next: (data: any) => {
+        const requests = this.extractRequestList<LeaveRequestApiItem>(data);
+        this.requestHistory = requests.map((item) => this.mapLeaveRequestToHistoryItem(item));
+        this.selectedHistoryRequestId = this.requestHistory[0]?.id || '';
+        this.updateHistoryPageIndex(true);
+      },
+      error: () => {
+        this.requestHistory = [];
+        this.selectedHistoryRequestId = '';
+        this.updateHistoryPageIndex(true);
+        this.feedback.error('Failed to load leave request history.');
+      },
+    });
+  }
+
   private loadWorkflowHistory(): void {
     if (this.config.key === 'request-od') {
       this.getondutylist();
+      return;
+    }
+
+    if (this.config.key === 'apply-leave') {
+      this.getLeaveDetails();
       return;
     }
 
@@ -1048,17 +1193,17 @@ export class AttendanceWorkflowComponent implements OnInit {
     this.updateHistoryPageIndex(true);
   }
 
-  private extractOnDutyRequests(data: any): OnDutyRequestApiItem[] {
+  private extractRequestList<T>(data: any): T[] {
     if (Array.isArray(data)) {
-      return data;
+      return data as T[];
     }
 
     if (Array.isArray(data?.data)) {
-      return data.data;
+      return data.data as T[];
     }
 
     if (Array.isArray(data?.result)) {
-      return data.result;
+      return data.result as T[];
     }
 
     return [];
@@ -1077,6 +1222,7 @@ export class AttendanceWorkflowComponent implements OnInit {
       reason,
       status: normalizedStatus,
       createdAt: this.formatApiTimestamp(item.created_date || item.updated_date),
+      ownerEmpId: Number(item.empid || 0),
       formSnapshot: {
         id: item.id,
         empid: `${item.empid ?? this.empid}`,
@@ -1096,6 +1242,63 @@ export class AttendanceWorkflowComponent implements OnInit {
     };
   }
 
+  private mapLeaveRequestToHistoryItem(item: LeaveRequestApiItem): WorkflowRequestHistoryItem {
+    const normalizedStatus = this.normalizeRequestStatus(item.status);
+    const leaveModeSnapshot = this.mapLeaveModeToFormSnapshot(item.leave_mode);
+
+    return {
+      id: `LV-${item.id}`,
+      workflow: 'apply-leave',
+      requestType: this.workflowConfigs['apply-leave'].title,
+      dateTime: this.buildDateRangeLabel(item.fromdate, item.todate),
+      reason: `${item.reason || ''}`.trim() || 'Leave request',
+      status: normalizedStatus,
+      createdAt: this.formatApiTimestamp(item.createddate || item.updateddate),
+      ownerEmpId: Number(item.empid || 0),
+      formSnapshot: {
+        fromDate: this.normalizeDateValue(item.fromdate),
+        toDate: this.normalizeDateValue(item.todate),
+        startDay: leaveModeSnapshot.startDay,
+        endDay: leaveModeSnapshot.endDay,
+        leaveType: this.resolveLeaveTypeCode(Number(item.leave_type_id || 0)),
+        reason: `${item.reason || ''}`.trim(),
+      },
+    };
+  }
+
+  private mapLeaveModeToFormSnapshot(leaveMode: string): { startDay: string; endDay: string } {
+    const normalizedMode = `${leaveMode || 'full'}`.trim().toLowerCase();
+
+    if (normalizedMode === 'first_half' || normalizedMode === 'second_half') {
+      return {
+        startDay: 'half',
+        endDay: normalizedMode,
+      };
+    }
+
+    return {
+      startDay: 'full',
+      endDay: 'first_half',
+    };
+  }
+
+  private resolveLeaveTypeCode(leaveTypeId: number): string {
+    const matchedType = this.leaveTypes.find((item) => Number(item.id || 0) === leaveTypeId);
+    if (matchedType?.leave_code) {
+      return matchedType.leave_code;
+    }
+
+    switch (leaveTypeId) {
+      case 1:
+        return 'CL';
+      case 2:
+        return 'SL';
+      case 3:
+        return 'LWP';
+      default:
+        return '';
+    }
+  }
 
   private buildOnDutyDialogRequest(item: WorkflowRequestHistoryItem): any {
     const snapshot = item.formSnapshot as Record<string, any>;
@@ -1129,6 +1332,42 @@ export class AttendanceWorkflowComponent implements OnInit {
     const rawId = snapshot.id || `${item.id}`.replace(/^OD-/, '');
     const requestId = Number(rawId);
     return Number.isFinite(requestId) && requestId > 0 ? requestId : 0;
+  }
+
+  private hasFullHistoryAccess(): boolean {
+    return this.currentRole === 'ROLE_ADMIN';
+  }
+
+  private isOwnHistoryRequest(item: WorkflowRequestHistoryItem): boolean {
+    return !!this.currentEmployeeId && Number(item.ownerEmpId || 0) === this.currentEmployeeId;
+  }
+
+  private isTeamHistoryRequest(item: WorkflowRequestHistoryItem): boolean {
+    const ownerEmpId = Number(item.ownerEmpId || 0);
+    return !!ownerEmpId && !!this.currentEmployeeId && ownerEmpId !== this.currentEmployeeId;
+  }
+
+  private isManagerReviewingTeamOdRequest(): boolean {
+    if (this.currentRole !== 'ROLE_MANAGER') {
+      return false;
+    }
+
+    if (this.reviewRequest?.workflow === 'request-od') {
+      return this.reviewRequest.requesterRole === 'Employee';
+    }
+
+    const requestOwnerEmpId = Number(this.odForm.empid || this.empid || 0);
+    return !!requestOwnerEmpId && !!this.currentEmployeeId && requestOwnerEmpId !== this.currentEmployeeId;
+  }
+
+  private syncOdApprovalState(): void {
+    if (this.config.key !== 'request-od' || this.showOdApprovalPanel) {
+      return;
+    }
+
+    this.odForm.approved_by = '';
+    this.odForm.approved_status = 'Pending';
+    this.odForm.isapproved = false;
   }
 
   private runDeleteOndutyRequest(item: WorkflowRequestHistoryItem): void {
@@ -1240,7 +1479,17 @@ export class AttendanceWorkflowComponent implements OnInit {
   }
 
   private normalizeRequestStatus(status: string): RequestTableStatus {
-    return `${status}`.trim().toLowerCase() === 'approved' ? 'Approved' : `${status}`.trim().toLowerCase() === 'rejeted' ? 'Rejected' : 'Pending';
+    const normalizedStatus = `${status || ''}`.trim().toLowerCase();
+
+    if (normalizedStatus === 'approved') {
+      return 'Approved';
+    }
+
+    if (normalizedStatus === 'rejected' || normalizedStatus === 'rejeted') {
+      return 'Rejected';
+    }
+
+    return 'Pending';
   }
 
   private stopLocalLoading(): void {

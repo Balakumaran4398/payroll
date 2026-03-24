@@ -51,17 +51,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
           route: '/app/employee',
           roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
         },
-        {
-          label: 'Attendance',
-          route: '/app/attendance',
-          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
-        },
+
         {
           label: 'Payroll',
           route: '/app/users',
           roles: ['ROLE_ADMIN'],
         },
       ],
+    },
+    {
+      label: 'Leave',
+      route: '/app/attendance',
+      icon: 'event_note',
+      roles: ['ROLE_ADMIN', 'ROLE_MANAGER'],
     },
     {
       label: 'Departments',
@@ -73,6 +75,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       label: 'Reports',
       route: '/app/reports',
       icon: 'bar_chart',
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+    },
+    {
+      label: 'Holiday Calendar',
+      route: '/app/company',
+      icon: 'calendar_month',
       roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
     {
