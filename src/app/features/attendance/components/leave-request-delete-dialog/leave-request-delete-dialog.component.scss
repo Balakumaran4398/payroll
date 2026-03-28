@@ -1,0 +1,121 @@
+.leave-delete-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  color: var(--theme-text-primary);
+  background: var(--theme-surface);
+}
+
+.leave-delete-dialog__head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px 28px 20px;
+  border-bottom: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface);
+  z-index: 2;
+}
+
+.leave-delete-dialog__head-copy {
+  max-width: 34ch;
+}
+
+.leave-delete-dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  padding: 28px 28px 26px;
+  text-align: center;
+}
+
+.leave-delete-dialog__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 18px;
+  border-radius: 24px;
+  background: var(--theme-danger-bg);
+  color: var(--theme-danger-text);
+}
+
+.leave-delete-dialog__eyebrow {
+  margin: 0 0 10px;
+  color: var(--theme-danger-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.leave-delete-dialog h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.leave-delete-dialog__copy {
+  max-width: 42ch;
+  margin: 12px auto 0;
+  color: var(--theme-text-muted);
+  line-height: 1.65;
+}
+
+.leave-delete-dialog__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.leave-delete-dialog__meta span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--theme-sidebar-item-hover-bg);
+  color: var(--theme-text-muted);
+  font-size: 0.88rem;
+}
+
+.leave-delete-dialog__actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 28px 22px;
+  border-top: 1px solid var(--theme-border-soft);
+  background: var(--theme-surface);
+}
+
+.close-button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--theme-text-muted);
+  background: color-mix(in srgb, var(--theme-text-primary) 6%, transparent);
+  border-radius: 50%;
+}
+
+.danger-action {
+  background: var(--theme-danger-bg) !important;
+  color: var(--theme-danger-text) !important;
+}
+
+@media (max-width: 700px) {
+  .leave-delete-dialog__head,
+  .leave-delete-dialog__body,
+  .leave-delete-dialog__actions {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}

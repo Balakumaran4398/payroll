@@ -1,0 +1,115 @@
+<div class="leave-form-dialog">
+  <div class="leave-form-dialog__head">
+    <div class="leave-form-dialog__head-copy">
+      <p class="leave-form-dialog__eyebrow">Edit leave request</p>
+      <h2>{{ request.employee_name }}</h2>
+      <p>{{ request.request_type || 'Apply Leave' }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close leave edit dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="leave-form-dialog__body">
+    <p class="leave-form-dialog__hint" *ngIf="dialogHint">{{ dialogHint }}</p>
+
+    <div class="leave-form-grid">
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>From Date</mat-label>
+        <input
+          matInput
+          [matDatepicker]="fromPicker"
+          [disabled]="!canEditRequestDetails"
+          [(ngModel)]="request.fromDate"
+          (ngModelChange)="onFromDateChange($event)">
+        <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>To Date</mat-label>
+        <input
+          matInput
+          [matDatepicker]="toPicker"
+          [min]="toDateMin"
+          [disabled]="!canEditRequestDetails"
+          [(ngModel)]="request.toDate"
+          (ngModelChange)="onToDateChange($event)">
+        <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Start Day</mat-label>
+        <mat-select [(ngModel)]="request.startDay" [disabled]="!canEditRequestDetails" (ngModelChange)="onLeaveStartDayChange($event)">
+          <mat-option *ngFor="let option of dayTypes" [value]="option.value">{{ option.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Last Day</mat-label>
+        <mat-select [(ngModel)]="request.endDay" [disabled]="isLeaveEndDayDisabled">
+          <mat-option *ngFor="let option of endDayTypes" [value]="option.value">{{ option.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Type</mat-label>
+        <mat-select [(ngModel)]="request.leaveType" [disabled]="!canEditRequestDetails">
+          <mat-option *ngFor="let option of leaveTypes" [value]="option.leave_code">
+            {{ option.leave_type }} ({{ option.leave_code }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Reason</mat-label>
+        <textarea matInput rows="1" [disabled]="!canEditRequestDetails" [(ngModel)]="request.reason"></textarea>
+      </mat-form-field>
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Approval Status</mat-label>
+        <mat-select [(ngModel)]="request.approved_status" [disabled]="!canApprove">
+          <mat-option *ngFor="let status of approvalStatusOptions" [value]="status">{{ status === 'Rejected' ? 'Rejected'
+            : status }}</mat-option>
+        </mat-select>
+        <mat-hint *ngIf="!canApprove">Only admin and managers reviewing team requests can change approval status.</mat-hint>
+      </mat-form-field>
+
+
+      <div class="field field--compact">
+        <span>Total Days</span>
+        <div class="pill-value">{{ totalLeaveDays }}</div>
+      </div>
+
+      <div class="field field--full leave-upload">
+        <label class="leave-upload__trigger" [class.leave-upload__trigger--disabled]="!canEditRequestDetails">
+          <input type="file" [disabled]="!canEditRequestDetails" (change)="onDocumentSelected($event)">
+          <mat-icon>upload_file</mat-icon>
+          <div class="leave-upload__copy">
+            <strong>{{ request.filename ? 'Document selected' : 'Choose document' }}</strong>
+            <span>{{ request.filename || 'Upload any supporting file for this leave request.' }}</span>
+          </div>
+        </label>
+
+        <button
+          *ngIf="request.filename || request.doc_url"
+          type="button"
+          mat-stroked-button
+          class="leave-upload__view-action"
+          [disabled]="!canViewDocument"
+          (click)="viewDocument()">
+          <mat-icon>visibility</mat-icon>
+          View Document
+        </button>
+      </div>   
+    </div>
+  </div>
+
+  <div class="leave-form-dialog__actions">
+    <button mat-stroked-button [disabled]="submitting" (click)="close()">Cancel</button>
+    <button mat-flat-button color="primary" [disabled]="submitting" (click)="save()">
+      {{ submitting ? 'Saving...' : 'Save Changes' }}
+    </button>
+  </div>
+</div>

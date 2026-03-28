@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
@@ -17,7 +17,7 @@ import {
   templateUrl: './holiday-form-dialog.component.html',
   styleUrls: ['./holiday-form-dialog.component.scss'],
 })
-export class HolidayFormDialogComponent {
+export class HolidayFormDialogComponent implements OnInit {
   private readonly drawerCloseDurationMs = 340;
   private closing = false;
 
@@ -30,7 +30,8 @@ export class HolidayFormDialogComponent {
     type: [this.data.holiday?.type || 'company', Validators.required],
     description: [this.data.holiday?.description || ''],
   });
-
+  companyId: number;
+  username: any;
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
@@ -38,8 +39,17 @@ export class HolidayFormDialogComponent {
     private feedback: UiFeedbackService,
     @Inject(MAT_DIALOG_DATA) public data: HolidayFormDialogData,
     private dialogRef: MatDialogRef<HolidayFormDialogComponent>
-  ) {}
-
+  ) { 
+    this.username = tokenStorage.getUsername();
+  }
+  ngOnInit(): void {
+    this.getemployeedetails();
+  }
+  getemployeedetails() {
+    this.apiService.getemployeedetails(this.username).subscribe((res: any) => {
+      this.companyId = res.companyid;
+    })
+  }
   get selectedType(): HolidayType {
     return (this.form.get('type')?.value as HolidayType) || 'company';
   }
@@ -77,12 +87,12 @@ export class HolidayFormDialogComponent {
     }
 
     const requestbody: HolidayRecord_1 = {
-      companyid,
+      companyid:this.companyId,
       title: name,
       holiday_date: this.formatDate(date),
       type,
       remarks: description || 'Holiday description not provided.',
-      createdby,
+      createdby:this.username,
       id: this.data.holiday?.holidayid,
     };
 

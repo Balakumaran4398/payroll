@@ -1,6 +1,17 @@
 import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { ApiService } from '../../services/api.service';
+import { TokenStorageService } from '../../services/token-storage.service';
+
+interface HeaderNotificationItem {
+  title: string;
+  description: string;
+  time: string;
+  icon: string;
+  route?: string;
+}
 
 @Component({
   selector: 'app-header',
@@ -18,23 +29,25 @@ export class HeaderComponent implements OnInit {
   confirmDialogOpen = false;
   isSidebarOpen = true;
   isMobileViewport = false;
-  notificationsCount = 3;
+  notificationsCount = 0;
   readonly searchPlaceholder = 'Search employees, attendance, reports';
   notificationPanelOpen = false;
   notificationPanelClosing = false;
-  readonly notifications = [
-    { title: 'Attendance regularization pending', description: '3 requests require manager review today.', time: '5 min ago', icon: 'schedule' },
-    { title: 'Festival calendar updated', description: 'Next month highlights were synced with the dashboard calendar.', time: '18 min ago', icon: 'event' },
-    { title: 'Directory refresh complete', description: 'Employee directory was updated with the latest team data.', time: '1 hour ago', icon: 'groups' },
-  ];
-
+  notifications: HeaderNotificationItem[] = [];
+  empid: number;
+  notification = 0;
   constructor(
     private authService: AuthService,
-    private themeService: ThemeService,
-  ) { }
+    private themeService: ThemeService, private tokenServie: TokenStorageService,
+    private apiService: ApiService,
+    private router: Router,
+  ) {
+    this.empid = tokenServie.getID();
+  }
 
   ngOnInit(): void {
     this.updateViewportState();
+    this.getNotifications();
   }
 
   get role(): string {
@@ -167,6 +180,14 @@ export class HeaderComponent implements OnInit {
 
     this.openNotificationsPanel();
   }
+  // toggleNotificationsPanel(): void {
+  //   if (this.notificationPanelOpen) {
+  //     this.closeNotificationsPanel();
+  //     return;
+  //   }
+
+  //   this.openNotificationsPanel();
+  // }
 
   openNotificationsPanel(): void {
     this.closeProfilePanel();
@@ -218,5 +239,87 @@ export class HeaderComponent implements OnInit {
 
   private updateViewportState(): void {
     this.isMobileViewport = window.innerWidth < 768;
+  }
+
+  onNotificationClick(notification: HeaderNotificationItem): void {
+    if (!notification.route) {
+      return;
+    }
+
+    this.closeNotificationsPanel(true);
+    this.router.navigate(['/app/attendance']);
+  }
+
+  getNotifications(): void {
+    this.apiService.getNotifications(this.empid).subscribe({
+      next: (data: any) => {
+        const pendingOnDuty = Number(data?.pending_onduty || 0);
+        const pendingLeave = Number(data?.pending_leave || 0);
+        const pending_permission = Number(data?.pending_permission || 0);
+        const pending_swipe = Number(data?.pending_swipe || 0);
+
+        this.notification = pendingOnDuty + pendingLeave + pending_permission + pending_swipe;
+        this.notificationsCount = this.notification;
+        this.notifications = this.buildNotifications(pendingLeave, pendingOnDuty,pending_permission,pending_swipe);
+      },
+      error: () => {
+        this.notification = 0;
+        this.notificationsCount = 0;
+        this.notifications = this.buildNotifications(0, 0,0,0);
+      },
+    });
+  }
+
+  private buildNotifications(pendingLeave: number, pendingOnDuty: number,pending_swipe:number,pending_permission:number): HeaderNotificationItem[] {
+    const notifications: HeaderNotificationItem[] = [];
+
+    if (pendingLeave > 0) {
+      notifications.push({
+        title: `Pending Leave Requests (${pendingLeave})`,
+        description: `${pendingLeave} leave request${pendingLeave === 1 ? '' : 's'} waiting in Attendance.`,
+        time: 'Open Attendance',
+        icon: 'event_note',
+        route: '/app/attendance',
+      });
+    }
+
+    if (pendingOnDuty > 0) {
+      notifications.push({
+        title: `Pending OD Requests (${pendingOnDuty})`,
+        description: `${pendingOnDuty} on duty request${pendingOnDuty === 1 ? '' : 's'} waiting in Attendance.`,
+        time: 'Open Attendance',
+        icon: 'work_history',
+        route: '/app/attendance',
+      });
+    }
+    if (pending_swipe > 0) {
+      notifications.push({
+        title: `Swipe Requests (${pending_swipe})`,
+        description: `${pending_swipe} Swipe request${pending_swipe === 1 ? '' : 's'} waiting in Attendance.`,
+        time: 'Open Attendance',
+        icon: 'work_history',
+        route: '/app/attendance',
+      });
+    }
+    if (pending_permission > 0) {
+      notifications.push({
+        title: `Pending OD Requests (${pending_permission})`,
+        description: `${pending_permission} Permission request${pending_permission === 1 ? '' : 's'} waiting in Attendance.`,
+        time: 'Open Attendance',
+        icon: 'work_history',
+        route: '/app/attendance',
+      });
+    }
+
+    if (!notifications.length) {
+      notifications.push({
+        title: 'No pending notifications',
+        description: 'There are no attendance notifications right now.',
+        time: 'All caught up',
+        icon: 'notifications_off',
+      });
+    }
+
+    return notifications;
   }
 }

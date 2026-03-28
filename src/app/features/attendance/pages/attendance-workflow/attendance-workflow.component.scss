@@ -479,6 +479,12 @@
   overflow: hidden;
 }
 
+.balance-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 20px;
+}
+
 .balance-table thead {
   background: color-mix(in srgb, var(--theme-primary) 82%, #8b5e3c 18%);
 }
@@ -499,6 +505,73 @@
 .balance-table td {
   color: var(--theme-text-primary);
   background: color-mix(in srgb, var(--theme-surface) 94%, rgba(255, 255, 255, 0.06));
+}
+
+.balance-table th:first-child,
+.balance-table td:first-child {
+  text-align: left;
+}
+
+.balance-mobile-list {
+  display: none;
+  gap: 0.9rem;
+}
+
+.balance-mobile-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
+}
+
+.balance-mobile-card__head,
+.balance-mobile-card__grid {
+  display: grid;
+}
+
+.balance-mobile-card__head {
+  gap: 0.3rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.balance-mobile-card__head p,
+.balance-mobile-card__empty {
+  margin: 0;
+}
+
+.balance-mobile-card__head p,
+.balance-mobile-card__grid span {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.balance-mobile-card__head strong,
+.balance-mobile-card__grid strong {
+  color: var(--theme-text-primary);
+}
+
+.balance-mobile-card__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.balance-mobile-card__grid > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--theme-primary) 6%, var(--theme-surface) 94%);
+}
+
+.balance-mobile-card__empty {
+  color: var(--theme-text-muted);
+  line-height: 1.5;
 }
 
 .checklist {
@@ -666,6 +739,20 @@
   .approval-toggle__option {
     width: 100%;
     justify-content: center;
+  }
+
+  .balance-table-wrap {
+    display: none;
+  }
+
+  .balance-mobile-list {
+    display: grid;
+  }
+}
+
+@media (max-width: 520px) {
+  .balance-mobile-card__grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -1,0 +1,86 @@
+<section class="leave-settings-page">
+  <mat-card class="leave-settings-hero">
+    <div class="leave-settings-hero__copy">
+      <p class="leave-settings-hero__eyebrow">Leave Settings</p>
+      <h1>Leave creation setup</h1>
+    </div>
+
+    <div class="leave-settings-hero__actions">
+      <button mat-stroked-button routerLink="/app/attendance">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Attendance
+      </button>
+    </div>
+  </mat-card>
+
+  <mat-card class="leave-settings-table-card">
+    <div class="leave-settings-table-card__header">
+      <div>
+        <h2>Leave Types</h2>
+        <p>{{ leaveSettings.length }} leave type{{ leaveSettings.length === 1 ? '' : 's' }} available for update.</p>
+      </div>
+
+      <button mat-flat-button color="primary" class="leave-settings-table-card__create" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Create
+      </button>
+    </div>
+
+    <div class="leave-settings-loading" *ngIf="loading">
+      <mat-spinner diameter="36"></mat-spinner>
+      <span>Loading leave settings...</span>
+    </div>
+
+    <div class="leave-settings-table-wrapper" *ngIf="!loading && leaveSettings.length; else emptyState">
+      <table mat-table [dataSource]="leaveSettings" class="leave-settings-table">
+        <ng-container matColumnDef="leaveCode">
+          <th mat-header-cell *matHeaderCellDef>Code</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="leave-code-pill">{{ row.leaveCode || '-' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="leaveType">
+          <th mat-header-cell *matHeaderCellDef>Leave Type</th>
+          <td mat-cell *matCellDef="let row">{{ row.leaveType || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="monthlyLimit">
+          <th mat-header-cell *matHeaderCellDef>Monthly Limit</th>
+          <td mat-cell *matCellDef="let row">{{ row.monthlyLimit }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="yearlyLimit">
+          <th mat-header-cell *matHeaderCellDef>Yearly Limit</th>
+          <td mat-cell *matCellDef="let row">{{ row.yearlyLimit }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="updateddate">
+          <th mat-header-cell *matHeaderCellDef>Last Updated</th>
+          <td mat-cell *matCellDef="let row">{{ formatUpdatedDate(row.updateddate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-flat-button color="primary" (click)="openEditDialog(row)">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackByLeaveType"></tr>
+      </table>
+    </div>
+  </mat-card>
+
+  <ng-template #emptyState>
+    <div class="leave-settings-empty">
+      <mat-icon>inbox</mat-icon>
+      <h3>No leave types found</h3>
+      <p>The leave type list is empty right now. Please try again after the master data is available.</p>
+    </div>
+  </ng-template>
+</section>

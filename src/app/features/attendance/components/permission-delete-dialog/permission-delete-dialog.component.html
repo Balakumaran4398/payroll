@@ -1,0 +1,31 @@
+<div class="permission-delete-dialog">
+  <div class="permission-delete-dialog__head">
+    <div class="permission-delete-dialog__head-copy">
+      <p class="permission-delete-dialog__eyebrow">Confirm action</p>
+      <h2>Delete {{ data.request.display_id }}?</h2>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close permission delete dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="permission-delete-dialog__body">
+    <div class="permission-delete-dialog__icon">
+      <mat-icon>delete_forever</mat-icon>
+    </div>
+
+    <p class="permission-delete-dialog__copy">This removes the selected permission request from the Apply permission table view.</p>
+
+    <div class="permission-delete-dialog__meta">
+      <span>Employee #{{ data.request.empid }}</span>
+      <span>{{ data.request.permission_type_label || data.request.permissionType || 'permission' }}</span>
+      <span>{{ data.request.display_date_time }}</span>
+    </div>
+  </div>
+
+  <div class="permission-delete-dialog__actions">
+    <button mat-stroked-button (click)="close()">Cancel</button>
+    <button mat-flat-button class="danger-action" (click)="confirm()">Delete</button>
+  </div>
+</div>

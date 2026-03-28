@@ -48,6 +48,7 @@ export interface HolidayDeleteDialogResult {
 
 export interface WeekendSettingsPayload {
   companyid: number;
+  id: number;
   sunday_off: boolean;
   monday_off: boolean;
   tuesday_off: boolean;

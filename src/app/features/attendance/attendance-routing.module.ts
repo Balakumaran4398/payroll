@@ -3,19 +3,26 @@ import { RouterModule, Routes } from '@angular/router';
 import { RoleGuard } from '../../core/guards/role.guard';
 import { AttendanceComponent } from './pages/attendance/attendance.component';
 import { AttendanceWorkflowComponent } from './pages/attendance-workflow/attendance-workflow.component';
+import { LeaveCreationComponent } from './pages/leave-creation/leave-creation.component';
 
 const routes: Routes = [
   {
     path: '',
     component: AttendanceComponent,
     canActivate: [RoleGuard],
-    data: { roles: ['ROLE_ADMIN', 'ROLE_MANAGER'] },
+    data: { roles: ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
   },
   {
     path: 'apply-leave',
     component: AttendanceWorkflowComponent,
     canActivate: [RoleGuard],
     data: { workflow: 'apply-leave', roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
+  },
+  {
+    path: 'leave-creation',
+    component: LeaveCreationComponent,
+    canActivate: [RoleGuard],
+    data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER'] },
   },
   {
     path: 'regularize-swipe',

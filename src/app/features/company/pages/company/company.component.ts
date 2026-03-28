@@ -89,29 +89,33 @@ export class CompanyComponent implements OnInit {
   selectedYear = Math.max(this.currentYear, 2026);
   selectedTypeFilter: HolidayType | 'all' = 'all';
   selectedWeeklyOffs: string[] = ['Sunday'];
-  selectedSaturdayPolicy: SaturdayPolicy = 'second-fourth';
+  selectedSaturdayPolicy: SaturdayPolicy = 'none';
   searchTerm = '';
   isLoading = true;
   isSavingWeekendSettings = false;
   currentRole: AppRole | null = null;
-  companyId = 0;
+  companyId: any;
   createdBy = '';
-
+  weekoffId: number;
   holidays: HolidayRecord[] = [];
-
+  username: any;
   constructor(
     private dialog: MatDialog,
     private apiService: ApiService,
     private authService: AuthService,
     private tokenStorage: TokenStorageService,
     private feedback: UiFeedbackService
-  ) {}
+  ) {
+    this.username = tokenStorage.getUsername();
+  }
 
   ngOnInit(): void {
     this.currentRole = this.authService.getRole();
     this.companyId = this.resolveCompanyId();
     this.createdBy = this.resolveCreatedBy();
     this.loadHolidays();
+    this.loadWeekoffSettings();
+    this.getemployeedetails();
   }
 
   get statsCards(): HolidayStatsCard[] {
@@ -169,7 +173,7 @@ export class CompanyComponent implements OnInit {
     return this.saturdayOptions.find((option) => option.value === this.selectedSaturdayPolicy) || this.saturdayOptions[0];
   }
 
-  onYearChange(): void {}
+  onYearChange(): void { }
 
   toggleWeeklyOff(day: string): void {
     if (this.isSavingWeekendSettings) {
@@ -330,6 +334,42 @@ export class CompanyComponent implements OnInit {
         },
       });
   }
+  getemployeedetails() {
+    this.apiService.getemployeedetails(this.username).subscribe((res: any) => {
+      this.companyId = res.companyid;
+    })
+  }
+  private loadWeekoffSettings(showLoader = true): void {
+    if (!this.companyId) {
+      this.holidays = [];
+      this.isLoading = false;
+      this.feedback.error('Company id is missing. Unable to load holidays.');
+      return;
+    }
+
+    if (showLoader) {
+      this.isLoading = true;
+    }
+
+    this.apiService
+      .getweekoffsettings(this.companyId)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.weekoffId = response.id;
+          this.applyWeekendSettingsFromResponse(response);
+          this.holidays = this.normalizeHolidayResponse(response);
+        },
+        error: (error) => {
+          this.holidays = [];
+          this.feedback.error(this.extractErrorMessage(error, 'Unable to load holidays. Please try again.'));
+        },
+      });
+  }
 
   private updateWeekendSettings(previousWeeklyOffs: string[], previousSaturdayPolicy: SaturdayPolicy): void {
     if (!this.companyId) {
@@ -364,6 +404,7 @@ export class CompanyComponent implements OnInit {
   private buildWeekendSettingsPayload(): WeekendSettingsPayload {
     return {
       companyid: this.companyId,
+      id: this.weekoffId,
       sunday_off: this.isWeeklyOff('Sunday'),
       monday_off: this.isWeeklyOff('Monday'),
       tuesday_off: this.isWeeklyOff('Tuesday'),

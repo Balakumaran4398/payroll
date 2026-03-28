@@ -2,8 +2,8 @@
   <div class="od-form-dialog__head">
     <div class="od-form-dialog__head-copy">
       <p class="od-form-dialog__eyebrow">Edit OD request</p>
-      <h2>{{ request.request_type || 'Request On Duty' }}</h2>
-      <p>{{ request.display_id }} • {{ request.employee_name || 'Employee #' + request.empid }}</p>
+      <h2>{{ request.employee_name }}</h2>
+      <p>{{ request.request_type || 'Request On Duty' }}</p>
     </div>
 
     <button mat-icon-button class="close-button" (click)="close()" aria-label="Close OD edit dialog">
@@ -12,46 +12,45 @@
   </div>
 
   <div class="od-form-dialog__body">
+    <p class="od-form-dialog__hint" *ngIf="dialogHint">{{ dialogHint }}</p>
+
     <div class="od-form-grid">
       <mat-form-field class="field" appearance="outline">
         <mat-label>From Date</mat-label>
-        <input matInput [matDatepicker]="fromPicker" [(ngModel)]="request.from_date">
+        <input matInput [matDatepicker]="fromPicker" [disabled]="!canEditRequestDetails" [(ngModel)]="request.from_date">
         <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
         <mat-datepicker #fromPicker></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field class="field" appearance="outline">
         <mat-label>To Date</mat-label>
-        <input matInput [matDatepicker]="toPicker" [(ngModel)]="request.to_date">
+        <input matInput [matDatepicker]="toPicker" [disabled]="!canEditRequestDetails" [(ngModel)]="request.to_date">
         <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
         <mat-datepicker #toPicker></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field class="field" appearance="outline">
         <mat-label>Place of Visit</mat-label>
-        <input matInput type="text" [(ngModel)]="request.place_of_visit">
+        <input matInput type="text" [disabled]="!canEditRequestDetails" [(ngModel)]="request.place_of_visit">
       </mat-form-field>
 
       <mat-form-field class="field" appearance="outline">
         <mat-label>Purpose of Visit</mat-label>
-        <input matInput type="text" [(ngModel)]="request.purpose_of_visit">
+        <input matInput type="text" [disabled]="!canEditRequestDetails" [(ngModel)]="request.purpose_of_visit">
       </mat-form-field>
 
       <mat-form-field class="field" appearance="outline">
         <mat-label>Approval Status</mat-label>
-        <mat-select [(ngModel)]="request.approved_status">
-          <mat-option *ngFor="let status of approvalStatusOptions" [value]="status">{{ status === 'Rejeted' ? 'Rejected' : status }}</mat-option>
+        <mat-select [(ngModel)]="request.approved_status" [disabled]="!canApprove">
+          <mat-option *ngFor="let status of approvalStatusOptions" [value]="status">{{ status === 'Rejected' ? 'Rejected'
+            : status }}</mat-option>
         </mat-select>
+        <mat-hint *ngIf="!canApprove">Only admin and managers reviewing team requests can change approval status.</mat-hint>
       </mat-form-field>
 
       <mat-form-field class="field" appearance="outline">
-        <mat-label>Approved By</mat-label>
-        <input matInput type="text" [(ngModel)]="request.approved_by">
-      </mat-form-field>
-
-      <mat-form-field class="field field--full" appearance="outline">
         <mat-label>Comments</mat-label>
-        <textarea matInput rows="5" [(ngModel)]="request.comments"></textarea>
+        <textarea matInput rows="1" [disabled]="!canEditRequestDetails" [(ngModel)]="request.comments"></textarea>
       </mat-form-field>
     </div>
   </div>

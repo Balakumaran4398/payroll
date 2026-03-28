@@ -1,130 +1,24 @@
 <section class="manager-dashboard">
   <div class="hero-card">
-    <div class="hero-card__identity">
+    <div class="hero-card__profile">
       <img class="hero-card__avatar" [src]="managerImageUrl" [alt]="managerName" loading="lazy" decoding="async" />
-
-      <div class="hero-card__copy">
-        <p class="hero-card__date">{{ heroDate }}</p>
-        <!-- <h1>Manager Dashboard</h1> -->
-        <p class="hero-card__welcome">Welcome back, {{ managerName }}. Here is the latest team snapshot for {{ teamName }}.</p>
-        <div class="hero-card__meta">
-          <!-- <span>{{ currentRoleLabel }}</span> -->
-          <span>{{ teamMembersCount }} team members</span>
-          <!-- <span>{{ panelDate }}</span> -->
-        </div>
-      </div>
     </div>
 
-    <div class="hero-card__metric">
-      <span>Attendance Rate</span>
-      <strong>{{ attendanceRate }}%</strong>
-      <small>updated today</small>
+    <div class="hero-card__content">
+      <p class="hero-card__welcome">
+        Welcome back, {{ managerName }}. Wishing you a productive and successful day.
+        <!-- <mat-icon class="hero-card__welcome-icon" aria-hidden="true">sentiment_satisfied_alt</mat-icon> -->
+      </p>
+      <div class="hero-card__meta">
+        <span class="hero-card__role">{{ currentRoleLabel }}</span>
+        <span class="hero-card__subtitle">{{ teamMembersCount }} team members</span>
+      </div>
     </div>
+    <p class="hero-card__date">{{ heroDate }}</p>
+
   </div>
 
-  <div class="people-grid">
-    <section class="people-card people-card--birthday">
-      <div class="people-card__header">
-        <div>
-          <p class="people-card__eyebrow">Today</p>
-          <h2>Birthdays</h2>
-        </div>
-        <span class="people-card__count">{{ birthdaysToday.length }}</span>
-      </div>
 
-      <div class="people-card__empty" *ngIf="!birthdaysToday.length">
-        <mat-icon>cake</mat-icon>
-        <p>No birthdays today.</p>
-      </div>
-
-      <div class="people-list" *ngIf="birthdaysToday.length">
-        <article class="people-item people-item--birthday" *ngFor="let employee of birthdaysToday; trackBy: trackByEmployeeId">
-          <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy" decoding="async" />
-          <div class="people-item__copy">
-            <strong>{{ employee.name }}</strong>
-            <small>{{ employee.department || 'Team Member' }}</small>
-            <p>Happy Birthday!</p>
-          </div>
-          <span class="people-item__badge">
-            <mat-icon>celebration</mat-icon>
-            Birthday
-          </span>
-        </article>
-      </div>
-    </section>
-
-    <section class="people-card people-card--anniversary">
-      <div class="people-card__header">
-        <div>
-          <p class="people-card__eyebrow">Milestones</p>
-          <h2>Work Anniversaries</h2>
-        </div>
-        <span class="people-card__count">{{ anniversariesToday.length }}</span>
-      </div>
-
-      <div class="people-card__empty" *ngIf="!anniversariesToday.length">
-        <mat-icon>workspace_premium</mat-icon>
-        <p>No work anniversaries today.</p>
-      </div>
-
-      <div class="people-list" *ngIf="anniversariesToday.length">
-        <article class="people-item people-item--anniversary" *ngFor="let employee of anniversariesToday; trackBy: trackByEmployeeId">
-          <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy" decoding="async" />
-          <div class="people-item__copy">
-            <strong>{{ employee.name }}</strong>
-            <small>{{ employee.department || 'Team Member' }}</small>
-            <p>Congratulations on your Work Anniversary!</p>
-          </div>
-          <span class="people-item__value">{{ employee.yearsCompleted }} Years</span>
-        </article>
-      </div>
-    </section>
-
-    <section class="people-card people-card--joiner">
-      <div class="people-card__header">
-        <div>
-          <p class="people-card__eyebrow">New Joiners</p>
-          <h2>Welcome Aboard</h2>
-        </div>
-        <span class="people-card__count">{{ newJoiners.length }}</span>
-      </div>
-
-      <div class="people-card__empty" *ngIf="!newJoiners.length">
-        <mat-icon>person_add_alt_1</mat-icon>
-        <p>No recent joiners in the last few days.</p>
-      </div>
-
-      <div class="joiner-marquee" *ngIf="newJoiners.length">
-        <div class="joiner-marquee__viewport">
-          <div class="joiner-marquee__track" [class.joiner-marquee__track--static]="newJoiners.length === 1">
-            <ng-container *ngFor="let employee of newJoiners; trackBy: trackByEmployeeId">
-              <article class="people-item people-item--joiner joiner-marquee__item">
-                <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy" decoding="async" />
-                <div class="people-item__copy">
-                  <strong>{{ employee.name }}</strong>
-                  <small>{{ employee.department || 'Team Member' }}</small>
-                  <p>Welcome to the team! We're excited to have you onboard.</p>
-                </div>
-                <span class="people-item__value people-item__value--joiner">{{ employee.joiningDateLabel }}</span>
-              </article>
-            </ng-container>
-
-            <ng-container *ngIf="newJoiners.length > 1">
-              <article class="people-item people-item--joiner joiner-marquee__item" *ngFor="let employee of newJoiners" aria-hidden="true">
-                <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy" decoding="async" />
-                <div class="people-item__copy">
-                  <strong>{{ employee.name }}</strong>
-                  <small>{{ employee.department || 'Team Member' }}</small>
-                  <p>Welcome to the team! We're excited to have you onboard.</p>
-                </div>
-                <span class="people-item__value people-item__value--joiner">{{ employee.joiningDateLabel }}</span>
-              </article>
-            </ng-container>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
 
   <div class="stats-grid">
     <article class="stat-card" *ngFor="let card of statusCards; trackBy: trackByTone"
@@ -170,10 +64,6 @@
           <p class="panel-card__eyebrow">Calendar</p>
           <h2>Festivals & Important Dates</h2>
         </div>
-        <span class="panel-card__chip panel-card__chip--calendar">Plan Ahead</span>
-      </div>
-
-      <div class="calendar-shell">
         <div class="calendar-toolbar">
           <button type="button" class="calendar-nav" (click)="changeCalendarMonth(-1)" aria-label="Previous month">
             <mat-icon>chevron_left</mat-icon>
@@ -184,12 +74,9 @@
           </button>
           <button type="button" class="calendar-today" (click)="goToCurrentMonth()">Today</button>
         </div>
+      </div>
 
-        <div class="calendar-note">
-          <mat-icon>event</mat-icon>
-          <p>Holiday, festival, and important dates are highlighted in the monthly view. Click any date to open actions and daily details.</p>
-        </div>
-
+      <div class="calendar-shell">
         <div class="attendance-calendar">
           <div class="calendar-weekdays">
             <span *ngFor="let day of weekDays">{{ day }}</span>
@@ -204,7 +91,8 @@
                 [class.calendar-day--leave]="day.state === 'leave'"
                 [class.calendar-day--weekend]="day.state === 'weekend'"
                 [class.calendar-day--holiday]="day.state === 'holiday'"
-                [class.calendar-day--upcoming]="day.state === 'upcoming'" [class.calendar-day--today]="day.today"
+                [class.calendar-day--upcoming]="day.state === 'upcoming'" [class.calendar-day--future]="day.future"
+                [class.calendar-day--today]="day.today"
                 [class.calendar-day--selected]="day.selected" [disabled]="!day.day"
                 [attr.aria-label]="day.day ? getCalendarDayAriaLabel(day) : null"
                 [attr.title]="day.specialEvent ? day.tooltipLabel : null" (click)="selectCalendarDay(day)">
@@ -243,7 +131,116 @@
       </div>
     </section>
   </div>
+  <div class="people-grid">
+    <section class="people-card people-card--birthday">
+      <div class="people-card__header">
+        <div>
+          <p class="people-card__eyebrow">Today</p>
+          <h2>Birthdays</h2>
+        </div>
+        <span class="people-card__count">{{ birthdaysToday.length }}</span>
+      </div>
 
+      <div class="people-card__empty" *ngIf="!birthdaysToday.length">
+        <mat-icon>cake</mat-icon>
+        <p>No birthdays today.</p>
+      </div>
+
+      <div class="people-list" *ngIf="birthdaysToday.length">
+        <article class="people-item people-item--birthday"
+          *ngFor="let employee of birthdaysToday; trackBy: trackByEmployeeId">
+          <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy"
+            decoding="async" />
+          <div class="people-item__copy">
+            <strong>{{ employee.name }}</strong>
+            <small>{{ employee.department || 'Team Member' }}</small>
+            <p>Happy Birthday!</p>
+          </div>
+          <span class="people-item__badge">
+            <mat-icon>celebration</mat-icon>
+            Birthday
+          </span>
+        </article>
+      </div>
+    </section>
+
+    <section class="people-card people-card--anniversary">
+      <div class="people-card__header">
+        <div>
+          <p class="people-card__eyebrow">Milestones</p>
+          <h2>Work Anniversaries</h2>
+        </div>
+        <span class="people-card__count">{{ anniversariesToday.length }}</span>
+      </div>
+
+      <div class="people-card__empty" *ngIf="!anniversariesToday.length">
+        <mat-icon>workspace_premium</mat-icon>
+        <p>No work anniversaries today.</p>
+      </div>
+
+      <div class="people-list" *ngIf="anniversariesToday.length">
+        <article class="people-item people-item--anniversary"
+          *ngFor="let employee of anniversariesToday; trackBy: trackByEmployeeId">
+          <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy"
+            decoding="async" />
+          <div class="people-item__copy">
+            <strong>{{ employee.name }}</strong>
+            <small>{{ employee.department || 'Team Member' }}</small>
+            <p>Congratulations on your Work Anniversary!</p>
+          </div>
+          <span class="people-item__value">{{ employee.yearsCompleted }} Years</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="people-card people-card--joiner">
+      <div class="people-card__header">
+        <div>
+          <p class="people-card__eyebrow">New Joiners</p>
+          <h2>Welcome Aboard</h2>
+        </div>
+        <span class="people-card__count">{{ newJoiners.length }}</span>
+      </div>
+
+      <div class="people-card__empty" *ngIf="!newJoiners.length">
+        <mat-icon>person_add_alt_1</mat-icon>
+        <p>No recent joiners in the last few days.</p>
+      </div>
+
+      <div class="joiner-marquee" *ngIf="newJoiners.length">
+        <div class="joiner-marquee__viewport">
+          <div class="joiner-marquee__track" [class.joiner-marquee__track--static]="newJoiners.length === 1">
+            <ng-container *ngFor="let employee of newJoiners; trackBy: trackByEmployeeId">
+              <article class="people-item people-item--joiner joiner-marquee__item">
+                <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy"
+                  decoding="async" />
+                <div class="people-item__copy">
+                  <strong>{{ employee.name }}</strong>
+                  <small>{{ employee.department || 'Team Member' }}</small>
+                  <p>Welcome to the team! We're excited to have you onboard.</p>
+                </div>
+                <span class="people-item__value people-item__value--joiner">{{ employee.joiningDateLabel }}</span>
+              </article>
+            </ng-container>
+
+            <ng-container *ngIf="newJoiners.length > 1">
+              <article class="people-item people-item--joiner joiner-marquee__item" *ngFor="let employee of newJoiners"
+                aria-hidden="true">
+                <img class="people-item__avatar" [src]="employee.avatarUrl" [alt]="employee.name" loading="lazy"
+                  decoding="async" />
+                <div class="people-item__copy">
+                  <strong>{{ employee.name }}</strong>
+                  <small>{{ employee.department || 'Team Member' }}</small>
+                  <p>Welcome to the team! We're excited to have you onboard.</p>
+                </div>
+                <span class="people-item__value people-item__value--joiner">{{ employee.joiningDateLabel }}</span>
+              </article>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
   <div class="manager-secondary-grid">
     <section class="panel-card">
       <div class="panel-card__header">
@@ -328,8 +325,8 @@
           <tr *ngFor="let member of teamMembers">
             <td>
               <div class="employee-cell">
-                <img *ngIf="member.imageUrl; else memberInitialsAvatar" class="employee-avatar-image" [src]="member.imageUrl"
-                  [alt]="member.name" loading="lazy" decoding="async" />
+                <img *ngIf="member.imageUrl; else memberInitialsAvatar" class="employee-avatar-image"
+                  [src]="member.imageUrl" [alt]="member.name" loading="lazy" decoding="async" />
                 <ng-template #memberInitialsAvatar>
                   <span class="employee-avatar">{{ member.initials }}</span>
                 </ng-template>
@@ -342,7 +339,8 @@
             <td>{{ member.department }}</td>
             <td>{{ member.position }}</td>
             <td>
-              <span class="member-status" [class]="'member-status member-status--' + member.status.toLowerCase().replace(' ', '-')">
+              <span class="member-status"
+                [class]="'member-status member-status--' + member.status.toLowerCase().replace(' ', '-')">
                 {{ member.status }}
               </span>
             </td>

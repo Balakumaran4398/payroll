@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -45,25 +45,38 @@ export interface BusinessUnitType {
   id: number;
   type: string;
 }
+export interface CompanyDetails {
+  companyidid: number;
+  type: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService implements OnInit {
   static AUTH_URL(): string {
     return 'http://192.168.1.105:8081/api/auth';
+    // return 'http://192.168.70.100:8585/dsr/api/auth';
+    // return 'https://crm.ridsys.in:8080/dsr/api/auth';
   }
 
   static BASE_URL(): string {
     return 'http://192.168.1.105:8081/api/v1';
+    // return 'http://192.168.70.100:8585/dsr/api/v1';
+    // return 'https://crm.ridsys.in:8080/dsr/api/v1';
   }
-
+  username: any;
   constructor(
     private storage: TokenStorageService,
     private router: Router,
     private http: HttpClient,
     private securityService: SecurityService
-  ) { }
+  ) {
+
+  }
+  ngOnInit(): void {
+    this.getUsername();
+  }
 
   login(payload: LoginPayload): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${AuthService.AUTH_URL()}/signin`, {
@@ -124,23 +137,24 @@ export class AuthService {
     );
   }
 
+
   logout(): void {
     if (this.isAuthenticated()) {
       this.http.post(`${AuthService.BASE_URL()}/logout`, {}).subscribe({
         next: () => {
           this.clearSession();
-          this.router.navigate(['/auth/login'], { replaceUrl: true });
+          this.router.navigate(['/'], { replaceUrl: true });
         },
         error: () => {
           this.clearSession();
-          this.router.navigate(['/auth/login'], { replaceUrl: true });
+          this.router.navigate(['/'], { replaceUrl: true });
         },
       });
       return;
     }
 
     this.clearSession();
-    this.router.navigate(['/auth/login'], { replaceUrl: true });
+    this.router.navigate(['/'], { replaceUrl: true });
   }
 
   isAuthenticated(): boolean {
@@ -165,12 +179,12 @@ export class AuthService {
     return this.storage.getToken();
   }
   getID(): any | null {
-    console.log("ID ===============>",this.storage.getID());
-
     return this.storage.getID();
   }
 
   getUsername(): string {
+    console.log("111111111111 ===", this.storage.getUsername());
+
     return this.storage.getUsername() || '';
   }
 

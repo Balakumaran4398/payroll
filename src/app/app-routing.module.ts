@@ -5,11 +5,12 @@ import { RoleGuard } from './core/guards/role.guard';
 import { AuthGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
   {
     path: 'auth',
-    loadChildren: () =>
-      import('./features/auth/auth.module').then((m) => m.AuthModule),
+    children: [
+      { path: 'login', redirectTo: '/', pathMatch: 'full' },
+      { path: '', redirectTo: '/', pathMatch: 'full' },
+    ],
   },
   {
     path: 'app',
@@ -97,10 +98,23 @@ const routes: Routes = [
         loadChildren: () =>
           import('./features/themes/themes.module').then((m) => m.ThemesModule),
       },
+      {
+        path: 'documents',
+        canLoad: [RoleGuard],
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'] },
+        loadChildren: () =>
+          import('./features/documents/documents.module').then((m) => m.DocumentsModule),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
-  { path: '**', redirectTo: '/auth/login' },
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/auth/auth.module').then((m) => m.AuthModule),
+  },
+  { path: '**', redirectTo: '' },
 ];
 
 @NgModule({

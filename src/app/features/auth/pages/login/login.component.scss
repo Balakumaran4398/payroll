@@ -38,10 +38,10 @@
   position: relative;
   padding: clamp(24px, 7vw, 56px);
   color: var(--auth-text-light);
-  background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 60%),
-    radial-gradient(circle at 80% 12%, rgba(255, 255, 255, 0.28), transparent 36%),
-    linear-gradient(155deg, var(--theme-auth-start), var(--theme-auth-mid) 54%, var(--theme-auth-end));
+  background:var(--theme-auth-mid);
+    // linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 60%),
+    // radial-gradient(circle at 80% 12%, rgba(255, 255, 255, 0.28), transparent 36%),
+    // linear-gradient(155deg, var(--theme-auth-start), var(--theme-auth-mid) 54%, var(--theme-auth-end));
 }
 
 .company-panel::before {

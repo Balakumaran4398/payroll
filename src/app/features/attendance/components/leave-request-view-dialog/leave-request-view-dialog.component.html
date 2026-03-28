@@ -1,0 +1,67 @@
+<div class="leave-view-dialog">
+  <div class="leave-view-dialog__head">
+    <div class="leave-view-dialog__head-copy">
+      <p class="leave-view-dialog__eyebrow">Leave request details</p>
+      <h2>{{ data.request.request_type }}</h2>
+      <p>{{ data.request.display_id }} • Employee #{{ data.request.empid }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close leave request dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="leave-view-dialog__body">
+    <div class="leave-view-dialog__badges">
+      <span class="badge">{{ data.request.display_status }}</span>
+      <span class="badge badge--soft">{{ data.request.display_created_at }}</span>
+      <span class="badge badge--soft">{{ data.request.leaveType || data.request.leave_type_label }}</span>
+    </div>
+
+    <div class="leave-view-dialog__grid">
+      <div class="detail-card">
+        <p class="detail-label">Employee Id</p>
+        <p class="detail-value">{{ data.request.empid || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Leave Type</p>
+        <p class="detail-value">{{ data.request.leave_type_label || data.request.leaveType || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">From Date</p>
+        <p class="detail-value">{{ data.request.fromDate || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">To Date</p>
+        <p class="detail-value">{{ data.request.toDate || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Leave Mode</p>
+        <p class="detail-value">{{ data.request.leave_mode || 'full' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Total Days</p>
+        <p class="detail-value">{{ data.request.totaldays || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card detail-card--full">
+        <p class="detail-label">Reason</p>
+        <p class="detail-value">{{ data.request.reason || data.request.display_reason || 'No reason added' }}</p>
+      </div>
+
+      <div class="detail-card detail-card--full">
+        <p class="detail-label">Document</p>
+        <p class="detail-value">{{ data.request.filename || 'No attachment uploaded' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="leave-view-dialog__actions">
+    <button mat-stroked-button (click)="close()">Close</button>
+  </div>
+</div>

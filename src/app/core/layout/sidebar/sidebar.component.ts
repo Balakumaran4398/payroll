@@ -35,12 +35,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       icon: 'dashboard',
       roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
-    {
-      label: 'New Requests',
-      route: '/app/dashboard/requests',
-      icon: 'notifications_active',
-      roles: ['ROLE_ADMIN'],
-    },
+    // {
+    //   label: 'New Requests',
+    //   route: '/app/dashboard/requests',
+    //   icon: 'notifications_active',
+    //   roles: ['ROLE_ADMIN'],
+    // },
     {
       label: 'Employees',
       icon: 'groups',
@@ -58,43 +58,66 @@ export class SidebarComponent implements OnInit, OnDestroy {
           roles: ['ROLE_ADMIN'],
         },
       ],
+    }, 
+    {
+      label: 'Documents',
+      icon: 'folder_open',
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+      children: [
+        {
+          label: 'Pay Slip',
+          route: '/app/documents/pay-slip',
+          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+        },
+        {
+          label: 'CTC',
+          route: '/app/documents/ctc',
+          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+        },
+        {
+          label: 'Call Letter',
+          route: '/app/documents/call-letter',
+          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+        },
+      ],
     },
     {
       label: 'Leave',
       route: '/app/attendance',
       icon: 'event_note',
-      roles: ['ROLE_ADMIN', 'ROLE_MANAGER'],
+      roles: ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
-    {
-      label: 'Departments',
-      route: '/app/departments',
-      icon: 'apartment',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER'],
-    },
-    {
-      label: 'Reports',
-      route: '/app/reports',
-      icon: 'bar_chart',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
-    },
+    // {
+    //   label: 'Departments',
+    //   route: '/app/departments',
+    //   icon: 'apartment',
+    //   roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER'],
+    // },
+    // {
+    //   label: 'Reports',
+    //   route: '/app/reports',
+    //   icon: 'bar_chart',
+    //   roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+    // },
     {
       label: 'Holiday Calendar',
       route: '/app/company',
       icon: 'calendar_month',
       roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
-    {
-      label: 'Settings',
-      route: '/app/settings',
-      icon: 'settings',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
-    },
+    // {
+    //   label: 'Settings',
+    //   route: '/app/settings',
+    //   icon: 'settings',
+    //   roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+    // },
     {
       label: 'Themes',
       route: '/app/themes',
       icon: 'palette',
       roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
     },
+
   ];
 
   visibleMenu: MenuItem[] = [];
@@ -151,10 +174,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   toggleGroup(item: MenuItem): void {
     if (!item.children || item.children.length === 0) {
-      return;
-    }
-
-    if (this.isGroupActive(item) && this.expandedMenu[item.label]) {
       return;
     }
 

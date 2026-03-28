@@ -26,7 +26,7 @@ export class RoleGuard  {
   private checkRole(allowedRoles: AppRole[], returnUrl: string): boolean | UrlTree {
     if (!this.authService.hasValidSession()) {
       this.authService.clearSession();
-      return this.router.createUrlTree(['/auth/login'], {
+      return this.router.createUrlTree(['/'], {
         queryParams: {
           returnUrl: returnUrl || '/app/dashboard',
           reason: 'session-expired',

@@ -12,30 +12,17 @@
         <div class="table-heading">
           <div class="table-heading__copy">
             <mat-card-title>Employee Directory</mat-card-title>
-            <!-- <mat-card-subtitle>{{ filteredEmployees.length }} of {{ employees.length }} employees
-              visible</mat-card-subtitle> -->
+   
           </div>
-          <div class="table-summary">
-            <mat-icon>insights</mat-icon>
-            <span>Modern responsive employee table</span>
-          </div>
+      
         </div>
       </mat-card-header>
 
       <div class="table-toolbar">
-        <div class="table-toolbar__top">
-          <div class="table-toolbar__copy">
-            <p class="table-toolbar__label">Employee management</p>
-            <p class="table-toolbar__text">Search employees, filter by status, and manage records from one responsive table card.</p>
-          </div>
 
-          <button mat-flat-button class="add-employee-btn" (click)="openAddEmployeeDialog()" [disabled]="!canCreateEmployee()" [attr.aria-label]="getCreateEmployeeDisabledReason() || 'Add Employee'">
-            <mat-icon>add</mat-icon>
-            Add Employee
-          </button>
-        </div>
 
         <div class="search-section search-section--compact">
+          
           <mat-form-field appearance="outline" class="search-field">
             <mat-label>Search employees</mat-label>
             <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()"
@@ -44,6 +31,11 @@
           </mat-form-field>
 
           <div class="filter-buttons">
+
+          <button mat-flat-button class="add-employee-btn" (click)="openAddEmployeeDialog()" [disabled]="!canCreateEmployee()" [attr.aria-label]="getCreateEmployeeDisabledReason() || 'Add Employee'">
+            <mat-icon>add</mat-icon>
+            Add Employee
+          </button>
             <button mat-stroked-button [class.active]="statusFilter === 'all'" (click)="setStatusFilter('all')">
               All ({{ totalEmployees }})
             </button>

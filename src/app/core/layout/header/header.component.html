@@ -11,11 +11,11 @@
   <span class="spacer"></span>
 
   <div class="topbar__actions">
-    <label *ngIf="!isMobileViewport" class="topbar__search" aria-label="Global search">
+    <!-- <label *ngIf="!isMobileViewport" class="topbar__search" aria-label="Global search">
       <mat-icon>search</mat-icon>
       <input type="text" [placeholder]="searchPlaceholder" />
       <span class="topbar__search-shortcut">/</span>
-    </label>
+    </label> -->
 
     <button
       type="button"
@@ -31,9 +31,9 @@
  
     </button>
 
-    <button type="button" class="icon-action" aria-label="Notifications" (click)="toggleNotificationsPanel()">
+    <button type="button" class="icon-action" [attr.aria-label]="notification ? 'Notifications ' + notification : 'Notifications'" (click)="toggleNotificationsPanel()">
       <mat-icon>notifications_none</mat-icon>
-      <span class="icon-action__dot" *ngIf="notificationsCount"></span>
+      <span class="icon-action__dot" *ngIf="notification">{{ notification > 99 ? '99+' : notification }}</span>
     </button>
 
     <button type="button" class="avatar-btn" aria-label="Open profile dialog" (click)="toggleProfilePanel()">
@@ -59,14 +59,20 @@
       </div>
 
       <div class="notifications-panel__body">
-        <article class="notification-card" *ngFor="let notification of notifications">
+        <article class="notification-card" *ngFor="let notificationItem of notifications"
+          [class.notification-card--actionable]="!!notificationItem.route"
+          [attr.role]="notificationItem.route ? 'button' : null"
+          [attr.tabindex]="notificationItem.route ? 0 : null"
+          (click)="onNotificationClick(notificationItem)"
+          (keydown.enter)="onNotificationClick(notificationItem)"
+          (keydown.space)="onNotificationClick(notificationItem); $event.preventDefault()">
           <span class="notification-card__icon">
-            <mat-icon>{{ notification.icon }}</mat-icon>
+            <mat-icon>{{ notificationItem.icon }}</mat-icon>
           </span>
           <div class="notification-card__copy">
-            <strong>{{ notification.title }}</strong>
-            <p>{{ notification.description }}</p>
-            <small>{{ notification.time }}</small>
+            <strong>{{ notificationItem.title }}</strong>
+            <p>{{ notificationItem.description }}</p>
+            <small>{{ notificationItem.time }}</small>
           </div>
         </article>
       </div>

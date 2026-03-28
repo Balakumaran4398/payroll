@@ -1,0 +1,31 @@
+<div class="leave-delete-dialog">
+  <div class="leave-delete-dialog__head">
+    <div class="leave-delete-dialog__head-copy">
+      <p class="leave-delete-dialog__eyebrow">Confirm action</p>
+      <h2>Delete {{ data.request.display_id }}?</h2>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close leave delete dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="leave-delete-dialog__body">
+    <div class="leave-delete-dialog__icon">
+      <mat-icon>delete_forever</mat-icon>
+    </div>
+
+    <p class="leave-delete-dialog__copy">This removes the selected leave request from the Apply Leave table view.</p>
+
+    <div class="leave-delete-dialog__meta">
+      <span>Employee #{{ data.request.empid }}</span>
+      <span>{{ data.request.leave_type_label || data.request.leaveType || 'Leave' }}</span>
+      <span>{{ data.request.display_date_time }}</span>
+    </div>
+  </div>
+
+  <div class="leave-delete-dialog__actions">
+    <button mat-stroked-button (click)="close()">Cancel</button>
+    <button mat-flat-button class="danger-action" (click)="confirm()">Delete</button>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+<div class="leave-settings-dialog">
+  <div class="leave-settings-dialog__head">
+    <div class="leave-settings-dialog__head-copy">
+      <p class="leave-settings-dialog__eyebrow">{{ mode === 'create' ? 'Create leave setting' : 'Edit leave setting' }}</p>
+      <h2>{{ request.leaveType || (mode === 'create' ? 'New Leave Setting' : 'Leave Type') }}</h2>
+      <p>{{ request.leaveCode || (mode === 'create' ? 'Choose a leave type and set the limits.' : '-') }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close leave settings dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="leave-settings-dialog__body">
+    <div class="leave-settings-dialog__summary" *ngIf="mode === 'edit'; else createLeaveTypeSection">
+      <div>
+        <span>Leave Type</span>
+        <strong>{{ request.leaveType || '-' }}</strong>
+      </div>
+      <div>
+        <span>Code</span>
+        <strong>{{ request.leaveCode || '-' }}</strong>
+      </div>
+    </div>
+
+    <ng-template #createLeaveTypeSection>
+      <mat-form-field class="field field--full" appearance="outline">
+        <mat-label>Leave Type</mat-label>
+        <mat-select [(ngModel)]="request.leaveTypeId" (ngModelChange)="onLeaveTypeChange($event)">
+          <mat-option *ngFor="let option of leaveTypeOptions" [value]="option.id">
+            {{ option.leaveType }} ({{ option.leaveCode }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-template>
+
+    <div class="leave-settings-dialog__grid">
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Monthly Limit</mat-label>
+        <input matInput type="number" min="0" [(ngModel)]="request.monthlyLimit">
+      </mat-form-field>
+
+      <mat-form-field class="field" appearance="outline">
+        <mat-label>Yearly Limit</mat-label>
+        <input matInput type="number" min="0" [(ngModel)]="request.yearlyLimit">
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="leave-settings-dialog__actions">
+    <button mat-stroked-button [disabled]="submitting" (click)="close()">Cancel</button>
+    <button mat-flat-button color="primary" [disabled]="submitting" (click)="save()">
+      {{ submitting ? 'Saving...' : 'Save Changes' }}
+    </button>
+  </div>
+</div>

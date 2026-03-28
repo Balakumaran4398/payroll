@@ -1,0 +1,89 @@
+<section class="documents-page">
+  <div class="documents-hero">
+    <div>
+      <p class="documents-eyebrow">Documents</p>
+      <h2>Pay Slip</h2>
+      <p>Review the latest salary breakup, deductions, and recent payroll documents from one place.</p>
+    </div>
+
+    <div class="documents-hero__actions">
+      <button mat-stroked-button type="button" (click)="printPage()">Print</button>
+      <button mat-flat-button color="primary" type="button" (click)="downloadPaySlip()">Download</button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <article class="summary-card" *ngFor="let card of summaryCards" [class]="'summary-card summary-card--' + card.tone">
+      <span>{{ card.label }}</span>
+      <strong>{{ card.value }}</strong>
+      <small>{{ card.caption }}</small>
+    </article>
+  </div>
+
+  <div class="documents-layout">
+    <mat-card class="panel">
+      <div class="panel__head">
+        <div>
+          <h3>March 2026 Pay Slip</h3>
+          <p>Employee Id: EMP-1024 • Payroll period: 01 Mar 2026 to 31 Mar 2026</p>
+        </div>
+        <span class="status-chip">Paid</span>
+      </div>
+
+      <div class="slip-grid">
+        <section class="slip-section">
+          <h4>Earnings</h4>
+          <div class="value-list">
+            <div class="value-row" *ngFor="let item of earnings">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="slip-section">
+          <h4>Deductions</h4>
+          <div class="value-list">
+            <div class="value-row" *ngFor="let item of deductions">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="pay-slip-total">
+        <div>
+          <span>Net Pay</span>
+          <strong>Rs 43,860</strong>
+        </div>
+        <div>
+          <span>Payment Mode</span>
+          <strong>Bank Transfer</strong>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="panel panel--side">
+      <div class="panel__head">
+        <div>
+          <h3>Recent Pay Slips</h3>
+          <p>Latest generated payroll documents</p>
+        </div>
+      </div>
+
+      <div class="month-list">
+        <article class="month-card" *ngFor="let item of paySlipMonths">
+          <div>
+            <strong>{{ item.month }}</strong>
+            <span>{{ item.status }}</span>
+          </div>
+          <div class="month-card__meta">
+            <strong>{{ item.net }}</strong>
+            <button mat-button type="button" (click)="printPage()">Print</button>
+          </div>
+        </article>
+      </div>
+    </mat-card>
+  </div>
+</section>

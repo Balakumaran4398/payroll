@@ -15,6 +15,15 @@ interface EmployeeStatCard {
   tone: 'success' | 'danger' | 'warning' | 'primary';
 }
 
+interface DashboardStatusDetails {
+  apsent?: number | string | null;
+  absent?: number | string | null;
+  late?: number | string | null;
+  present?: number | string | null;
+  improper_thump?: number | string | null;
+  improper_thumb?: number | string | null;
+}
+
 interface QuickAction {
   title: string;
   subtitle: string;
@@ -43,12 +52,47 @@ interface CalendarEvent extends CalendarEventSeed {
   imageUrl: string;
 }
 
+interface DashboardAttendanceApiItem {
+  inTime?: string | null;
+  outTime?: string | null;
+  shift_name?: string | null;
+  shift_type?: string | null;
+  shiftName?: string | null;
+  thumb_status?: string | null;
+  thumbstatus?: string | null;
+  thumbStatus?: string | null;
+  thumb?: string | null;
+  attendance_date?: string | null;
+  attendanceDate?: string | null;
+  att_date?: string | null;
+  attendance_status?: string | null;
+  attendanceStatus?: string | null;
+  day_status?: string | null;
+  dayStatus?: string | null;
+  status?: string | null;
+  is_holiday?: boolean | string | number | null;
+  is_weekoff?: boolean | string | number | null;
+  workingHours?: string | null;
+  total_hours?: string | null;
+  totalHours?: string | null;
+  leave_status?: string | null;
+  out_time?: string | null;
+  date?: string | null;
+  in_time?: string | null;
+  shift?: string | null;
+  thump_status?: string | null;
+  working_hours?: string | null;
+}
+
 interface AttendanceRecord {
+  state: AttendanceState;
+  statusText: string;
   summary: string;
   shift: string;
   checkIn: string;
   checkOut: string;
-  totalHours: string;
+  workingHours: string;
+  thumbStatus: string;
   note: string;
 }
 
@@ -107,13 +151,16 @@ export class EmployeeDashboardComponent implements OnInit {
     { state: 'late', label: 'Late', description: 'Late punch-in recorded' },
     { state: 'half-day', label: 'Half Day', description: 'Half Day Leave' },
     { state: 'leave', label: 'Leave', description: 'Approved leave day' },
-    { state: 'holiday', label: 'Special Day', description: 'Holiday, festival, or important day entry' },
+    { state: 'holiday', label: 'Holiday', description: 'Holiday, festival, or important day entry' },
+    { state: 'upcoming', label: 'Upcoming', description: 'Approved future leave or pending attendance' },
   ];
   readonly calendarActions = [
     { title: 'Apply Leave', subtitle: 'Create leave request', icon: 'event_available', tone: 'blue' as const, route: '/app/attendance/apply-leave' },
     { title: 'Regularize Punch', subtitle: 'Fix missed swipe logs', icon: 'touch_app', tone: 'orange' as const, route: '/app/attendance/regularize-swipe' },
     { title: 'Request OD', subtitle: 'Submit on-duty request', icon: 'work_history', tone: 'purple' as const, route: '/app/attendance/request-od' },
-    { title: 'Raise Query', subtitle: 'Ask HR for clarification', icon: 'support_agent', tone: 'teal' as const, route: '/app/attendance/raise-query' },
+    // { title: 'Raise Query', subtitle: 'Ask HR for clarification', icon: 'support_agent', tone: 'teal' as const, route: '/app/attendance/raise-query' },
+    { title: 'Permission Request', subtitle: 'Submit short-time approval', icon: 'verified_user', tone: 'purple', route: '/app/attendance/permission-request' },
+
   ];
   readonly recurringEvents: Record<string, CalendarEventSeed> = {
     '01-01': {
@@ -261,18 +308,21 @@ export class EmployeeDashboardComponent implements OnInit {
   calendarWeeks: CalendarDay[][] = [];
   selectedCalendarDay: CalendarDay | null = null;
   viewedDate = new Date();
+  currentEmployeeId = 0;
+  attendanceRecordsByDate = new Map<string, AttendanceRecord>();
   birthdaysToday: BirthdayEmployee[] = [];
   anniversariesToday: AnniversaryEmployee[] = [];
   newJoiners: NewJoinerEmployee[] = [];
 
   statCards: EmployeeStatCard[] = [];
+  private hasDashboardStatusCards = false;
 
   readonly quickActions: QuickAction[] = [
     { title: 'Apply Leave', subtitle: 'Request planned leave in seconds', icon: 'event_available', tone: 'blue', route: '/app/attendance/apply-leave' },
     { title: 'Regularize Swipe', subtitle: 'Correct missed or late punches', icon: 'fingerprint', tone: 'orange', route: '/app/attendance/regularize-swipe' },
     { title: 'Permission Request', subtitle: 'Submit short-time approval', icon: 'verified_user', tone: 'purple', route: '/app/attendance/permission-request' },
     { title: 'Request OD', subtitle: 'Submit on-duty movement for field visits, client meetings, or travel work', icon: 'work_history', tone: 'orange', route: '/app/attendance/request-od' },
-    { title: 'Attendance Report', subtitle: 'Review monthly attendance summary', icon: 'insights', tone: 'teal', route: '/app/reports' },
+    // { title: 'Attendance Report', subtitle: 'Review monthly attendance summary', icon: 'insights', tone: 'teal', route: '/app/reports' },
   ];
 
   constructor(private authService: AuthService, private apiService: ApiService, private router: Router) { }
@@ -282,12 +332,16 @@ export class EmployeeDashboardComponent implements OnInit {
     this.greetingName = this.resolveFirstName(this.employeeName);
     this.heroDate = this.formatHeroDate(new Date());
     this.heroSubtitle = this.resolveHeroSubtitle(this.authService.getRole());
+    console.log(this.heroSubtitle);
+    
     this.heroRoleLabel = this.formatRoleLabel(this.authService.getRole());
     this.heroWelcomeMessage = this.buildWelcomeMessage(this.greetingName);
     this.heroImageUrl = this.buildFallbackAvatar(this.employeeName);
+    this.currentEmployeeId = Number(this.authService.getID() || 0) || 0;
     this.viewedDate = new Date();
     this.viewedDate.setDate(1);
-    this.rebuildCalendar();
+    this.loadDashboardStatusCards();
+    this.loadAttendanceCalendar();
     this.loadEmployeeHero();
   }
 
@@ -328,7 +382,6 @@ export class EmployeeDashboardComponent implements OnInit {
     if (!day.day || !day.date) {
       return;
     }
-
     this.selectedCalendarDay = day;
     this.rebuildCalendar(day.date);
   }
@@ -336,14 +389,14 @@ export class EmployeeDashboardComponent implements OnInit {
   changeMonth(offset: number): void {
     this.viewedDate = new Date(this.viewedDate.getFullYear(), this.viewedDate.getMonth() + offset, 1);
     this.selectedCalendarDay = null;
-    this.rebuildCalendar();
+    this.loadAttendanceCalendar();
   }
 
   goToToday(): void {
     const today = new Date();
     this.viewedDate = new Date(today.getFullYear(), today.getMonth(), 1);
     this.selectedCalendarDay = null;
-    this.rebuildCalendar();
+    this.loadAttendanceCalendar();
   }
 
   closeAttendanceDialog(): void {
@@ -401,26 +454,18 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   get selectedAttendanceMetrics(): AttendanceMetric[] {
-    const activeDay = this.selectedCalendarDay;
-    const details = activeDay?.details;
-    if (!activeDay || !details) {
+    const details = this.selectedCalendarDay?.details;
+    if (!details) {
       return [];
     }
 
-    if (activeDay.specialEvent) {
-      return [
-        { label: 'Event Type', value: this.getEventTypeLabel(activeDay.specialEvent.type), icon: 'celebration' },
-        { label: 'Status', value: activeDay.stateLabel, icon: 'event' },
-        { label: 'Schedule', value: details.shift, icon: 'schedule' },
-        { label: 'Summary', value: details.totalHours, icon: 'info' },
-      ];
-    }
-
     return [
-      { label: 'Shift', value: details.shift, icon: 'badge' },
+      { label: 'Status', value: details.statusText, icon: 'fact_check' },
       { label: 'Check In', value: details.checkIn, icon: 'login' },
       { label: 'Check Out', value: details.checkOut, icon: 'logout' },
-      { label: 'Work Summary', value: details.totalHours, icon: 'schedule' },
+      { label: 'Shift', value: details.shift, icon: 'badge' },
+      { label: 'Working Hours', value: details.workingHours, icon: 'schedule' },
+      { label: 'Thumb Status', value: details.thumbStatus, icon: 'touch_app' },
     ];
   }
 
@@ -449,9 +494,7 @@ export class EmployeeDashboardComponent implements OnInit {
     }
   }
 
-  // getEventTypeLabel(type: CalendarEventType): string {
-  //   return type === 'festival' ? 'Festival' : 'Holiday';
-  // }
+
 
   private resolveEmployeeName(): string {
     const employeeName = `${this.authService.getEmpname() || ''}`.trim();
@@ -765,6 +808,444 @@ export class EmployeeDashboardComponent implements OnInit {
     });
   }
 
+  private loadAttendanceCalendar(selectedDate?: Date): void {
+    if (!this.currentEmployeeId) {
+      this.attendanceRecordsByDate = new Map();
+      this.rebuildCalendar(selectedDate);
+      return;
+    }
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const month = monthNames[this.viewedDate.getMonth()];
+    const year = `${this.viewedDate.getFullYear()}`;
+
+    this.apiService.getAttendanceDetails(this.currentEmployeeId, month, year).subscribe({
+      next: (data: any) => {
+
+        this.attendanceRecordsByDate = this.mapAttendanceRecords(data);
+        this.rebuildCalendar(selectedDate);
+      },
+      error: (error) => {
+        this.attendanceRecordsByDate = new Map();
+        this.rebuildCalendar(selectedDate);
+      },
+    });
+  }
+
+  private mapAttendanceRecords(data: any): Map<string, AttendanceRecord> {
+    const mappedRecords = new Map<string, AttendanceRecord>();
+
+    this.extractAttendanceList(data).forEach((item) => {
+      const dateKey = this.resolveAttendanceDateKey(item);
+      if (!dateKey) {
+        return;
+      }
+
+      const recordDate = new Date(dateKey);
+      const specialEvent = Number.isNaN(recordDate.getTime()) ? null : this.resolveSpecialEvent(recordDate);
+      const checkIn = this.formatTimeOnly(item.in_time ?? item.inTime);
+      const checkOut = this.formatTimeOnly(item.out_time ?? item.outTime);
+      const shift = `${item.shift ?? item.shift_name ?? item.shift_type ?? item.shiftName ?? 'General Shift'}`.trim() || 'General Shift';
+      const thumbStatus = this.resolveThumbStatus(item);
+      const state = this.mapAttendanceState(item, checkIn, checkOut);
+      const statusText = this.resolveAttendanceStatusLabel(item, state);
+      const displayState = this.resolveCalendarDisplayState(dateKey, state, statusText);
+
+      mappedRecords.set(dateKey, {
+        state: displayState.state,
+        statusText: displayState.statusText,
+        summary: this.buildAttendanceSummary(displayState.state, displayState.statusText, specialEvent),
+        shift,
+        checkIn,
+        checkOut,
+        workingHours: this.resolveWorkingHours(item, checkIn, checkOut, displayState.state, displayState.statusText),
+        thumbStatus,
+        note: this.buildAttendanceNote(displayState.state, displayState.statusText, thumbStatus, specialEvent),
+      });
+    });
+
+    return mappedRecords;
+  }
+
+  private extractAttendanceList(data: any): DashboardAttendanceApiItem[] {
+    if (Array.isArray(data)) {
+      return data as DashboardAttendanceApiItem[];
+    }
+
+    if (Array.isArray(data?.data)) {
+      return data.data as DashboardAttendanceApiItem[];
+    }
+
+    if (Array.isArray(data?.result)) {
+      return data.result as DashboardAttendanceApiItem[];
+    }
+
+    if (Array.isArray(data?.records)) {
+      return data.records as DashboardAttendanceApiItem[];
+    }
+
+    return [];
+  }
+
+  private resolveAttendanceDateKey(item: DashboardAttendanceApiItem): string {
+    const rawValue = item.attendance_date || item.attendanceDate || item.att_date || item.date || item.in_time || item.inTime || item.out_time || item.outTime || '';
+    return this.normalizeAttendanceDateKey(rawValue);
+  }
+
+  private normalizeAttendanceDateKey(value: unknown): string {
+    const candidate = `${value || ''}`.trim();
+    if (!candidate) {
+      return '';
+    }
+
+    const isoMatch = candidate.match(/\d{4}-\d{2}-\d{2}/);
+    if (isoMatch) {
+      return isoMatch[0];
+    }
+
+    const parsedDate = new Date(candidate);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return this.toIsoDate(parsedDate);
+    }
+
+    const slashMatch = candidate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (slashMatch) {
+      const [, day, month, year] = slashMatch;
+      return `${year}-${month}-${day}`;
+    }
+
+    return '';
+  }
+
+  private mapAttendanceState(item: DashboardAttendanceApiItem, checkIn: string, checkOut: string): AttendanceState {
+    const rawStatus = this.getNormalizedAttendanceStatus(item);
+    const rawThumbStatus = this.getNormalizedThumbStatus(item);
+
+    if (this.isTruthyAttendanceFlag(item.is_holiday)) {
+      return 'holiday';
+    }
+
+    if (this.isTruthyAttendanceFlag(item.is_weekoff)) {
+      return 'weekend';
+    }
+
+    if (
+      rawStatus.includes('holiday')
+      || rawStatus.includes('special day')
+      || rawStatus.includes('festival')
+      || rawStatus.includes('important')
+    ) {
+      return 'holiday';
+    }
+
+    if (rawStatus.includes('week off') || rawStatus.includes('weekoff') || rawStatus.includes('weekend')) {
+      return 'weekend';
+    }
+
+    if (
+      rawStatus.includes('half')
+      || rawStatus.includes('afternoon leave')
+      || rawStatus.includes('beforenoon leave')
+      || rawStatus.includes('forenoon leave')
+      || rawStatus.includes('before noon leave')
+    ) {
+      return 'half-day';
+    }
+
+    if (rawStatus.includes('leave')) {
+      return 'leave';
+    }
+
+    if (rawStatus.includes('late') || rawThumbStatus.includes('late')) {
+      return 'late';
+    }
+
+    if (rawStatus.includes('present')) {
+      return 'present';
+    }
+
+    if (rawStatus.includes('absent')) {
+      return 'absent';
+    }
+
+    return checkIn !== '--' || checkOut !== '--' ? 'present' : 'absent';
+  }
+
+  private getNormalizedAttendanceStatus(item: DashboardAttendanceApiItem): string {
+    const rawStatus = [
+      item.leave_status,
+      item.attendance_status,
+      item.attendanceStatus,
+      item.day_status,
+      item.dayStatus,
+      item.status,
+    ]
+      .map((value) => `${value ?? ''}`.trim())
+      .find(Boolean) || '';
+
+    return rawStatus.toLowerCase().replace(/[_-]+/g, ' ');
+  }
+
+  private getNormalizedThumbStatus(item: DashboardAttendanceApiItem): string {
+    const rawThumbStatus = [
+      item.thump_status,
+      item.thumb_status,
+      item.thumbstatus,
+      item.thumbStatus,
+      item.thumb,
+    ]
+      .map((value) => `${value ?? ''}`.trim())
+      .find(Boolean) || '';
+
+    return rawThumbStatus.toLowerCase().replace(/[_-]+/g, ' ');
+  }
+
+  private resolveAttendanceStatusLabel(item: DashboardAttendanceApiItem, state: AttendanceState): string {
+    const rawStatus = [
+      item.leave_status,
+      item.attendance_status,
+      item.attendanceStatus,
+      item.day_status,
+      item.dayStatus,
+      item.status,
+    ]
+      .map((value) => `${value ?? ''}`.trim())
+      .find(Boolean);
+
+    if (state === 'late') {
+      return 'Late';
+    }
+
+    if (rawStatus) {
+      return this.formatStatusLabel(rawStatus);
+    }
+
+    return this.resolveStateLabel(state);
+  }
+
+  private resolveThumbStatus(item: DashboardAttendanceApiItem): string {
+    const rawThumbStatus = [
+      item.thump_status,
+      item.thumb_status,
+      item.thumbstatus,
+      item.thumbStatus,
+      item.thumb,
+    ]
+      .map((value) => `${value ?? ''}`.trim())
+      .find(Boolean);
+
+    return rawThumbStatus ? this.formatStatusLabel(rawThumbStatus) : 'Not Available';
+  }
+
+  private formatStatusLabel(value: unknown): string {
+    const normalized = `${value ?? ''}`.trim().replace(/[_-]+/g, ' ');
+    if (!normalized) {
+      return '';
+    }
+
+    return normalized
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => (part === part.toUpperCase()
+        ? part
+        : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()))
+      .join(' ');
+  }
+
+  private resolveCalendarDisplayState(
+    dateKey: string,
+    state: AttendanceState,
+    statusText: string
+  ): { state: AttendanceState; statusText: string } {
+    if (state === 'leave' && this.isTodayOrFutureDate(dateKey)) {
+      return {
+        state: 'upcoming',
+        statusText: 'Upcoming Leave',
+      };
+    }
+
+    return { state, statusText };
+  }
+
+  private isTodayOrFutureDate(dateKey: string): boolean {
+    return dateKey >= this.toIsoDate(new Date());
+  }
+
+  private isTruthyAttendanceFlag(value: unknown): boolean {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    const normalized = `${value ?? ''}`.trim().toLowerCase();
+    return ['1', 'true', 'yes', 'y'].includes(normalized);
+  }
+
+  private formatTimeOnly(value: unknown): string {
+    const candidate = `${value || ''}`.trim();
+    if (!candidate) {
+      return '--';
+    }
+
+    const timeMatch = candidate.match(/(\d{2}):(\d{2})(?::\d{2})?/);
+    if (timeMatch) {
+      return this.formatTime(Number(timeMatch[1]), Number(timeMatch[2]));
+    }
+
+    const parsedDate = new Date(candidate);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return parsedDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+    }
+
+    return candidate;
+  }
+
+  private resolveWorkingHours(
+    item: DashboardAttendanceApiItem,
+    checkIn: string,
+    checkOut: string,
+    state: AttendanceState,
+    statusText: string
+  ): string {
+    const candidate = `${item.working_hours || item.workingHours || item.total_hours || item.totalHours || ''}`.trim();
+    if (candidate) {
+      return candidate;
+    }
+
+    const derivedHours = this.calculateWorkingHours(checkIn, checkOut);
+    if (derivedHours) {
+      return derivedHours;
+    }
+
+    switch (state) {
+      case 'leave':
+        return 'Approved Leave';
+      case 'holiday':
+        return 'Holiday';
+      case 'weekend':
+        return 'Week Off';
+      case 'upcoming':
+        return statusText.toLowerCase().includes('leave') ? 'Approved Leave' : 'Pending';
+      default:
+        return '--';
+    }
+  }
+
+  private calculateWorkingHours(checkIn: string, checkOut: string): string {
+    const start = this.parseDisplayTime(checkIn);
+    const end = this.parseDisplayTime(checkOut);
+
+    if (!start || !end) {
+      return '';
+    }
+
+    let diffMinutes = end.hours * 60 + end.minutes - (start.hours * 60 + start.minutes);
+    if (diffMinutes < 0) {
+      diffMinutes += 24 * 60;
+    }
+
+    const hours = `${Math.floor(diffMinutes / 60)}`.padStart(2, '0');
+    const minutes = `${diffMinutes % 60}`.padStart(2, '0');
+    return `${hours}h ${minutes}m`;
+  }
+
+  private parseDisplayTime(value: string): { hours: number; minutes: number } | null {
+    const candidate = `${value || ''}`.trim();
+    if (!candidate || candidate === '--') {
+      return null;
+    }
+
+    const twelveHourMatch = candidate.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (twelveHourMatch) {
+      let hours = Number(twelveHourMatch[1]) % 12;
+      const minutes = Number(twelveHourMatch[2]);
+      if (twelveHourMatch[3].toUpperCase() === 'PM') {
+        hours += 12;
+      }
+      return { hours, minutes };
+    }
+
+    const twentyFourHourMatch = candidate.match(/^(\d{2}):(\d{2})/);
+    if (twentyFourHourMatch) {
+      return {
+        hours: Number(twentyFourHourMatch[1]),
+        minutes: Number(twentyFourHourMatch[2]),
+      };
+    }
+
+    return null;
+  }
+
+  private buildAttendanceSummary(
+    state: AttendanceState,
+    statusText: string,
+    specialEvent: CalendarEvent | null
+  ): string {
+    if (specialEvent && specialEvent.type === 'holiday') {
+      return `${specialEvent.title} is marked on the calendar for this date.`;
+    }
+
+    switch (state) {
+      case 'present':
+        return 'Attendance is marked present for this date.';
+      case 'late':
+        return 'Attendance is marked late for this date.';
+      case 'half-day':
+        return `Attendance is marked as ${statusText.toLowerCase()} for this date.`;
+      case 'leave':
+        return `Attendance is marked as ${statusText.toLowerCase()} for this date.`;
+      case 'holiday':
+        return statusText === 'Holiday'
+          ? 'This date is marked as a holiday.'
+          : 'This date is marked as a special day.';
+      case 'weekend':
+        return 'This date is marked as a weekly off.';
+      case 'upcoming':
+        return statusText.toLowerCase().includes('leave')
+          ? 'Approved leave is scheduled for this date.'
+          : 'Attendance is pending for this future date.';
+      case 'absent':
+      default:
+        return 'Attendance is marked absent for this date.';
+    }
+  }
+
+  private buildAttendanceNote(
+    state: AttendanceState,
+    statusText: string,
+    thumbStatus: string,
+    specialEvent: CalendarEvent | null
+  ): string {
+    const eventNote = specialEvent && specialEvent.type !== 'holiday' ? ` ${specialEvent.title}: ${specialEvent.description}` : '';
+
+    switch (state) {
+      case 'present':
+        return `Thumb status: ${thumbStatus}.${eventNote}`.trim();
+      case 'late':
+        return `Late attendance recorded. Thumb status: ${thumbStatus}.${eventNote}`.trim();
+      case 'half-day':
+        return `Half day attendance recorded. Thumb status: ${thumbStatus}.${eventNote}`.trim();
+      case 'leave':
+        return `Approved leave has been applied for this date.${eventNote}`.trim();
+      case 'holiday':
+        return specialEvent?.description || 'This date is marked as a holiday.';
+      case 'weekend':
+        return specialEvent?.description || 'This date is marked as a weekly off.';
+      case 'upcoming':
+        return statusText.toLowerCase().includes('leave')
+          ? 'Approved leave is scheduled for this date.'
+          : specialEvent?.description || 'Attendance details will appear after punches are recorded.';
+      case 'absent':
+      default:
+        return `No attendance punches are available for this date.${eventNote}`.trim();
+    }
+  }
+
   private rebuildCalendar(selectedDate?: Date): void {
     this.monthLabel = this.viewedDate.toLocaleDateString('en-US', {
       month: 'long',
@@ -807,18 +1288,19 @@ export class EmployeeDashboardComponent implements OnInit {
       const isFuture = cellDate.getTime() > todayCutoff;
       const specialEvent = this.resolveSpecialEvent(cellDate);
       const state = this.resolveAttendanceState(cellDate, isFuture, specialEvent);
+      const details = this.buildAttendanceDetails(cellDate, state, specialEvent);
       const dateKey = this.getDateKey(cellDate);
 
       cells.push({
         date: cellDate,
         day,
         state,
-        stateLabel: this.resolveStateLabel(state, specialEvent),
-        tooltipLabel: this.resolveTooltipLabel(state, specialEvent),
+        stateLabel: details.statusText,
+        tooltipLabel: this.resolveTooltipLabel(state, specialEvent, details.statusText),
         selected: selectedKey ? dateKey === selectedKey : dateKey === todayKey,
         today: dateKey === todayKey,
         future: isFuture,
-        details: this.buildAttendanceDetails(cellDate, state, specialEvent),
+        details,
         specialEvent,
       });
     }
@@ -847,11 +1329,15 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   private updateStatCards(): void {
+    if (this.hasDashboardStatusCards) {
+      return;
+    }
+
     const counts = {
       present: 0,
       absent: 0,
       late: 0,
-      leave: 0,
+      improperThumb: 0,
     };
 
     for (const week of this.calendarWeeks) {
@@ -866,8 +1352,8 @@ export class EmployeeDashboardComponent implements OnInit {
           counts.absent += 1;
         } else if (day.state === 'late') {
           counts.late += 1;
-        } else if (day.state === 'leave' || day.state === 'half-day' || day.state === 'holiday') {
-          counts.leave += 1;
+        } else if ((day.details?.thumbStatus || '').toLowerCase().includes('improper')) {
+          counts.improperThumb += 1;
         }
       }
     }
@@ -876,43 +1362,62 @@ export class EmployeeDashboardComponent implements OnInit {
       { title: 'Present', value: `${counts.present}`, icon: 'task_alt', tone: 'success' },
       { title: 'Absent', value: `${counts.absent}`, icon: 'event_busy', tone: 'danger' },
       { title: 'Late', value: `${counts.late}`, icon: 'schedule', tone: 'warning' },
-      { title: 'Leave / Holiday', value: `${counts.leave}`, icon: 'celebration', tone: 'primary' },
+      { title: 'Improper Thumb', value: `${counts.improperThumb}`, icon: 'touch_app', tone: 'primary' },
     ];
   }
 
+  private loadDashboardStatusCards(): void {
+    if (!this.currentEmployeeId) {
+      this.hasDashboardStatusCards = false;
+      this.updateStatCards();
+      return;
+    }
+
+    this.apiService.getdashboarddetails(this.currentEmployeeId).subscribe({
+      next: (data: DashboardStatusDetails | null | undefined) => {
+        this.hasDashboardStatusCards = true;
+        this.statCards = this.buildDashboardStatusCards(data);
+      },
+      error: () => {
+        this.hasDashboardStatusCards = false;
+        this.updateStatCards();
+      },
+    });
+  }
+
+  private buildDashboardStatusCards(data: DashboardStatusDetails | null | undefined): EmployeeStatCard[] {
+    return [
+      { title: 'Present', value: `${this.toCardNumber(data?.present)}`, icon: 'task_alt', tone: 'success' },
+      { title: 'Absent', value: `${this.toCardNumber(data?.apsent ?? data?.absent)}`, icon: 'event_busy', tone: 'danger' },
+      { title: 'Late', value: `${this.toCardNumber(data?.late)}`, icon: 'schedule', tone: 'warning' },
+      { title: 'Improper Thumb', value: `${this.toCardNumber(data?.improper_thump ?? data?.improper_thumb)}`, icon: 'touch_app', tone: 'primary' },
+    ];
+  }
+
+  private toCardNumber(value: unknown): number {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : 0;
+  }
+
   private resolveAttendanceState(date: Date, isFuture: boolean, specialEvent: CalendarEvent | null): AttendanceState {
-    const dayOfWeek = date.getDay();
-    const dayOfMonth = date.getDate();
+    const attendanceRecord = this.attendanceRecordsByDate.get(this.toIsoDate(date));
+    if (attendanceRecord) {
+      return attendanceRecord.state;
+    }
 
     if (specialEvent) {
       return 'holiday';
+    }
+
+    if (date.getDay() === 0) {
+      return 'weekend';
     }
 
     if (isFuture) {
       return 'upcoming';
     }
 
-    if (dayOfWeek === 0) {
-      return 'weekend';
-    }
-
-    if (dayOfMonth % 13 === 0) {
-      return 'leave';
-    }
-
-    if (dayOfMonth % 9 === 0) {
-      return 'half-day';
-    }
-
-    if (dayOfMonth % 7 === 0) {
-      return 'late';
-    }
-
-    if (dayOfMonth % 5 === 0 || dayOfMonth % 11 === 0) {
-      return 'absent';
-    }
-
-    return 'present';
+    return 'absent';
   }
 
   private resolveStateLabel(state: AttendanceState, specialEvent?: CalendarEvent | null): string {
@@ -927,19 +1432,32 @@ export class EmployeeDashboardComponent implements OnInit {
         return 'Half Day';
       case 'leave':
         return 'Leave';
-      case 'holiday':
-        return specialEvent ? this.getEventTypeLabel(specialEvent.type) : 'Holiday';
       case 'weekend':
         return 'Week Off';
+      case 'holiday':
+        return 'Holiday';
       case 'upcoming':
       default:
-        return 'Upcoming';
+        return 'Pending';
     }
   }
 
-  private resolveTooltipLabel(state: AttendanceState, specialEvent: CalendarEvent | null): string {
+  private resolveTooltipLabel(
+    state: AttendanceState,
+    specialEvent: CalendarEvent | null,
+    statusText?: string
+  ): string {
     if (specialEvent) {
-      return this.resolveEventTooltipLabel(specialEvent);
+      const eventLabel = this.resolveEventTooltipLabel(specialEvent);
+      if (specialEvent.type !== 'holiday' && state !== 'upcoming') {
+        return `${eventLabel} • ${statusText || this.resolveStateLabel(state)}`;
+      }
+
+      return eventLabel;
+    }
+
+    if (statusText) {
+      return statusText;
     }
 
     switch (state) {
@@ -950,16 +1468,16 @@ export class EmployeeDashboardComponent implements OnInit {
       case 'late':
         return 'Late Arrival';
       case 'half-day':
-        return 'Half Day Leave';
+        return 'Half Day';
       case 'leave':
-        return 'Approved Leave';
+        return 'Leave';
       case 'holiday':
         return 'Holiday';
       case 'weekend':
-        return 'Sunday - Week Off';
+        return 'Week Off';
       case 'upcoming':
       default:
-        return 'Upcoming - Attendance Pending';
+        return 'Pending - Attendance Awaited';
     }
   }
 
@@ -976,95 +1494,93 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   private buildAttendanceDetails(date: Date, state: AttendanceState, specialEvent: CalendarEvent | null): AttendanceRecord {
-    const daySeed = date.getDate();
-    const presentCheckIn = this.formatTime(9, 4 + (daySeed % 12));
-    const presentCheckOut = this.formatTime(18, 6 + (daySeed % 16));
-    const lateCheckIn = this.formatTime(9, 24 + (daySeed % 18));
+    const attendanceRecord = this.attendanceRecordsByDate.get(this.toIsoDate(date));
+    const specialEventSuffix = specialEvent && specialEvent.type !== 'holiday'
+      ? ` ${specialEvent.title}: ${specialEvent.description}`
+      : '';
 
-    if (specialEvent) {
+    if (attendanceRecord) {
       return {
+        ...attendanceRecord,
+        note: `${attendanceRecord.note}${specialEventSuffix}`.trim(),
+      };
+    }
+
+    if (specialEvent && state === 'holiday') {
+      return {
+        state: 'holiday',
+        statusText: 'Holiday',
         summary: `${specialEvent.title} is marked on the calendar for this date.`,
-        shift: `${this.getEventTypeLabel(specialEvent.type)} Calendar`,
+        shift: 'Holiday',
         checkIn: '--',
         checkOut: '--',
-        totalHours: 'Holiday Schedule',
+        workingHours: 'Holiday',
+        thumbStatus: 'Not Required',
         note: specialEvent.description,
       };
     }
 
     switch (state) {
-      case 'present':
-        return {
-          summary: 'Completed the full shift with standard attendance compliance.',
-          shift: 'General Shift',
-          checkIn: presentCheckIn,
-          checkOut: presentCheckOut,
-          totalHours: `08h ${18 + (daySeed % 24)}m`,
-          note: 'Attendance is healthy for the day. No exception or correction is required.',
-        };
       case 'absent':
         return {
-          summary: 'No punch record was captured for this working day.',
+          state,
+          statusText: this.resolveStateLabel(state),
+          summary: 'No attendance record is available for this date.',
           shift: 'General Shift',
           checkIn: '--',
           checkOut: '--',
-          totalHours: '00h 00m',
-          note: 'This date is marked absent. Use regularization only if there was a missed punch or manual attendance issue.',
-        };
-      case 'late':
-        return {
-          summary: 'Employee checked in after shift start and attendance is marked late.',
-          shift: 'General Shift',
-          checkIn: lateCheckIn,
-          checkOut: this.formatTime(18, 12 + (daySeed % 12)),
-          totalHours: `08h ${2 + (daySeed % 18)}m`,
-          note: 'Grace time was exceeded on this date. HR or reporting manager approval may be required for adjustment.',
-        };
-      case 'half-day':
-        return {
-          summary: 'Attendance was recorded for half of the working day.',
-          shift: 'Half Day',
-          checkIn: this.formatTime(9, 8 + (daySeed % 10)),
-          checkOut: this.formatTime(13, 10 + (daySeed % 20)),
-          totalHours: `04h ${10 + (daySeed % 22)}m`,
-          note: 'Half day leave is linked to this date. Review the leave request if shift coverage needs validation.',
-        };
-      case 'leave':
-        return {
-          summary: 'Approved leave was applied for the full working day.',
-          shift: 'Leave',
-          checkIn: '--',
-          checkOut: '--',
-          totalHours: 'Approved Leave',
-          note: 'This date is on approved leave. No action is required unless the leave request needs to be modified.',
+          workingHours: '00h 00m',
+          thumbStatus: 'Not Available',
+          note: `Attendance is marked absent.${specialEventSuffix}`.trim(),
         };
       case 'weekend':
         return {
-          summary: 'Sunday is configured as the weekly off day in this calendar.',
+          state,
+          statusText: this.resolveStateLabel(state),
+          summary: 'This date is marked as a weekly off.',
           shift: 'Week Off',
           checkIn: '--',
           checkOut: '--',
-          totalHours: 'Weekly Off',
-          note: 'Only Sunday is treated as week off. Saturday remains a working day unless a holiday is added separately.',
+          workingHours: 'Week Off',
+          thumbStatus: 'Not Required',
+          note: specialEvent ? specialEvent.description : 'This date is marked as a weekly off.',
         };
       case 'holiday':
         return {
-          summary: 'Holiday is marked for this date.',
+          state,
+          statusText: this.resolveStateLabel(state),
+          summary: 'This date is marked as a holiday.',
           shift: 'Holiday',
           checkIn: '--',
           checkOut: '--',
-          totalHours: 'Holiday',
-          note: 'This date is blocked by the holiday calendar.',
+          workingHours: 'Holiday',
+          thumbStatus: 'Not Required',
+          note: specialEvent ? specialEvent.description : 'This date is marked as a holiday.',
+        };
+      case 'leave':
+        return {
+          state,
+          statusText: this.resolveStateLabel(state),
+          summary: 'Attendance is marked on leave for this date.',
+          shift: 'Leave',
+          checkIn: '--',
+          checkOut: '--',
+          workingHours: 'Approved Leave',
+          thumbStatus: 'Not Required',
+          note: 'Approved leave has been applied for this date.',
         };
       case 'upcoming':
       default:
         return {
-          summary: 'Attendance has not been recorded yet because the date is in the future.',
+          state,
+          statusText: this.resolveStateLabel(state),
+          summary: 'Attendance has not been recorded yet for this future date.',
           shift: 'Upcoming',
           checkIn: '--',
           checkOut: '--',
-          totalHours: 'Pending',
-          note: 'The day has not started yet or is still in progress. Attendance data will appear automatically after punches are recorded.',
+          workingHours: 'Pending',
+          thumbStatus: 'Pending',
+          note: specialEvent ? specialEvent.description : 'Attendance details will appear after punches are recorded.',
         };
     }
   }
@@ -1084,6 +1600,7 @@ export class EmployeeDashboardComponent implements OnInit {
 
     return {
       ...normalizedEvent,
+      imageUrl: normalizedEvent.imageUrl || this.buildEventImage(normalizedEvent),
     };
   }
 

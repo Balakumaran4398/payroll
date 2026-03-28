@@ -1,12 +1,12 @@
 <section class="leave-dashboard">
   <mat-card class="leave-dashboard__hero">
     <div class="leave-dashboard__hero-copy">
-      <p class="leave-dashboard__eyebrow">Manager Leave Desk</p>
+      <p class="leave-dashboard__eyebrow">{{ leaveDeskTitle }}</p>
       <h1>Leave Management </h1>
     </div>
 
-    <div class="leave-dashboard__hero-actions">
-      <button mat-flat-button class="leave-dashboard__primary-action" routerLink="/app/attendance/apply-leave">
+    <div class="leave-dashboard__hero-actions" *ngIf="canManageLeaveDesk">
+      <button mat-flat-button class="leave-dashboard__primary-action" routerLink="/app/attendance/leave-creation">
         <mat-icon>event_available</mat-icon>
         Create Leave
       </button>
@@ -34,18 +34,29 @@
     <mat-card class="leave-panel leave-panel--requests">
       <div class="leave-panel__request-header">
         <div>
-          <h2>Leave Requests</h2>
-          <p>{{ filteredLeaveRequests.length }} request{{ filteredLeaveRequests.length === 1 ? '' : 's' }} shown for {{ activeStatusLabel.toLowerCase() }}.</p>
+          <h2>All Requests</h2>
+          <p>{{ filteredLeaveRequests.length }} request{{ filteredLeaveRequests.length === 1 ? '' : 's' }} shown for {{ activeStatusLabel.toLowerCase() }} and {{ activeRequestTypeLabel.toLowerCase() }}.</p>
         </div>
 
-        <mat-form-field appearance="outline" class="leave-filter-field">
-          <mat-label>Status</mat-label>
-          <mat-select [(ngModel)]="statusFilter">
-            <mat-option *ngFor="let filter of statusFilters" [value]="filter.value">
-              {{ filter.label }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div class="leave-panel__filters">
+          <mat-form-field appearance="outline" class="leave-filter-field">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="statusFilter">
+              <mat-option *ngFor="let filter of statusFilters" [value]="filter.value">
+                {{ filter.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="leave-filter-field">
+            <mat-label>Request Type</mat-label>
+            <mat-select [(ngModel)]="requestTypeFilter">
+              <mat-option *ngFor="let filter of requestTypeFilters" [value]="filter.value">
+                {{ filter.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
 
       <div class="leave-request-list" *ngIf="filteredLeaveRequests.length; else emptyRequestsState">
@@ -63,6 +74,9 @@
             </div>
 
             <mat-chip-set class="leave-request-card__chips">
+              <mat-chip class="leave-type-pill leave-type-pill--info">
+                {{ request.requestCategoryLabel }}
+              </mat-chip>
               <mat-chip class="leave-type-pill" [class]="'leave-type-pill leave-type-pill--' + getLeaveTypeTone(request.leaveType)">
                 {{ request.leaveType }}
               </mat-chip>
@@ -74,16 +88,16 @@
 
           <div class="leave-request-card__details">
             <div class="leave-request-card__detail">
-              <span>Start Date</span>
-              <strong>{{ request.startDate }}</strong>
+              <span>{{ request.detailOneLabel }}</span>
+              <strong>{{ request.detailOneValue }}</strong>
             </div>
             <div class="leave-request-card__detail">
-              <span>End Date</span>
-              <strong>{{ request.endDate }}</strong>
+              <span>{{ request.detailTwoLabel }}</span>
+              <strong>{{ request.detailTwoValue }}</strong>
             </div>
             <div class="leave-request-card__detail">
-              <span>Duration</span>
-              <strong>{{ request.duration }}</strong>
+              <span>{{ request.detailThreeLabel }}</span>
+              <strong>{{ request.detailThreeValue }}</strong>
             </div>
             <div class="leave-request-card__detail">
               <span>Reason</span>
@@ -92,8 +106,8 @@
           </div>
 
           <div class="leave-request-card__actions" *ngIf="showDecisionActions(request)">
-            <button mat-flat-button class="leave-request-card__approve"><mat-icon>check_circle</mat-icon>Approve</button>
-            <button mat-flat-button class="leave-request-card__reject"><mat-icon>cancel</mat-icon>Reject</button>
+            <button mat-flat-button class="leave-request-card__approve" (click)="openDecisionDialog(request, 'Approved')"><mat-icon>check_circle</mat-icon>Approve</button>
+            <button mat-flat-button class="leave-request-card__reject" (click)="openDecisionDialog(request, 'Rejected')"><mat-icon>cancel</mat-icon>Reject</button>
           </div>
         </mat-card>
       </div>
@@ -132,7 +146,7 @@
         </div>
       </mat-card>
 
-      <mat-card class="leave-panel leave-panel--actions">
+      <!-- <mat-card class="leave-panel leave-panel--actions">
         <div class="leave-panel__header leave-panel__header--compact">
           <div>
             <p class="leave-panel__eyebrow">Actions</p>
@@ -151,17 +165,17 @@
             </div>
           </a>
         </div>
-      </mat-card>
+      </mat-card> -->
     </div>
   </section>
 
   <ng-template #emptyRequestsState>
     <div class="leave-empty-state">
       <mat-icon>inbox</mat-icon>
-      <h3>No leave requests match this status</h3>
-      <p>Switch the status filter or create a new leave request from this dashboard.</p>
-      <button mat-flat-button class="leave-request-card__cta" routerLink="/app/attendance/apply-leave">
-        Create Leave Request
+      <h3>No requests match this status</h3>
+      <p>Switch the status filter or create a new request from this dashboard.</p>
+      <button mat-flat-button class="leave-request-card__cta" routerLink="/app/attendance/apply-leave" *ngIf="canManageLeaveDesk">
+        Create Request
       </button>
     </div>
   </ng-template>

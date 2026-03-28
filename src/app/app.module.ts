@@ -8,6 +8,7 @@ import { AppComponent } from './app.component';
 import { AuthInterceptorService } from './core/interceptors/auth-interceptor.service';
 import { CoreModule } from './core/core.module';
 import { LayoutOverlayContainer } from './core/services/layout-overlay-container.service';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 @NgModule({
   declarations: [AppComponent],
@@ -19,6 +20,7 @@ import { LayoutOverlayContainer } from './core/services/layout-overlay-container
     AppRoutingModule,
   ],
   providers: [
+    
     LayoutOverlayContainer,
     {
       provide: OverlayContainer,
@@ -29,6 +31,8 @@ import { LayoutOverlayContainer } from './core/services/layout-overlay-container
       useClass: AuthInterceptorService,
       multi: true,
     },
+    { provide: LocationStrategy, useClass: HashLocationStrategy }
+ 
   ],
   bootstrap: [AppComponent],
 })

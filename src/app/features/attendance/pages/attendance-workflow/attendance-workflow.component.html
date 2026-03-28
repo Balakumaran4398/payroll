@@ -7,9 +7,8 @@
     </div>
   </div>
   <header class="workflow-header">
-    <p class="workflow-breadcrumb">{{ config.breadcrumb }} &gt; {{ config.title }}</p>
+    <!-- <p class="workflow-breadcrumb">{{ config.breadcrumb }} &gt; {{ config.title }}</p> -->
     <h1>{{ config.title }}</h1>
-    <p>{{ config.subtitle }}</p>
   </header>
 
   <section class="review-banner" *ngIf="isAdminReview && reviewRequest">
@@ -18,20 +17,16 @@
       <h2>{{ reviewRequest.id }} · {{ reviewRequest.requesterName }}</h2>
       <p>{{ reviewRequest.requesterRole }} request from {{ reviewRequest.department }} is open for approval review.</p>
     </div>
-    <span class="review-banner__status" [class]="'review-banner__status review-banner__status--' + reviewRequest.status.toLowerCase()">
+    <span class="review-banner__status"
+      [class]="'review-banner__status review-banner__status--' + reviewRequest.status.toLowerCase()">
       {{ reviewRequest.status }}
     </span>
   </section>
 
   <div class="workflow-shell">
     <article class="workflow-card workflow-card--form" [class.workflow-card--busy]="isSubmitting">
-      <div class="workflow-card__head">
+      <!-- <div class="workflow-card__head">
         <div class="workflow-card__meta-grid">
-          <div class="meta-chip">
-            <span>App. Date</span>
-            <strong>{{ appDate }}</strong>
-          </div>
-
           <div class="meta-chip">
             <span>Selected Date</span>
             <strong>{{ currentDateLabel }}</strong>
@@ -57,7 +52,7 @@
             <strong>{{ reviewRequest.submittedAt }}</strong>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <div class="workflow-local-loading" *ngIf="isSubmitting" aria-live="polite" aria-busy="true">
         <span class="workflow-local-loading__title">{{ submitStatusLabel }}</span>
@@ -68,14 +63,16 @@
         <div class="form-grid" *ngSwitchCase="'apply-leave'">
           <mat-form-field class="field" appearance="outline">
             <mat-label>From Date</mat-label>
-            <input matInput [matDatepicker]="leaveFromPicker" [(ngModel)]="leaveForm.fromDate">
+            <input matInput [matDatepicker]="leaveFromPicker" [(ngModel)]="leaveForm.fromDate"
+              (ngModelChange)="onLeaveFromDateChange($event)">
             <mat-datepicker-toggle matSuffix [for]="leaveFromPicker"></mat-datepicker-toggle>
             <mat-datepicker #leaveFromPicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field class="field" appearance="outline">
             <mat-label>To Date</mat-label>
-            <input matInput [matDatepicker]="leaveToPicker" [(ngModel)]="leaveForm.toDate">
+            <input matInput [matDatepicker]="leaveToPicker" [min]="leaveToDateMin" [(ngModel)]="leaveForm.toDate"
+              (ngModelChange)="onLeaveToDateChange($event)">
             <mat-datepicker-toggle matSuffix [for]="leaveToPicker"></mat-datepicker-toggle>
             <mat-datepicker #leaveToPicker></mat-datepicker>
           </mat-form-field>
@@ -94,10 +91,7 @@
             </mat-select>
           </mat-form-field>
 
-          <div class="field field--compact">
-            <span>Total Days</span>
-            <div class="pill-value">{{ totalLeaveDays }}</div>
-          </div>
+
 
           <mat-form-field class="field" appearance="outline">
             <mat-label>Type</mat-label>
@@ -108,13 +102,16 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field class="field field--full" appearance="outline">
+          <mat-form-field class="field " appearance="outline">
             <mat-label>Reason</mat-label>
-            <textarea matInput rows="5" [(ngModel)]="leaveForm.reason" placeholder="Share the purpose of your leave request"></textarea>
+            <textarea matInput rows="1" [(ngModel)]="leaveForm.reason"
+              placeholder="Share the purpose of your leave request"></textarea>
           </mat-form-field>
-
-          <div class="field field--full leave-upload">
-            <span>Attach Document</span>
+          <div class="field field--compact">
+            <span>Total Days</span>
+            <div class="pill-value">{{ totalLeaveDays }}</div>
+          </div>
+          <div class="field leave-upload">
             <label class="leave-upload__trigger">
               <input type="file" (change)="onLeaveDocumentSelected($event)">
               <mat-icon>upload_file</mat-icon>
@@ -123,98 +120,84 @@
                 <span>{{ leaveDocumentName || 'Upload any supporting file for this leave request.' }}</span>
               </div>
             </label>
-            <div class="leave-upload__file" *ngIf="leaveDocumentName">
-              <mat-icon>description</mat-icon>
-              <span>{{ leaveDocumentName }}</span>
-            </div>
+
           </div>
         </div>
 
         <div class="form-grid" *ngSwitchCase="'regularize-swipe'">
           <mat-form-field class="field" appearance="outline">
-            <mat-label>Attendance Date</mat-label>
-            <input matInput [matDatepicker]="swipeDatePicker" [(ngModel)]="swipeForm.attendanceDate">
+            <mat-label>Request Date</mat-label>
+            <input matInput [matDatepicker]="swipeDatePicker" [(ngModel)]="swipeForm.request_date">
             <mat-datepicker-toggle matSuffix [for]="swipeDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #swipeDatePicker></mat-datepicker>
           </mat-form-field>
 
+          <mat-form-field class="field" appearance="outline">
+            <mat-label>Permission Type</mat-label>
+            <mat-select [(ngModel)]="swipeForm.mode">
+              <mat-option *ngFor="let option of permissionTypes" [value]="option">{{ option }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
           <mat-form-field class="field field--time" appearance="outline">
-            <mat-label>Expected In</mat-label>
-            <input #expectedInInput matInput type="time" [(ngModel)]="swipeForm.expectedIn">
-            <button type="button" mat-icon-button matSuffix aria-label="Open expected in time picker" (click)="openTimePicker(expectedInInput)">
+            <mat-label></mat-label>
+            <input #expectedInInput matInput type="time" [(ngModel)]="swipeForm.punch_time">
+            <button type="button" mat-icon-button matSuffix aria-label="Open expected in time picker"
+              (click)="openTimePicker(expectedInInput)">
               <mat-icon>schedule</mat-icon>
             </button>
           </mat-form-field>
 
-          <mat-form-field class="field field--time" appearance="outline">
-            <mat-label>Expected Out</mat-label>
-            <input #expectedOutInput matInput type="time" [(ngModel)]="swipeForm.expectedOut">
-            <button type="button" mat-icon-button matSuffix aria-label="Open expected out time picker" (click)="openTimePicker(expectedOutInput)">
-              <mat-icon>schedule</mat-icon>
-            </button>
-          </mat-form-field>
 
-          <mat-form-field class="field field--time" appearance="outline">
-            <mat-label>Actual In</mat-label>
-            <input #actualInInput matInput type="time" [(ngModel)]="swipeForm.actualIn">
-            <button type="button" mat-icon-button matSuffix aria-label="Open actual in time picker" (click)="openTimePicker(actualInInput)">
-              <mat-icon>schedule</mat-icon>
-            </button>
-          </mat-form-field>
-
-          <mat-form-field class="field field--time" appearance="outline">
-            <mat-label>Actual Out</mat-label>
-            <input #actualOutInput matInput type="time" [(ngModel)]="swipeForm.actualOut">
-            <button type="button" mat-icon-button matSuffix aria-label="Open actual out time picker" (click)="openTimePicker(actualOutInput)">
-              <mat-icon>schedule</mat-icon>
-            </button>
-          </mat-form-field>
-
-          <mat-form-field class="field field--full" appearance="outline">
+          <mat-form-field class="field " appearance="outline">
             <mat-label>Reason for Regularization</mat-label>
-            <textarea matInput rows="5" [(ngModel)]="swipeForm.reason" placeholder="Explain why the swipe correction is needed"></textarea>
+            <textarea matInput rows="1" [(ngModel)]="swipeForm.reason"
+              placeholder="Explain why the swipe correction is needed"></textarea>
           </mat-form-field>
         </div>
 
         <div class="form-grid" *ngSwitchCase="'permission-request'">
           <mat-form-field class="field" appearance="outline">
             <mat-label>Permission Date</mat-label>
-            <input matInput [matDatepicker]="permissionDatePicker" [(ngModel)]="permissionForm.permissionDate">
+            <input matInput [matDatepicker]="permissionDatePicker" [(ngModel)]="permissionForm.request_date">
             <mat-datepicker-toggle matSuffix [for]="permissionDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #permissionDatePicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field class="field" appearance="outline">
             <mat-label>Permission Type</mat-label>
-            <mat-select [(ngModel)]="permissionForm.permissionType">
+            <mat-select [(ngModel)]="permissionForm.mode">
               <mat-option *ngFor="let option of permissionTypes" [value]="option">{{ option }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-form-field class="field field--time" appearance="outline">
             <mat-label>Start Time</mat-label>
-            <input #permissionStartInput matInput type="time" [(ngModel)]="permissionForm.startTime">
-            <button type="button" mat-icon-button matSuffix aria-label="Open permission start time picker" (click)="openTimePicker(permissionStartInput)">
+            <input #permissionStartInput matInput type="time" [(ngModel)]="permissionForm.starttime">
+            <button type="button" mat-icon-button matSuffix aria-label="Open permission start time picker"
+              (click)="openTimePicker(permissionStartInput)">
               <mat-icon>schedule</mat-icon>
             </button>
           </mat-form-field>
 
           <mat-form-field class="field field--time" appearance="outline">
             <mat-label>End Time</mat-label>
-            <input #permissionEndInput matInput type="time" [(ngModel)]="permissionForm.endTime">
-            <button type="button" mat-icon-button matSuffix aria-label="Open permission end time picker" (click)="openTimePicker(permissionEndInput)">
+            <input #permissionEndInput matInput type="time" [(ngModel)]="permissionForm.endtime">
+            <button type="button" mat-icon-button matSuffix aria-label="Open permission end time picker"
+              (click)="openTimePicker(permissionEndInput)">
               <mat-icon>schedule</mat-icon>
             </button>
           </mat-form-field>
 
           <mat-form-field class="field field--full" appearance="outline">
             <mat-label>Reason</mat-label>
-            <textarea matInput rows="5" [(ngModel)]="permissionForm.reason" placeholder="Add the reason for this short permission"></textarea>
+            <textarea matInput rows="1" [(ngModel)]="permissionForm.reason"
+              placeholder="Add the reason for this short permission"></textarea>
           </mat-form-field>
         </div>
 
         <div class="form-grid" *ngSwitchCase="'request-od'">
-     
+
           <mat-form-field class="field" appearance="outline">
             <mat-label>From Date</mat-label>
             <input matInput [matDatepicker]="odDatePicker" [(ngModel)]="odForm.from_date">
@@ -231,93 +214,22 @@
 
           <mat-form-field class="field" appearance="outline">
             <mat-label>Place of Visit</mat-label>
-            <input matInput type="text" [(ngModel)]="odForm.place_of_visit" placeholder="Client office or field location">
+            <input matInput type="text" [(ngModel)]="odForm.place_of_visit"
+              placeholder="Client office or field location">
           </mat-form-field>
 
           <mat-form-field class="field" appearance="outline">
             <mat-label>Purpose of Visit</mat-label>
-            <input matInput type="text" [(ngModel)]="odForm.purpose_of_visit" placeholder="Business purpose or visit reason">
+            <input matInput type="text" [(ngModel)]="odForm.purpose_of_visit"
+              placeholder="Business purpose or visit reason">
           </mat-form-field>
 
           <mat-form-field class="field field--full" appearance="outline">
             <mat-label>Comments</mat-label>
-            <textarea matInput rows="5" [(ngModel)]="odForm.comments" placeholder="Add travel, meeting, or purpose details"></textarea>
+            <textarea matInput rows="1" [(ngModel)]="odForm.comments"
+              placeholder="Add travel, meeting, or purpose details"></textarea>
           </mat-form-field>
 
-          <section class="approval-panel field field--full" *ngIf="showManagerSelfOdNotice">
-            <div class="approval-panel__header">
-              <div>
-                <p class="approval-panel__eyebrow">Approval Route</p>
-                <h3>Admin Review Required</h3>
-                <p>Your own OD request cannot be self-approved. It will stay pending and move to admin for approval.</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="approval-panel field field--full" *ngIf="showOdApprovalPanel">
-            <div class="approval-panel__header">
-              <div>
-                <p class="approval-panel__eyebrow">Manager Approval</p>
-                <h3>Approval Decision</h3>
-                <p>Use these controls only while reviewing and updating a team member's OD request.</p>
-              </div>
-            </div>
-
-            <div class="approval-panel__grid">
-              <div class="approval-panel__group">
-                <span class="approval-panel__label">Approved Status</span>
-                <p class="approval-panel__hint">Choose the workflow status to send in the OD request.</p>
-                <div class="approval-segment">
-                  <button
-                    type="button"
-                    class="approval-chip"
-                    *ngFor="let status of approvalStatusOptions"
-                    [class.approval-chip--active]="odForm.approved_status === status.value"
-                    [class.approval-chip--approved]="status.value === 'Approved'"
-                    [class.approval-chip--rejected]="status.value === 'Rejeted'"
-                    (click)="setApprovedStatus(status.value)"
-                  >
-                    <span class="approval-chip__dot"></span>
-                    <span>{{ status.label }}</span>
-                  </button>
-                </div>
-              </div>
-
-              <div class="approval-panel__group">
-                <span class="approval-panel__label">Approval Flag</span>
-                <p class="approval-panel__hint">True sends Approved. False sends Rejected.</p>
-                <div class="approval-toggle">
-                  <button
-                    type="button"
-                    class="approval-toggle__option approval-toggle__option--true"
-                    [class.approval-toggle__option--active]="odForm.isapproved"
-                    (click)="setApprovalFlag(true)"
-                  >
-                    True
-                  </button>
-                  <button
-                    type="button"
-                    class="approval-toggle__option approval-toggle__option--false"
-                    [class.approval-toggle__option--active]="!odForm.isapproved"
-                    (click)="setApprovalFlag(false)"
-                  >
-                    False
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="approval-panel__summary">
-              <div class="approval-summary-card approval-summary-card--status">
-                <span class="approval-summary-card__label">Selected Status</span>
-                <strong>{{ approvedStatusLabel }}</strong>
-              </div>
-              <div class="approval-summary-card approval-summary-card--flag">
-                <span class="approval-summary-card__label">Approval Flag</span>
-                <strong>{{ approvalFlagLabel }}</strong>
-              </div>
-            </div>
-          </section>
 
         </div>
 
@@ -343,7 +255,8 @@
 
           <mat-form-field class="field field--full" appearance="outline">
             <mat-label>Description</mat-label>
-            <textarea matInput rows="6" [(ngModel)]="queryForm.description" placeholder="Explain your issue with dates, request IDs, or relevant context"></textarea>
+            <textarea matInput rows="6" [(ngModel)]="queryForm.description"
+              placeholder="Explain your issue with dates, request IDs, or relevant context"></textarea>
           </mat-form-field>
         </div>
       </div>
@@ -354,7 +267,8 @@
           <button type="submit" mat-flat-button color="primary" (click)="approveRequest()">Approve Request</button>
         </ng-container>
         <ng-template #submitActions>
-          <button type="button" mat-stroked-button color="primary" [disabled]="isSubmitting" (click)="resetActiveWorkflowForm()">Cancel</button>
+          <button type="button" mat-stroked-button color="primary" [disabled]="isSubmitting"
+            (click)="resetActiveWorkflowForm()">Cancel</button>
           <button type="submit" mat-flat-button color="primary" [disabled]="isSubmitting" (click)="submitWorkflow()">
             <span class="workflow-submit__content">
               <span>{{ isSubmitting ? submitStatusLabel : config.primaryAction }}</span>
@@ -369,35 +283,89 @@
         <div>
           <p class="panel-tag">Assistant Panel</p>
           <h2>{{ config.helperTitle }}</h2>
-          <p>{{ config.helperDescription }}</p>
+          <!-- <p>{{ config.helperDescription }}</p> -->
         </div>
       </div>
 
       <div class="workflow-card__body">
-        <table class="balance-table" *ngIf="config.key === 'apply-leave'; else helperChecklist">
-          <thead>
-            <tr>
-              <th>Leave Type</th>
-              <th>Current</th>
-              <th>Applied</th>
-              <th>Adj.</th>
-              <th>Available</th>
-              <th>For</th>
-              <th>Closing</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of leaveBalances">
-              <td>{{ row.type }}</td>
-              <td>{{ row.currentBalance }}</td>
-              <td>{{ row.alreadyApplied }}</td>
-              <td>{{ row.adjustment }}</td>
-              <td>{{ row.availableBalance }}</td>
-              <td>{{ row.appliedFor }}</td>
-              <td>{{ row.closingBalance }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <ng-container *ngIf="config.key === 'apply-leave'; else helperChecklist">
+          <div class="balance-table-wrap">
+            <table class="balance-table">
+              <thead>
+                <tr>
+                  <th>Leave Type</th>
+                  <th>Current</th>
+                  <th>Applied</th>
+                  <th>Adj.</th>
+                  <th>Available</th>
+                  <th>For</th>
+                  <th>Closing</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="leaveBalancesLoading">
+                  <td colspan="7">Loading leave balances...</td>
+                </tr>
+                <tr *ngIf="!leaveBalancesLoading && !leaveBalances.length">
+                  <td colspan="7">No leave balance data available.</td>
+                </tr>
+                <tr *ngFor="let row of leaveBalances">
+                  <td>{{ row.type }}</td>
+                  <td>{{ row.currentBalance }}</td>
+                  <td>{{ row.alreadyApplied }}</td>
+                  <td>{{ row.adjustment }}</td>
+                  <td>{{ row.availableBalance }}</td>
+                  <td>{{ row.appliedFor }}</td>
+                  <td>{{ row.closingBalance }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="balance-mobile-list">
+            <article class="balance-mobile-card" *ngIf="leaveBalancesLoading">
+              <p class="balance-mobile-card__empty">Loading leave balances...</p>
+            </article>
+
+            <article class="balance-mobile-card" *ngIf="!leaveBalancesLoading && !leaveBalances.length">
+              <p class="balance-mobile-card__empty">No leave balance data available.</p>
+            </article>
+
+            <article class="balance-mobile-card" *ngFor="let row of leaveBalances">
+              <div class="balance-mobile-card__head">
+                <p>Leave Type</p>
+                <strong>{{ row.type }}</strong>
+              </div>
+
+              <div class="balance-mobile-card__grid">
+                <div>
+                  <span>Current</span>
+                  <strong>{{ row.currentBalance }}</strong>
+                </div>
+                <div>
+                  <span>Applied</span>
+                  <strong>{{ row.alreadyApplied }}</strong>
+                </div>
+                <div>
+                  <span>Adjustment</span>
+                  <strong>{{ row.adjustment }}</strong>
+                </div>
+                <div>
+                  <span>Available</span>
+                  <strong>{{ row.availableBalance }}</strong>
+                </div>
+                <div>
+                  <span>For</span>
+                  <strong>{{ row.appliedFor }}</strong>
+                </div>
+                <div>
+                  <span>Closing</span>
+                  <strong>{{ row.closingBalance }}</strong>
+                </div>
+              </div>
+            </article>
+          </div>
+        </ng-container>
 
         <ng-template #helperChecklist>
           <div class="checklist">
@@ -413,11 +381,10 @@
 
 
   <section class="history-card">
-    <div class="history-card__head">
+    <!-- <div class="history-card__head">
       <div>
         <p class="panel-tag">Request History</p>
         <h2>Submitted Requests</h2>
-        <p>Track leave, OD, swipe, and permission requests with quick search and status filters.</p>
       </div>
 
       <div class="history-stats">
@@ -434,45 +401,20 @@
           <strong>{{ rejectedHistoryCount }}</strong>
         </article>
       </div>
-    </div>
+    </div> -->
 
     <div class="history-card__body">
-      <section class="history-highlight" *ngIf="selectedHistoryRequest as selectedRequest">
-        <div class="history-highlight__meta">
-          <span class="history-highlight__id">{{ selectedRequest.id }}</span>
-          <span class="status-badge" [class]="'status-badge status-badge--' + selectedRequest.status.toLowerCase()">{{ selectedRequest.status }}</span>
-        </div>
-        <div class="history-highlight__content">
-          <div>
-            <p class="history-highlight__label">Request Type</p>
-            <strong>{{ selectedRequest.requestType }}</strong>
-          </div>
-          <div>
-            <p class="history-highlight__label">Date / Time</p>
-            <strong>{{ selectedRequest.dateTime }}</strong>
-          </div>
-          <div>
-            <p class="history-highlight__label">Submitted</p>
-            <strong>{{ selectedRequest.createdAt }}</strong>
-          </div>
-        </div>
-        <p class="history-highlight__reason">{{ selectedRequest.reason }}</p>
-      </section>
-
       <div class="history-toolbar">
         <label class="history-search">
           <span class="history-search__icon">Search</span>
-          <input type="search" [(ngModel)]="historySearchTerm" (ngModelChange)="onHistorySearchChange()" placeholder="Search by request, date, reason, or ID">
+          <input type="search" [(ngModel)]="historySearchTerm" (ngModelChange)="onHistorySearchChange()"
+            placeholder="Search by request, date, reason, or ID">
         </label>
 
         <div class="history-filters" role="group" aria-label="Filter request status">
-          <button
-            type="button"
-            class="history-filter-chip"
-            *ngFor="let filter of historyStatusFilters"
+          <button type="button" class="history-filter-chip" *ngFor="let filter of historyStatusFilters"
             [class.history-filter-chip--active]="historyStatusFilter === filter.value"
-            (click)="setHistoryStatusFilter(filter.value)"
-          >
+            (click)="setHistoryStatusFilter(filter.value)">
             {{ filter.label }}
           </button>
         </div>
@@ -490,7 +432,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of pagedHistoryRequests" [class.history-table__row--active]="selectedHistoryRequestId === item.id">
+            <tr *ngFor="let item of pagedHistoryRequests"
+              [class.history-table__row--active]="selectedHistoryRequestId === item.id">
               <td>
                 <div class="history-table__primary">{{ item.requestType }}</div>
                 <div class="history-table__secondary">{{ item.id }}</div>
@@ -501,21 +444,23 @@
               </td>
               <td class="history-table__reason">{{ item.reason }}</td>
               <td>
-                <span class="status-badge" [class]="'status-badge status-badge--' + item.status.toLowerCase()">{{ item.status }}</span>
+                <span class="status-badge" [class]="'status-badge status-badge--' + item.status.toLowerCase()">{{
+                  item.status }}</span>
               </td>
               <td>
                 <div class="history-actions">
-                  <button type="button" class="theme-action-button theme-action-button--view history-action" (click)="viewHistoryRequest(item)">View</button>
-                  <button type="button" class="theme-action-button theme-action-button--edit history-action" (click)="editHistoryRequest(item)" [disabled]="!!getHistoryEditDisabledReason(item)" [attr.aria-label]="getHistoryEditDisabledReason(item) || 'Edit request'" [attr.title]="getHistoryEditDisabledReason(item) || null">Edit</button>
-                  <button
-                    type="button"
-                    class="theme-action-button theme-action-button--delete history-action"
+                  <!-- <button type="button" class="theme-action-button theme-action-button--view history-action"
+                    (click)="viewHistoryRequest(item)">View</button> -->
+                  <button *ngIf="shouldShowHistoryEditAction(item)" type="button"
+                    class="theme-action-button theme-action-button--edit history-action"
+                    (click)="editHistoryRequest(item)" [disabled]="!!getHistoryEditDisabledReason(item)"
+                    [attr.aria-label]="getHistoryEditDisabledReason(item) || 'Edit request'"
+                    [attr.title]="getHistoryEditDisabledReason(item) || null">Edit</button>
+                  <button type="button" class="theme-action-button theme-action-button--delete history-action"
                     [disabled]="!!getHistoryDeleteDisabledReason(item) || deletingHistoryRequestIds.has(item.id)"
-                    [attr.aria-label]="deletingHistoryRequestIds.has(item.id) ? 'Deleting request' : (getHistoryDeleteDisabledReason(item) || 'Cancel request')"
-                    [attr.title]="getHistoryDeleteDisabledReason(item) || null"
-                    (click)="cancelHistoryRequest(item)"
-                  >
-                    {{ item.workflow === 'request-od' ? 'Delete' : 'Cancel' }}
+                    [attr.aria-label]="deletingHistoryRequestIds.has(item.id) ? 'Deleting request' : (getHistoryDeleteDisabledReason(item) || (getHistoryDeleteButtonLabel(item) + ' request'))"
+                    [attr.title]="getHistoryDeleteDisabledReason(item) || null" (click)="cancelHistoryRequest(item)">
+                    {{ getHistoryDeleteButtonLabel(item) }}
                   </button>
                 </div>
               </td>
@@ -524,13 +469,15 @@
         </table>
 
         <div class="history-mobile-list" *ngIf="pagedHistoryRequests.length">
-          <article class="history-mobile-card" *ngFor="let item of pagedHistoryRequests" [class.history-mobile-card--active]="selectedHistoryRequestId === item.id">
+          <article class="history-mobile-card" *ngFor="let item of pagedHistoryRequests"
+            [class.history-mobile-card--active]="selectedHistoryRequestId === item.id">
             <div class="history-mobile-card__head">
               <div>
                 <p>{{ item.requestType }}</p>
                 <span>{{ item.id }}</span>
               </div>
-              <span class="status-badge" [class]="'status-badge status-badge--' + item.status.toLowerCase()">{{ item.status }}</span>
+              <span class="status-badge" [class]="'status-badge status-badge--' + item.status.toLowerCase()">{{
+                item.status }}</span>
             </div>
             <div class="history-mobile-card__body">
               <div>
@@ -547,17 +494,18 @@
               </div>
             </div>
             <div class="history-actions">
-              <button type="button" class="theme-action-button theme-action-button--view history-action" (click)="viewHistoryRequest(item)">View</button>
-              <button type="button" class="theme-action-button theme-action-button--edit history-action" (click)="editHistoryRequest(item)" [disabled]="!!getHistoryEditDisabledReason(item)" [attr.aria-label]="getHistoryEditDisabledReason(item) || 'Edit request'" [attr.title]="getHistoryEditDisabledReason(item) || null">Edit</button>
-              <button
-                type="button"
-                class="theme-action-button theme-action-button--delete history-action"
+              <button type="button" class="theme-action-button theme-action-button--view history-action"
+                (click)="viewHistoryRequest(item)">View</button>
+              <button *ngIf="shouldShowHistoryEditAction(item)" type="button"
+                class="theme-action-button theme-action-button--edit history-action" (click)="editHistoryRequest(item)"
+                [disabled]="!!getHistoryEditDisabledReason(item)"
+                [attr.aria-label]="getHistoryEditDisabledReason(item) || 'Edit request'"
+                [attr.title]="getHistoryEditDisabledReason(item) || null">Edit</button>
+              <button type="button" class="theme-action-button theme-action-button--delete history-action"
                 [disabled]="!!getHistoryDeleteDisabledReason(item) || deletingHistoryRequestIds.has(item.id)"
-                [attr.aria-label]="deletingHistoryRequestIds.has(item.id) ? 'Deleting request' : (getHistoryDeleteDisabledReason(item) || 'Cancel request')"
-                [attr.title]="getHistoryDeleteDisabledReason(item) || null"
-                (click)="cancelHistoryRequest(item)"
-              >
-                {{ item.workflow === 'request-od' ? 'Delete' : 'Cancel' }}
+                [attr.aria-label]="deletingHistoryRequestIds.has(item.id) ? 'Deleting request' : (getHistoryDeleteDisabledReason(item) || (getHistoryDeleteButtonLabel(item) + ' request'))"
+                [attr.title]="getHistoryDeleteDisabledReason(item) || null" (click)="cancelHistoryRequest(item)">
+                {{ getHistoryDeleteButtonLabel(item) }}
               </button>
             </div>
           </article>
@@ -583,9 +531,11 @@
           </label>
 
           <div class="history-page-nav">
-            <button type="button" class="history-page-button" (click)="changeHistoryPage(-1)" [disabled]="historyPageIndex === 0">Previous</button>
+            <button type="button" class="history-page-button" (click)="changeHistoryPage(-1)"
+              [disabled]="historyPageIndex === 0">Previous</button>
             <span>Page {{ historyPageIndex + 1 }} of {{ totalHistoryPages }}</span>
-            <button type="button" class="history-page-button" (click)="changeHistoryPage(1)" [disabled]="historyPageIndex + 1 >= totalHistoryPages">Next</button>
+            <button type="button" class="history-page-button" (click)="changeHistoryPage(1)"
+              [disabled]="historyPageIndex + 1 >= totalHistoryPages">Next</button>
           </div>
         </div>
       </div>

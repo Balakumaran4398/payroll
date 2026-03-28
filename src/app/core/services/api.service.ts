@@ -9,6 +9,8 @@ import { AuthService } from './auth.service';
 })
 export class ApiService {
     private baseUrl = 'http://192.168.1.105:8081/api/v1';
+    // private baseUrl = 'http://192.168.70.100:8585/dsr/api/v1';
+    // private baseUrl = 'https://crm.ridsys.in:8080/dsr/api/v1';
     private employeeListCache: any[] | null = null;
     private employeeListRequest$: Observable<any> | null = null;
 
@@ -114,8 +116,8 @@ export class ApiService {
         return this.http.get(url, { headers: this.getHeaders() });
     }
 
-    getCompanyDetails(id: number): Observable<any> {
-        const url = this.getRoleBasedUrl(`getcompanydetails/${id}`);
+    getemployeedetails(username: any): Observable<any> {
+        const url = this.getRoleBasedUrl(`user/getemployeedetails?username=` + username);
         return this.http.get(url, { headers: this.getHeaders() });
     }
 
@@ -152,8 +154,8 @@ export class ApiService {
         return this.http.get(url, { headers: this.getHeaders() });
     }
 
-    getDeleteOndutyRequest(requestId: number): Observable<any> {
-        const url = this.getRoleBasedUrl('attendance/deleteondutyrequest?id=' + requestId);
+    getDeleteOndutyRequest(requestId: number, createdby: string): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/deleteondutyrequest?id=' + requestId + '&createdby=' + createdby);
         return this.http.delete(url, { headers: this.getHeaders() });
     }
 
@@ -189,12 +191,7 @@ export class ApiService {
         const url = this.getRoleBasedUrl('attendance/getholidays?companyid=' + companyid);
         return this.http.get(url, { headers: this.getHeaders() });
     }
-    updateweekendsettings(requestbody: any): Observable<any> {
-        const url = this.getRoleBasedUrl('attendance/updateweekendsettings');
-        return this.http.post(url, requestbody, {
-            headers: this.getHeaders()
-        });
-    }
+
     //Leave Type
     createLeave(requestbody: any): Observable<any> {
         const url = this.getRoleBasedUrl('attendance/requestforleave');
@@ -213,6 +210,56 @@ export class ApiService {
             headers: this.getHeaders()
         });
     }
+    getDeleteLeaveDetails(requestId: number, createdby: string): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/deleteleaverequest?id=' + requestId + '&createdby=' + createdby);
+        return this.http.delete(url, { headers: this.getHeaders() });
+    }
+    // permission
+
+    createPermission(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/requestforpermission');
+        const headers = requestbody instanceof FormData ? this.getAuthHeaders() : this.getHeaders();
+        return this.http.post(url, requestbody, {
+            headers
+        });
+    }
+    getPermissionDetails(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getpermissiondetails?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    editPermissiontails(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/editpermissiondetails');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+    getDeletePermissionDetails(requestId: number, createdby: string): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/deletepermissionrequest?id=' + requestId + '&createdby=' + createdby);
+        return this.http.delete(url, { headers: this.getHeaders() });
+    }
+    // Swipe
+
+    createSwipeRequest(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/requestforswipe');
+        const headers = requestbody instanceof FormData ? this.getAuthHeaders() : this.getHeaders();
+        return this.http.post(url, requestbody, {
+            headers
+        });
+    }
+    getSwipeDetails(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getswipedetails?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    editSwipeDetails(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/editswipedetails');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+    getDeleteSwipeDetails(requestId: number, createdby: string): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/deleterequestswipe?id=' + requestId + '&createdby=' + createdby);
+        return this.http.delete(url, { headers: this.getHeaders() });
+    }
 
     // Leave Settings
     updateleavesettings(requestbody: any): Observable<any> {
@@ -226,19 +273,73 @@ export class ApiService {
         const url = this.getRoleBasedUrl('attendance/getleavetype');
         return this.http.get(url, { headers: this.getHeaders() });
     }
-
-    // Calendor
-    getAttendanceDetails(employee_id: number, month: string, year: string): Observable<any> {
-        const url = this.getRoleBasedUrl('attendance/getLeaveDetails?employee_id=' + employee_id + '&month=' + month + '&year=' + year);
+    getemployeeleaveinfo(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getemployeeleaveinfo?employee_id=' + employee_id);
         return this.http.get(url, { headers: this.getHeaders() });
     }
+
+    getdashboarddetails(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/dashboarddetails?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+
+    // Weekoff Settings 
+    getweekoffsettings(companyid: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getweekoffsettings?companyid=' + companyid);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    updateweekendsettings(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/updateweekendsettings');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+    // Calendor
+    getAttendanceDetails(employee_id: number, month: string, year: string): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getattendancedetails?employee_id=' + employee_id + '&month=' + month + '&year=' + year);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+
+    // All Request
+    getAllrequests(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/allrequests?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    getNotifications(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/notifications?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+
+
+    //  Payroll 
+
+    CreateSalaryDetails(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/updatesalarysetting');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+    getSalarySetting(companyid: number): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/getsalarysettings?companyid=' + companyid);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+
+
 
     // Reports APIs
     getReports(): Observable<any> {
         const url = this.getRoleBasedUrl('getreports');
         return this.http.get(url, { headers: this.getHeaders() });
     }
-
+    // CompanyDetails
+    getCompanyDetails(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/notifications?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    getcompanyleavesetting(companyid: number): Observable<any> {
+        const url = this.getRoleBasedUrl('attendance/getcompanyleavesetting?companyid=' + companyid);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
     // Settings APIs
     getSettings(): Observable<any> {
         const url = this.getRoleBasedUrl('getsettings');

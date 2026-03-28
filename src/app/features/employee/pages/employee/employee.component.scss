@@ -436,33 +436,10 @@
   background: linear-gradient(180deg, var(--employee-surface-strong), transparent);
 }
 
-.table-toolbar__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
 
-.table-toolbar__copy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
 
-.table-toolbar__label {
-  margin: 0;
-  color: var(--employee-accent);
-  font-size: 0.76rem;
-  font-weight: 700;
-  // letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
 
-.table-toolbar__text {
-  margin: 0;
-  color: var(--employee-muted);
-  line-height: 1.6;
-}
+
 
 .table-scroll-hint {
   display: inline-flex;

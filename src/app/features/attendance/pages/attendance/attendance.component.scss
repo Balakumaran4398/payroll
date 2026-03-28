@@ -12,7 +12,7 @@
 
 .leave-dashboard {
   display: grid;
-  gap: 1.5rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
 }
 
 .leave-dashboard__hero,
@@ -33,10 +33,16 @@
   border-radius: 32px;
   color: #ffffff;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(94, 234, 212, 0.18), transparent 34%),
-    linear-gradient(135deg, color-mix(in srgb, var(--leave-dashboard-primary) 74%, #0f766e 26%), #0f766e 100%);
+  background:var(--leave-dashboard-primary);
+    // radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 28%),
+    // radial-gradient(circle at bottom left, rgba(94, 234, 212, 0.18), transparent 34%),
+    // linear-gradient(135deg, color-mix(in srgb, var(--leave-dashboard-primary) 74%, #0f766e 26%), #0f766e 100%);
+}
+
+.leave-dashboard__hero-copy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 .leave-dashboard__eyebrow,
@@ -114,7 +120,7 @@
 
 .leave-dashboard__stats-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
 }
 
@@ -190,7 +196,7 @@
 
 .leave-dashboard__content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.95fr);
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.95fr);
   gap: 1rem;
 }
 
@@ -215,6 +221,19 @@
 
 .leave-filter-field {
   min-width: 180px;
+  flex: 1 1 180px;
+}
+
+.leave-panel__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.leave-balance-list,
+.leave-request-list {
+  max-height: min(540px, 65vh);
+  overflow-y: auto;
+  padding-right: 0.35rem;
 }
 
 .leave-request-list,
@@ -223,6 +242,7 @@
 .leave-dashboard__side-column {
   display: grid;
   gap: 1rem;
+
 }
 
 .leave-request-card,
@@ -242,6 +262,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .leave-request-card__profile {
@@ -267,13 +288,15 @@
 }
 
 .leave-request-card__identity h3 {
-  font-size: 1.45rem;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
   line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .leave-request-card__chips {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.4rem;
 }
 
@@ -321,7 +344,7 @@
 
 .leave-request-card__details {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem 2rem;
   padding-left: 4rem;
 }
@@ -335,10 +358,12 @@
   color: var(--theme-text-primary);
   font-size: 1.05rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .leave-request-card__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.7rem;
   padding-top: 0.85rem;
   padding-left: 4rem;
@@ -411,6 +436,7 @@
 .leave-balance-card__meta {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 0.8rem;
 }
@@ -458,9 +484,13 @@
   color: var(--theme-primary);
 }
 
-@media (max-width: 1280px) {
-  .leave-dashboard__stats-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 1080px) {
+  .leave-dashboard__hero {
+    grid-template-columns: 1fr;
+  }
+
+  .leave-dashboard__hero-actions {
+    justify-content: flex-start;
   }
 }
 
@@ -468,9 +498,40 @@
   .leave-dashboard__content-grid {
     grid-template-columns: 1fr;
   }
+
+  .leave-request-list,
+  .leave-balance-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .leave-panel__request-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .leave-panel__filters {
+    width: 100%;
+  }
+
+  .leave-request-card__details,
+  .leave-request-card__actions {
+    padding-left: 0;
+  }
 }
 
 @media (max-width: 760px) {
+  .leave-dashboard__hero,
+  .leave-panel,
+  .leave-stat-card,
+  .leave-request-card,
+  .leave-balance-card {
+    border-radius: 22px;
+  }
+
   .leave-dashboard__hero,
   .leave-panel__header,
   .leave-panel__request-header,
@@ -510,5 +571,30 @@
   .leave-request-card__approve,
   .leave-request-card__reject {
     width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .leave-dashboard__hero {
+    padding: 1.25rem;
+  }
+
+  .leave-panel {
+    padding: 1rem;
+  }
+
+  .leave-stat-card,
+  .leave-request-card,
+  .leave-balance-card {
+    padding: 1rem 0.9rem;
+  }
+
+  .leave-request-card__profile {
+    width: 100%;
+  }
+
+  .leave-request-card__avatar {
+    width: 2.7rem;
+    height: 2.7rem;
   }
 }

@@ -1,0 +1,69 @@
+<section class="call-letter-page">
+  <div class="call-letter-head">
+    <div>
+      <p class="call-letter-eyebrow">Documents</p>
+      <h2>Call Letter</h2>
+      <p>Preview the employee joining letter with role, reporting, and onboarding information.</p>
+    </div>
+
+    <div class="call-letter-head__actions">
+      <button mat-stroked-button type="button" (click)="printPage()">Print</button>
+      <button mat-flat-button color="primary" type="button" (click)="downloadLetter()">Download Letter</button>
+    </div>
+  </div>
+
+  <div class="call-letter-layout">
+    <mat-card class="call-letter-card">
+      <div class="call-letter-card__brand">
+        <div>
+          <strong>Ridsys HRMS</strong>
+          <span>People Operations</span>
+        </div>
+        <span class="call-letter-status">Issued</span>
+      </div>
+
+      <div class="call-letter-card__body">
+        <p>Date: 27 Mar 2026</p>
+        <p>To</p>
+        <h3>{{ candidate.name }}</h3>
+        <p>{{ candidate.location }}</p>
+
+        <p class="call-letter-card__subject"><strong>Subject:</strong> Offer confirmation and joining instructions</p>
+
+        <p>
+          We are pleased to invite you to join our organization as <strong>{{ candidate.role }}</strong> in the
+          <strong>{{ candidate.department }}</strong> team. Your date of joining is <strong>{{ candidate.joiningDate }}</strong>,
+          and you will report to <strong>{{ candidate.reportingTo }}</strong>.
+        </p>
+
+        <p>
+          Your annual compensation will be <strong>{{ candidate.ctc }}</strong>, subject to company policy and statutory
+          deductions. Please bring the required documents and complete the onboarding formalities on your joining date.
+        </p>
+
+        <p>
+          We look forward to welcoming you to the team and wish you a successful journey with us.
+        </p>
+
+        <div class="call-letter-signoff">
+          <strong>Human Resources</strong>
+          <span>Ridsys HRMS</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="call-letter-side">
+      <div class="call-letter-side__head">
+        <h3>Joining Checklist</h3>
+        <p>Keep these items ready before reporting.</p>
+      </div>
+
+      <div class="checkpoint-list">
+        <article class="checkpoint-card" *ngFor="let item of checkpoints; index as index">
+          <span class="checkpoint-index">{{ index + 1 }}</span>
+          <p>{{ item }}</p>
+        </article>
+      </div>
+    </mat-card>
+  </div>
+</section>

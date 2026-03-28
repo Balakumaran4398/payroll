@@ -1,0 +1,336 @@
+<section class="ctc-page">
+  <div class="ctc-hero">
+    <div class="ctc-hero__title">
+      <div class="ctc-hero__icon">
+        <mat-icon>receipt_long</mat-icon>
+      </div>
+      <div>
+        <h2>{{ activeTab === 'calculator' ? 'CTC Payroll Calculator' : 'CTC Payroll Create' }}</h2>
+        <p>
+          {{ activeTab === 'calculator'
+          ? 'PF · ESI · TDS · Gratuity · Medical insurance'
+          : 'Save payroll salary settings for company structure and deductions' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="ctc-hero__actions">
+      <button class="ctc-tab" type="button" [class.ctc-tab--active]="activeTab === 'calculator'"
+        (click)="setActiveTab('calculator')">
+        CTC Payroll Calculator
+      </button>
+      <button class="ctc-tab" type="button" [class.ctc-tab--active]="activeTab === 'create'"
+        (click)="setActiveTab('create')">
+        CTC Payroll Create
+      </button>
+      <button mat-stroked-button type="button" (click)="printPage()" *ngIf="activeTab === 'calculator'">Print</button>
+      <button mat-flat-button color="primary" type="button" (click)="downloadCalculation()"
+        *ngIf="activeTab === 'calculator'">
+        Download
+      </button>
+    </div>
+  </div>
+
+  <div class="ctc-layout" *ngIf="activeTab === 'calculator'">
+    <mat-card class="ctc-panel">
+      <div class="ctc-panel__head">
+        <h3>Inputs</h3>
+      </div>
+
+      <div class="ctc-form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Annual CTC (Rs)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.annualCtc">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Basic salary (% of monthly gross)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.basicPercent">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>HRA (% of basic)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.hraPercent">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>DA (% of basic)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.daPercent">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>PF wage ceiling (Rs/month)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.pfWageCeiling">
+        </mat-form-field>
+
+        <mat-checkbox [(ngModel)]="model.includePfOnDa">PF contribution on basic + DA</mat-checkbox>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employee PF rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.employeePfRate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employer PF rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.employerPfRate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>ESI gross ceiling (Rs/month)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.esiWageCeiling">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employee ESI rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.employeeEsiRate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employer ESI rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.employerEsiRate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Monthly TDS (Rs)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.monthlyTds">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Years of service</mat-label>
+          <input matInput type="number" [(ngModel)]="model.yearsOfService">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Medical insurance employer (Rs/month)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.medicalEmployer">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Medical insurance employee (Rs/month)</mat-label>
+          <input matInput type="number" [(ngModel)]="model.medicalEmployee">
+        </mat-form-field>
+      </div>
+    </mat-card>
+
+    <mat-card class="ctc-panel">
+      <div class="ctc-panel__head">
+        <h3>Monthly Breakdown</h3>
+      </div>
+
+      <div class="metric-grid">
+        <article class="metric-card metric-card--highlight">
+          <span>Take-home</span>
+          <strong>Rs {{ formatCurrency(takeHome) }}</strong>
+          <small>Gross minus employee PF, ESI, TDS and medical</small>
+        </article>
+
+        <article class="metric-card">
+          <span>Monthly Gross</span>
+          <strong>Rs {{ formatCurrency(monthlyGross) }}</strong>
+          <small>Earnings before deductions</small>
+        </article>
+
+        <article class="metric-card">
+          <span>Employer Cost</span>
+          <strong>Rs {{ formatCurrency(employerCost) }}</strong>
+          <small>Gross + employer contributions</small>
+        </article>
+      </div>
+
+      <div class="ctc-table">
+        <div class="ctc-table__head">
+          <span>Component</span>
+          <span>Monthly (Rs)</span>
+          <span>Annual (Rs)</span>
+        </div>
+
+        <div class="ctc-table__section">Earnings</div>
+        <div class="ctc-table__row"><span>Basic</span><strong>{{ formatCurrency(basicPay) }}</strong><strong>{{
+            formatCurrency(basicPay * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>HRA</span><strong>{{ formatCurrency(hra) }}</strong><strong>{{
+            formatCurrency(hra * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>DA</span><strong>{{ formatCurrency(da) }}</strong><strong>{{ formatCurrency(da
+            * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>Special / other allowance</span><strong>{{ formatCurrency(specialAllowance)
+            }}</strong><strong>{{ formatCurrency(specialAllowance * 12) }}</strong></div>
+        <div class="ctc-table__row ctc-table__row--total"><span>Gross salary</span><strong>{{
+            formatCurrency(monthlyGross) }}</strong><strong>{{ formatCurrency(model.annualCtc) }}</strong></div>
+
+        <div class="ctc-table__section">Employee Deductions</div>
+        <div class="ctc-table__row"><span>Employee PF</span><strong>{{ formatCurrency(employeePf) }}</strong><strong>{{
+            formatCurrency(employeePf * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>Employee ESI</span><strong>{{ formatCurrency(employeeEsi)
+            }}</strong><strong>{{ formatCurrency(employeeEsi * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>TDS</span><strong>{{ formatCurrency(model.monthlyTds) }}</strong><strong>{{
+            formatCurrency(model.monthlyTds * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>Medical (employee)</span><strong>{{ formatCurrency(model.medicalEmployee)
+            }}</strong><strong>{{ formatCurrency(model.medicalEmployee * 12) }}</strong></div>
+        <div class="ctc-table__row ctc-table__row--total"><span>Total deductions</span><strong>{{
+            formatCurrency(employeeDeductions) }}</strong><strong>{{ formatCurrency(employeeDeductions * 12) }}</strong>
+        </div>
+
+        <div class="ctc-table__section">Employer Contributions</div>
+        <div class="ctc-table__row"><span>Employer PF</span><strong>{{ formatCurrency(employerPf) }}</strong><strong>{{
+            formatCurrency(employerPf * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>Employer ESI</span><strong>{{ formatCurrency(employerEsi)
+            }}</strong><strong>{{ formatCurrency(employerEsi * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>Medical (employer)</span><strong>{{ formatCurrency(model.medicalEmployer)
+            }}</strong><strong>{{ formatCurrency(model.medicalEmployer * 12) }}</strong></div>
+        <div class="ctc-table__row"><span>Gratuity accrual</span><strong>{{ formatCurrency(gratuityMonthly)
+            }}</strong><strong>{{ formatCurrency(gratuityMonthly * 12) }}</strong></div>
+      </div>
+
+      <div class="reconciliation-card">
+        <h4>CTC Reconciliation</h4>
+        <p>Annual gross: Rs {{ formatCurrency(model.annualCtc) }}</p>
+        <p>Annual employer contributions: Rs {{ formatCurrency(employerContributions * 12) }}</p>
+        <strong>Monthly take-home remains aligned with the selected structure.</strong>
+      </div>
+    </mat-card>
+  </div>
+
+  <div class="ctc-layout ctc-layout--settings" *ngIf="activeTab === 'create'">
+    <mat-card class="ctc-panel">
+      <div class="ctc-panel__head ctc-panel__head--with-actions">
+        <div>
+          <h3>CTC Payroll Create</h3>
+          <p>Use the form below to save payroll salary settings using your application API.</p>
+        </div>
+
+        <div class="ctc-create-actions">
+          <button mat-stroked-button type="button" (click)="useCalculatorValues()">Use Calculator Values</button>
+          <button mat-stroked-button type="button" (click)="resetSalarySettings()">Reset</button>
+        </div>
+      </div>
+
+      <div class="ctc-settings-grid">
+
+        <mat-form-field appearance="outline">
+          <mat-label>Basic Pay</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.basic_pay">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>HRA</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.hra">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>DA</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.da">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>PF Ceiling Limit</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.pf_Ceiling_limit">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>PF Amount</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.pf_amount">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employee PF Rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.employee_pf_rate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employer PF Rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.employer_pf_rate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>ESI Ceiling Limit</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.esi_Ceiling_limit">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employee ESI Rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.employee_esi_rate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employer ESI Rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.employer_esi_rate">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employee Medical Insurance Amount</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.employee_med_ins_amount">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Employer Medical Insurance Amount</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.employer_med_ins_amount">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Gratuity Rate (%)</mat-label>
+          <input matInput type="number" [(ngModel)]="salarySettings.gratuity_rate">
+        </mat-form-field>
+
+        <div class="ctc-toggle-card">
+          <mat-checkbox [(ngModel)]="salarySettings.is_pf_Ceiling">Use PF Ceiling</mat-checkbox>
+          <p>Turn this on when PF should respect the configured ceiling limit.</p>
+        </div>
+      </div>
+
+      <div class="ctc-submit-row">
+        <button mat-flat-button color="primary" type="button" [disabled]="submittingSettings"
+          (click)="saveSalarySettings()">
+          {{ submittingSettings ? 'Saving...' : 'Save Salary Settings' }}
+        </button>
+      </div>
+    </mat-card>
+
+    <mat-card class="ctc-panel ctc-panel--summary">
+      <div class="ctc-panel__head">
+        <h3>Request Preview</h3>
+      </div>
+
+      <div class="metric-grid metric-grid--compact">
+        <!-- <article class="metric-card metric-card--highlight">
+          <span>Company Id</span>
+          <strong>{{ companyIdPreview }}</strong>
+          <small>Resolved from login if you keep the default value.</small>
+        </article> -->
+
+        <article class="metric-card">
+          <span>Created By</span>
+          <strong>{{ createdByPreview || 'Not set' }}</strong>
+          <small>Sent with the payload to payroll salary settings API.</small>
+        </article>
+      </div>
+
+      <div class="ctc-preview-list">
+        <div class="ctc-preview-item">
+          <span>Basic + HRA + DA</span>
+          <strong>Rs {{ formatCurrency(salarySettings.basic_pay + salarySettings.hra + salarySettings.da) }}</strong>
+        </div>
+
+        <div class="ctc-preview-item">
+          <span>PF Configuration</span>
+          <strong>{{ salarySettings.is_pf_Ceiling ? 'Ceiling enabled' : 'Ceiling disabled' }}</strong>
+        </div>
+
+        <div class="ctc-preview-item">
+          <span>Employee Contributions</span>
+          <strong>{{ salarySettings.employee_pf_rate }}% PF · {{ salarySettings.employee_esi_rate }}% ESI</strong>
+        </div>
+
+        <div class="ctc-preview-item">
+          <span>Employer Contributions</span>
+          <strong>{{ salarySettings.employer_pf_rate }}% PF · {{ salarySettings.employer_esi_rate }}% ESI</strong>
+        </div>
+      </div>
+
+      <div class="reconciliation-card">
+        <h4>API Payload</h4>
+        <p>The create tab sends the payroll structure to `CreateSalaryDetails()`.</p>
+        <p>Numbers are normalized before submit so the payload stays consistent.</p>
+        <strong>Use "Calculator Values" when you want to start from the calculator breakdown.</strong>
+      </div>
+    </mat-card>
+  </div>
+</section>

@@ -1,0 +1,144 @@
+.leave-settings-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.leave-settings-hero,
+.leave-settings-table-card {
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 88%, transparent);
+  border-radius: 28px;
+  box-shadow: 0 18px 42px color-mix(in srgb, var(--theme-shadow-soft) 18%, transparent);
+}
+
+.leave-settings-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.8rem;
+  background: var(--theme-primary);
+  color: #ffffff;
+}
+
+.leave-settings-hero__eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.leave-settings-hero h1,
+.leave-settings-table-card h2,
+.leave-settings-empty h3 {
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.leave-settings-hero h1 {
+  margin-top: 0.35rem;
+  color: #ffffff;
+  font-size: clamp(1.9rem, 2.8vw, 2.8rem);
+}
+
+.leave-settings-hero__copy p:last-child,
+.leave-settings-table-card__header p,
+.leave-settings-empty p {
+  margin: 0.8rem 0 0;
+  line-height: 1.6;
+}
+
+.leave-settings-hero__copy p:last-child {
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 62ch;
+}
+
+.leave-settings-hero__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.leave-settings-hero__actions .mdc-button {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+.leave-settings-table-card {
+  padding: 1.35rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--theme-surface) 98%, transparent), color-mix(in srgb, var(--theme-surface-strong) 100%, transparent));
+}
+
+.leave-settings-table-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.leave-settings-table-card__create {
+  flex-shrink: 0;
+}
+
+.leave-settings-table-wrapper {
+  overflow-x: auto;
+}
+
+.leave-settings-table {
+  width: 100%;
+  background: transparent;
+}
+
+.leave-settings-table th {
+  font-weight: 700;
+  color: var(--theme-text-muted);
+}
+
+.leave-settings-table td,
+.leave-settings-table th {
+  white-space: nowrap;
+}
+
+.leave-code-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  color: var(--theme-primary);
+  font-weight: 700;
+}
+
+.leave-settings-loading,
+.leave-settings-empty {
+  display: grid;
+  place-items: center;
+  gap: 0.9rem;
+  min-height: 220px;
+  text-align: center;
+  color: var(--theme-text-muted);
+}
+
+.leave-settings-empty mat-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 44px;
+}
+
+@media (max-width: 840px) {
+  .leave-settings-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .leave-settings-hero__actions {
+    justify-content: flex-start;
+  }
+
+  .leave-settings-table-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

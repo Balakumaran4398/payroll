@@ -1,0 +1,62 @@
+<div class="permission-view-dialog">
+  <div class="permission-view-dialog__head">
+    <div class="permission-view-dialog__head-copy">
+      <p class="permission-view-dialog__eyebrow">Permission request details</p>
+      <h2>{{ data.request.request_type }}</h2>
+      <p>{{ data.request.employee_name || 'Employee #' + data.request.empid }} • {{ data.request.display_date_time }}</p>
+    </div>
+
+    <button mat-icon-button class="close-button" (click)="close()" aria-label="Close permission request dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="permission-view-dialog__body">
+    <div class="permission-view-dialog__badges">
+      <span class="badge">{{ data.request.display_status }}</span>
+      <span class="badge badge--soft">{{ data.request.display_id }}</span>
+      <span class="badge badge--soft">{{ data.request.display_created_at }}</span>
+    </div>
+
+    <div class="permission-view-dialog__grid">
+      <div class="detail-card">
+        <p class="detail-label">Employee</p>
+        <p class="detail-value">{{ data.request.employee_name || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Employee Id</p>
+        <p class="detail-value">{{ data.request.empid || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Permission Date</p>
+        <p class="detail-value">{{ data.request.request_date || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Permission Type</p>
+        <p class="detail-value">{{ data.request.permission_type_label || data.request.mode || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">Start Time</p>
+        <p class="detail-value">{{ data.request.starttime || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card">
+        <p class="detail-label">End Time</p>
+        <p class="detail-value">{{ data.request.endtime || 'Not available' }}</p>
+      </div>
+
+      <div class="detail-card detail-card--full">
+        <p class="detail-label">Reason</p>
+        <p class="detail-value">{{ data.request.reason || 'No reason added' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="permission-view-dialog__actions">
+    <button mat-stroked-button (click)="close()">Close</button>
+  </div>
+</div>
