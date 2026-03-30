@@ -6,6 +6,8 @@
 :root[data-theme='ocean'] {
   --shell-header-height: 0px;
   --shell-sidebar-offset: 0px;
+  --shell-dialog-blur: 6px;
+  --shell-dialog-backdrop: rgba(0, 0, 0, 0.45);
 
   --theme-primary: #2e4fae;
   --theme-secondary: #33b4b2;
@@ -438,7 +440,8 @@ h4,
 h5,
 h6 {
   margin: 0;
-  color: var(--theme-text-primary);
+  // color: var(--theme-text-primary);
+  color: var(--theme-primary);
 }
 
 .mat-toolbar,
@@ -678,9 +681,9 @@ h6 {
 }
 
 .cdk-overlay-pane.employee-dialog-panel {
-  z-index: 1202 !important;
+  z-index: 1100 !important;
   position: fixed !important;
-  top: var(--shell-header-height, 64px) !important;
+  top: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
   left: auto !important;
@@ -690,39 +693,45 @@ h6 {
   transform: translate3d(100%, 0, 0);
   will-change: transform;
   backface-visibility: hidden;
-  animation: employeeDrawerPaneIn 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  animation: employeeDrawerPaneIn 350ms ease forwards !important;
 }
 
 .cdk-overlay-pane.employee-form-modal-panel {
-  width: min(580px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
-  max-width: min(580px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
-  height: calc(100vh - var(--shell-header-height, 64px)) !important;
-  max-height: calc(100vh - var(--shell-header-height, 64px)) !important;
+  width: min(580px, calc(100vw - 16px)) !important;
+  max-width: min(580px, calc(100vw - 16px)) !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
 }
 
 .cdk-overlay-pane.employee-profile-modal-panel {
-  width: min(680px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
-  max-width: min(680px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
-  height: calc(100vh - var(--shell-header-height, 64px)) !important;
-  max-height: calc(100vh - var(--shell-header-height, 64px)) !important;
+  width: min(680px, calc(100vw - 16px)) !important;
+  max-width: min(680px, calc(100vw - 16px)) !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
 }
 
 .cdk-overlay-pane.employee-delete-modal-panel {
-  width: min(460px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
-  max-width: min(460px, calc(100vw - var(--shell-sidebar-offset, 260px) - 16px)) !important;
-  height: calc(100vh - var(--shell-header-height, 64px)) !important;
-  max-height: calc(100vh - var(--shell-header-height, 64px)) !important;
+  width: min(460px, calc(100vw - 16px)) !important;
+  max-width: min(460px, calc(100vw - 16px)) !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
 }
 
 .cdk-overlay-backdrop.employee-dialog-backdrop {
-  top: var(--shell-header-height, 64px) !important;
-  left: var(--shell-sidebar-offset, 260px) !important;
+  z-index: 1000 !important;
+  top: 0 !important;
+  left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  // z-index: 1201 !important;
-  background: rgba(9, 24, 52, 0.18) !important;
-  backdrop-filter: none !important;
-  transition: opacity 220ms ease-in-out !important;
+  opacity: 0 !important;
+  background: var(--shell-dialog-backdrop) !important;
+  backdrop-filter: blur(var(--shell-dialog-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--shell-dialog-blur)) !important;
+  transition: opacity 350ms ease !important;
+}
+
+.cdk-overlay-backdrop.employee-dialog-backdrop.cdk-overlay-backdrop-showing {
+  opacity: 1 !important;
 }
 
 .employee-form-modal-panel .mat-dialog-container,
@@ -758,7 +767,7 @@ h6 {
 
 .cdk-overlay-pane.employee-dialog-panel.employee-dialog-panel--closing {
   pointer-events: none;
-  animation: employeeDrawerPaneOut 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  animation: employeeDrawerPaneOut 350ms ease forwards !important;
 }
 
 @media (max-width: 720px) {

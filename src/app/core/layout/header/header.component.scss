@@ -4,7 +4,7 @@
   left: 260px;
   right: 0;
   height: 64px;
-  z-index: 1100;
+  z-index: 100;
   background: var(--theme-surface-strong);
   color: var(--theme-text-primary);
   border-bottom: 1px solid var(--theme-border-soft);
@@ -267,10 +267,7 @@
 
 .profile-stage {
   position: fixed;
-  top: var(--shell-header-height, 64px);
-  left: var(--shell-sidebar-offset, 260px);
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 1205;
   display: flex;
   justify-content: flex-end;
@@ -280,10 +277,7 @@
 
 .notifications-stage {
   position: fixed;
-  top: var(--shell-header-height, 64px);
-  left: var(--shell-sidebar-offset, 260px);
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 1204;
   display: flex;
   justify-content: flex-end;
@@ -294,14 +288,17 @@
 .notifications-stage__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(9, 24, 52, 0.18);
+  background: var(--shell-dialog-backdrop);
+  backdrop-filter: blur(var(--shell-dialog-blur));
+  -webkit-backdrop-filter: blur(var(--shell-dialog-blur));
   animation: profileBackdropIn 0.24s ease-out forwards;
 }
 
 .notifications-panel {
   position: relative;
-  width: min(380px, calc(100vw - var(--shell-sidebar-offset, 260px) - 12px));
-  height: 100%;
+  z-index: 1;
+  width: min(380px, calc(100vw - 16px));
+  height: 100vh;
   display: flex;
   flex-direction: column;
   border-left: 1px solid var(--theme-border-soft);
@@ -401,14 +398,17 @@
 .profile-stage__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(9, 24, 52, 0.18);
+  background: var(--shell-dialog-backdrop);
+  backdrop-filter: blur(var(--shell-dialog-blur));
+  -webkit-backdrop-filter: blur(var(--shell-dialog-blur));
   animation: profileBackdropIn 0.24s ease-out forwards;
 }
 
 .profile-modal {
   position: relative;
-  width: min(420px, calc(100vw - var(--shell-sidebar-offset, 260px) - 12px));
-  height: 100%;
+  z-index: 1;
+  width: min(420px, calc(100vw - 16px));
+  height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;

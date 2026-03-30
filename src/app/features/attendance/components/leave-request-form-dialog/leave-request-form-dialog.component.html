@@ -73,10 +73,7 @@
           <mat-option *ngFor="let status of approvalStatusOptions" [value]="status">{{ status === 'Rejected' ? 'Rejected'
             : status }}</mat-option>
         </mat-select>
-        <mat-hint *ngIf="!canApprove">Only admin and managers reviewing team requests can change approval status.</mat-hint>
       </mat-form-field>
-
-
       <div class="field field--compact">
         <span>Total Days</span>
         <div class="pill-value">{{ totalLeaveDays }}</div>

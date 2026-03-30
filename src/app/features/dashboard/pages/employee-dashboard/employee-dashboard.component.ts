@@ -144,6 +144,7 @@ interface CalendarDay {
   styleUrls: ['./employee-dashboard.component.scss'],
 })
 export class EmployeeDashboardComponent implements OnInit {
+  private readonly dashboardRoute = '/app/dashboard';
   readonly weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   readonly attendanceLegend: AttendanceLegendItem[] = [
     { state: 'present', label: 'Present', description: 'Present - Full Day' },
@@ -689,7 +690,21 @@ export class EmployeeDashboardComponent implements OnInit {
 
   private navigateToActionRoute(route: string, queryParams?: Record<string, string>): void {
     this.closeAttendanceDialog();
-    this.router.navigate(['/', ...route.split('/').filter(Boolean)], { queryParams });
+    this.router.navigate(['/', ...route.split('/').filter(Boolean)], {
+      queryParams,
+      state: this.buildWorkflowNavigationState(route),
+    });
+  }
+
+  private buildWorkflowNavigationState(route: string): { from: string } | undefined {
+    return this.isWorkflowRoute(route) ? { from: this.dashboardRoute } : undefined;
+  }
+
+  private isWorkflowRoute(route: string): boolean {
+    return route === '/app/attendance/apply-leave'
+      || route === '/app/attendance/request-od'
+      || route === '/app/attendance/permission-request'
+      || route === '/app/attendance/regularize-swipe';
   }
 
   private buildFallbackAvatar(name: string): string {

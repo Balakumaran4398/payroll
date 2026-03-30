@@ -348,7 +348,7 @@ export class EmployeeComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         employee,
         imageUrl: this.getEmployeeImage(employee),
@@ -473,7 +473,7 @@ export class EmployeeComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: { employee },
     });
 
@@ -497,7 +497,7 @@ export class EmployeeComponent implements OnInit {
   }
 
   private hasFullEmployeeAccess(): boolean {
-    return this.currentRole === 'ROLE_ADMIN' || this.currentRole === 'ROLE_COMPANY';
+    return this.currentRole === 'ROLE_ADMIN';
   }
 
   private isOwnEmployeeRecord(employee: Employee): boolean {
@@ -530,7 +530,7 @@ export class EmployeeComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: { mode, employee },
     });
 

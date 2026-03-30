@@ -7,8 +7,20 @@
     </div>
   </div>
   <header class="workflow-header">
-    <!-- <p class="workflow-breadcrumb">{{ config.breadcrumb }} &gt; {{ config.title }}</p> -->
-    <h1>{{ config.title }}</h1>
+    <div class="workflow-header__top">
+      <button
+        *ngIf="showWorkflowBackButton"
+        mat-stroked-button
+        type="button"
+        class="workflow-back-button"
+        (click)="navigateBack()"
+      >
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+      <h1>{{ config.title }}</h1>
+    </div>
+    <p>{{ config.subtitle }}</p>
   </header>
 
   <section class="review-banner" *ngIf="isAdminReview && reviewRequest">

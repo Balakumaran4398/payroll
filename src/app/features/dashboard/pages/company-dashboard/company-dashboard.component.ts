@@ -175,6 +175,8 @@ interface TeamMember {
   styleUrls: ['./company-dashboard.component.scss'],
 })
 export class CompanyDashboardComponent implements OnInit {
+  private readonly dashboardRoute = '/app/dashboard';
+
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
@@ -466,13 +468,18 @@ export class CompanyDashboardComponent implements OnInit {
   }
 
   openQuickAction(action: ManagerQuickAction): void {
-    this.router.navigateByUrl(action.route);
+    this.router.navigate(['/', ...action.route.split('/').filter(Boolean)], {
+      state: this.buildWorkflowNavigationState(action.route),
+    });
   }
 
   openCalendarAction(action: CalendarAction): void {
     const selectedDate = this.selectedCalendarDay?.date;
     const queryParams = selectedDate ? { date: this.toIsoDate(selectedDate) } : undefined;
-    this.router.navigate(['/', ...action.route.split('/').filter(Boolean)], { queryParams });
+    this.router.navigate(['/', ...action.route.split('/').filter(Boolean)], {
+      queryParams,
+      state: this.buildWorkflowNavigationState(action.route),
+    });
   }
 
   changeCalendarMonth(offset: number): void {
@@ -490,6 +497,17 @@ export class CompanyDashboardComponent implements OnInit {
     this.currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
     this.selectedCalendarDay = null;
     this.loadAttendanceCalendar();
+  }
+
+  private buildWorkflowNavigationState(route: string): { from: string } | undefined {
+    return this.isWorkflowRoute(route) ? { from: this.dashboardRoute } : undefined;
+  }
+
+  private isWorkflowRoute(route: string): boolean {
+    return route === '/app/attendance/apply-leave'
+      || route === '/app/attendance/request-od'
+      || route === '/app/attendance/permission-request'
+      || route === '/app/attendance/regularize-swipe';
   }
 
   selectCalendarDay(day: ManagerCalendarDay): void {

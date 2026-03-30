@@ -239,7 +239,7 @@ export class CompanyComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: { holiday },
     });
 
@@ -290,7 +290,7 @@ export class CompanyComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: { mode, holiday, year: this.selectedYear },
     });
 

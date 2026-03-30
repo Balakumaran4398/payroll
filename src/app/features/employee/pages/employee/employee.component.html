@@ -12,9 +12,9 @@
         <div class="table-heading">
           <div class="table-heading__copy">
             <mat-card-title>Employee Directory</mat-card-title>
-   
+
           </div>
-      
+
         </div>
       </mat-card-header>
 
@@ -22,7 +22,7 @@
 
 
         <div class="search-section search-section--compact">
-          
+
           <mat-form-field appearance="outline" class="search-field">
             <mat-label>Search employees</mat-label>
             <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()"
@@ -32,17 +32,19 @@
 
           <div class="filter-buttons">
 
-          <button mat-flat-button class="add-employee-btn" (click)="openAddEmployeeDialog()" [disabled]="!canCreateEmployee()" [attr.aria-label]="getCreateEmployeeDisabledReason() || 'Add Employee'">
-            <mat-icon>add</mat-icon>
-            Add Employee
-          </button>
+            <button mat-flat-button class="add-employee-btn" (click)="openAddEmployeeDialog()"
+              [disabled]="!canCreateEmployee()" [attr.aria-label]="getCreateEmployeeDisabledReason() || 'Add Employee'">
+              <mat-icon>add</mat-icon>
+              Add Employee
+            </button>
             <button mat-stroked-button [class.active]="statusFilter === 'all'" (click)="setStatusFilter('all')">
               All ({{ totalEmployees }})
             </button>
             <button mat-stroked-button [class.active]="statusFilter === 'active'" (click)="setStatusFilter('active')">
               Active ({{ activeEmployees }})
             </button>
-            <button mat-stroked-button [class.active]="statusFilter === 'inactive'" (click)="setStatusFilter('inactive')">
+            <button mat-stroked-button [class.active]="statusFilter === 'inactive'"
+              (click)="setStatusFilter('inactive')">
               Inactive ({{ inactiveEmployees }})
             </button>
           </div>
@@ -123,15 +125,19 @@
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let employee">
                 <div class="action-buttons">
-                  <button type="button" class="theme-action-button theme-action-button--view" matTooltip="View Details" (click)="viewEmployeeDetails(employee)"
-                    [disabled]="isEmployeeDeleting(employee.id)">
+                  <button type="button" class="theme-action-button theme-action-button--view" matTooltip="View Details"
+                    (click)="viewEmployeeDetails(employee)" [disabled]="isEmployeeDeleting(employee.id)">
                     View
                   </button>
-                  <button type="button" class="theme-action-button theme-action-button--edit" [matTooltip]="getEmployeeEditDisabledReason(employee) || 'Edit Employee'" (click)="editEmployee(employee)"
+                  <button type="button" class="theme-action-button theme-action-button--edit"
+                    [matTooltip]="getEmployeeEditDisabledReason(employee) || 'Edit Employee'"
+                    (click)="editEmployee(employee)"
                     [disabled]="!!getEmployeeEditDisabledReason(employee) || isEmployeeDeleting(employee.id)">
                     Edit
                   </button>
-                  <button type="button" class="theme-action-button theme-action-button--delete" [matTooltip]="getEmployeeDeleteDisabledReason(employee) || 'Delete Employee'" (click)="deleteEmployee(employee)"
+                  <button type="button" class="theme-action-button theme-action-button--delete"
+                    [matTooltip]="getEmployeeDeleteDisabledReason(employee) || 'Delete Employee'"
+                    (click)="deleteEmployee(employee)"
                     [disabled]="!!getEmployeeDeleteDisabledReason(employee) || isEmployeeDeleting(employee.id)"
                     [attr.aria-label]="isEmployeeDeleting(employee.id) ? 'Deleting employee' : (getEmployeeDeleteDisabledReason(employee) || 'Delete Employee')">
                     <mat-spinner *ngIf="isEmployeeDeleting(employee.id); else deleteIcon" diameter="18"
@@ -219,13 +225,18 @@
             </div>
 
             <div class="employee-mobile-card__actions">
-              <button type="button" class="theme-action-button theme-action-button--view" (click)="openProfileDialog(employee)" [disabled]="isEmployeeDeleting(employee.id)">
+              <button type="button" class="theme-action-button theme-action-button--view"
+                (click)="openProfileDialog(employee)" [disabled]="isEmployeeDeleting(employee.id)">
                 View
               </button>
-              <button type="button" class="theme-action-button theme-action-button--edit" (click)="editEmployee(employee)" [disabled]="!!getEmployeeEditDisabledReason(employee) || isEmployeeDeleting(employee.id)" [attr.aria-label]="getEmployeeEditDisabledReason(employee) || 'Edit employee'">
+              <button type="button" class="theme-action-button theme-action-button--edit"
+                (click)="editEmployee(employee)"
+                [disabled]="!!getEmployeeEditDisabledReason(employee) || isEmployeeDeleting(employee.id)"
+                [attr.aria-label]="getEmployeeEditDisabledReason(employee) || 'Edit employee'">
                 Edit
               </button>
-              <button type="button" class="theme-action-button theme-action-button--delete" (click)="deleteEmployee(employee)"
+              <button type="button" class="theme-action-button theme-action-button--delete"
+                (click)="deleteEmployee(employee)"
                 [disabled]="!!getEmployeeDeleteDisabledReason(employee) || isEmployeeDeleting(employee.id)"
                 [attr.aria-label]="getEmployeeDeleteDisabledReason(employee) || 'Delete employee'">
                 <mat-spinner *ngIf="isEmployeeDeleting(employee.id); else mobileDeleteLabel" diameter="18"

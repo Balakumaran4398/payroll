@@ -132,6 +132,30 @@
   gap: 0.35rem;
 }
 
+.workflow-header__top {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.workflow-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 42px;
+  border-radius: 999px;
+  border-color: color-mix(in srgb, var(--theme-primary) 18%, var(--theme-border-soft));
+  color: var(--theme-primary);
+  font-weight: 700;
+}
+
+.workflow-back-button .mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
 .workflow-header h1 {
   margin: 0;
   color: var(--theme-text-primary);

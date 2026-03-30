@@ -7,7 +7,7 @@
   background: var(--theme-sidebar-bg);
   color: var(--theme-sidebar-item);
   transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s ease, box-shadow 0.25s ease;
-  z-index: 18;
+  z-index: 100;
   overflow: hidden;
   border-right: 1px solid var(--theme-sidebar-border);
   box-shadow: 8px 0 22px var(--theme-sidebar-shadow);

@@ -186,6 +186,7 @@ interface LeaveDashboardStat {
   styleUrls: ['./attendance.component.scss'],
 })
 export class AttendanceComponent implements OnInit {
+  readonly workflowSourceRoute = '/app/attendance';
   readonly statusFilters: Array<{ label: string; value: LeaveStatusFilter }> = [
     { label: 'All Status', value: 'all' },
     { label: 'Pending', value: 'Pending' },
@@ -358,6 +359,10 @@ export class AttendanceComponent implements OnInit {
 
   get canManageLeaveDesk(): boolean {
     return this.currentRole === 'ROLE_ADMIN' || this.currentRole === 'ROLE_MANAGER' || this.currentRole === 'ROLE_COMPANY';
+  }
+
+  buildRouteState(route: string): { from: string } | null {
+    return this.isWorkflowRoute(route) ? { from: this.workflowSourceRoute } : null;
   }
 
   get leaveDeskTitle(): string {
@@ -729,7 +734,7 @@ export class AttendanceComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         request: this.buildLeaveDialogRequest(request, decision),
         leaveTypes: this.leaveTypes.length ? this.leaveTypes : this.getFallbackLeaveTypes(),
@@ -763,7 +768,7 @@ export class AttendanceComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         request: this.buildOnDutyDialogRequest(request, decision),
         canApprove: this.canApproveRequest(request),
@@ -796,7 +801,7 @@ export class AttendanceComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         request: this.buildPermissionDialogRequest(request, decision),
         canApprove: this.canApproveRequest(request),
@@ -829,7 +834,7 @@ export class AttendanceComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         request: this.buildSwipeDialogRequest(request, decision),
         canApprove: this.canApproveRequest(request),
@@ -1053,5 +1058,12 @@ export class AttendanceComponent implements OnInit {
   private getRequestSortValue(value: string): number {
     const parsedTime = Date.parse(value || '');
     return Number.isNaN(parsedTime) ? 0 : parsedTime;
+  }
+
+  private isWorkflowRoute(route: string): boolean {
+    return route === '/app/attendance/apply-leave'
+      || route === '/app/attendance/request-od'
+      || route === '/app/attendance/permission-request'
+      || route === '/app/attendance/regularize-swipe';
   }
 }

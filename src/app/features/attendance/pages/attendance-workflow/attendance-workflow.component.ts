@@ -1,5 +1,6 @@
+import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { of, timer } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
@@ -21,6 +22,7 @@ import { SwipeRequestViewDialogComponent } from '../../components/swipe-request-
 import { SwipeRequestEditDialogComponent } from '../../components/swipe-request-edit-dialog/swipe-request-edit-dialog.component';
 import { SwipeRequestDeleteDialogComponent } from '../../components/swipe-request-delete-dialog/swipe-request-delete-dialog.component';
 import { TokenStorageService } from 'src/app/core/services/token-storage.service';
+import { NavigationService } from 'src/app/core/services/navigation.service';
 
 type WorkflowKey =
   | 'apply-leave'
@@ -386,6 +388,9 @@ export class AttendanceWorkflowComponent implements OnInit {
   username: any;
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
+    private location: Location,
+    private navigationService: NavigationService,
     private requestCenter: AdminRequestCenterService,
     private apiService: ApiService,
     private authService: AuthService,
@@ -457,8 +462,26 @@ export class AttendanceWorkflowComponent implements OnInit {
     return this.formatReadableDate(this.selectedDate);
   }
 
+  get showWorkflowBackButton(): boolean {
+    return this.config.key === 'apply-leave'
+      || this.config.key === 'regularize-swipe'
+      || this.config.key === 'permission-request'
+      || this.config.key === 'request-od';
+  }
+
   get isLeaveEndDayDisabled(): boolean {
     return `${this.leaveForm.startDay || 'full'}`.trim().toLowerCase() === 'full';
+  }
+
+  navigateBack(): void {
+    const previousUrl = this.navigationService.getPreviousUrl();
+
+    if (this.navigationService.isDashboardRoute(previousUrl)) {
+      this.router.navigateByUrl(this.navigationService.getDashboardUrl());
+      return;
+    }
+
+    this.location.back();
   }
 
   get leaveToDateMin(): Date | null {
@@ -713,7 +736,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: { request: this.buildLeaveDialogRequest(item) },
       });
       return;
@@ -734,7 +757,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: { request: this.buildPermissionDialogRequest(item) },
       });
       return;
@@ -755,7 +778,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: {
           request: this.buildSwipeDialogRequest(item),
           canApprove: this.canApproveSwipeHistoryRequest(item),
@@ -783,7 +806,7 @@ export class AttendanceWorkflowComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         request: this.buildOnDutyDialogRequest(item),
         canApprove: this.canApproveOnDutyHistoryRequest(item),
@@ -818,7 +841,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: {
           request: this.buildLeaveDialogRequest(item),
           leaveTypes: this.leaveTypes,
@@ -854,7 +877,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: {
           request: this.buildPermissionDialogRequest(item),
           canApprove: this.canApprovePermissionHistoryRequest(item),
@@ -888,7 +911,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: {
           request: this.buildSwipeDialogRequest(item),
           canApprove: this.canApproveSwipeHistoryRequest(item),
@@ -932,7 +955,7 @@ export class AttendanceWorkflowComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         request: this.buildOnDutyDialogRequest(item),
         canApprove: this.canApproveOnDutyHistoryRequest(item),
@@ -974,7 +997,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: { request: this.buildLeaveDialogRequest(item) },
       });
 
@@ -1002,7 +1025,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: { request: this.buildPermissionDialogRequest(item) },
       });
 
@@ -1030,7 +1053,7 @@ export class AttendanceWorkflowComponent implements OnInit {
         backdropClass: 'employee-dialog-backdrop',
         autoFocus: false,
         restoreFocus: false,
-        disableClose: true,
+        disableClose: false,
         data: { request: this.buildSwipeDialogRequest(item) },
       });
 
@@ -1072,7 +1095,7 @@ export class AttendanceWorkflowComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         request: this.buildOnDutyDialogRequest(item),
         canApprove: this.canApproveOnDutyHistoryRequest(item),

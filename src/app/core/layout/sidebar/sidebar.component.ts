@@ -62,22 +62,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
     {
       label: 'Documents',
       icon: 'folder_open',
-      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+      roles: ['ROLE_ADMIN'],
       children: [
         {
           label: 'Pay Slip',
           route: '/app/documents/pay-slip',
-          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+          roles: ['ROLE_ADMIN',],
         },
         {
           label: 'CTC',
           route: '/app/documents/ctc',
-          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+          roles: ['ROLE_ADMIN',],
         },
         {
           label: 'Call Letter',
           route: '/app/documents/call-letter',
-          roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+          roles: ['ROLE_ADMIN',],
         },
       ],
     },

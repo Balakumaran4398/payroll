@@ -1,8 +1,11 @@
+import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { ApiService } from 'src/app/core/services/api.service';
+import { NavigationService } from 'src/app/core/services/navigation.service';
 import { TokenStorageService } from 'src/app/core/services/token-storage.service';
 import { UiFeedbackService } from 'src/app/core/services/ui-feedback.service';
 import { LeaveSettingsEditDialogComponent } from '../../components/leave-settings-edit-dialog/leave-settings-edit-dialog.component';
@@ -54,6 +57,9 @@ export class LeaveCreationComponent implements OnInit {
   companyid = 0;
   constructor(
     private apiService: ApiService,
+    private router: Router,
+    private location: Location,
+    private navigationService: NavigationService,
     private authService: AuthService,
     private tokenStorage: TokenStorageService,
     private feedback: UiFeedbackService,
@@ -66,6 +72,18 @@ export class LeaveCreationComponent implements OnInit {
     this.loadLeaveTypeOptions();
     this.getemployeedetails();
   }
+
+  goBack(): void {
+    const previousUrl = this.navigationService.getPreviousUrl();
+
+    if (this.navigationService.isDashboardRoute(previousUrl)) {
+      this.router.navigateByUrl(this.navigationService.getDashboardUrl());
+      return;
+    }
+
+    this.location.back();
+  }
+
   getemployeedetails() {
     this.apiService.getemployeedetails(this.username).subscribe((res: any) => {
       console.log(res);
@@ -95,7 +113,7 @@ export class LeaveCreationComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         mode: 'create',
         row: this.buildEmptyRow(),
@@ -123,7 +141,7 @@ export class LeaveCreationComponent implements OnInit {
       backdropClass: 'employee-dialog-backdrop',
       autoFocus: false,
       restoreFocus: false,
-      disableClose: true,
+      disableClose: false,
       data: {
         mode: 'edit',
         row: { ...row },

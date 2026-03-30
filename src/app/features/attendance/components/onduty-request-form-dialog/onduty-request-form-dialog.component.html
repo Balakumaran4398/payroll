@@ -45,7 +45,6 @@
           <mat-option *ngFor="let status of approvalStatusOptions" [value]="status">{{ status === 'Rejected' ? 'Rejected'
             : status }}</mat-option>
         </mat-select>
-        <mat-hint *ngIf="!canApprove">Only admin and managers reviewing team requests can change approval status.</mat-hint>
       </mat-form-field>
 
       <mat-form-field class="field" appearance="outline">
