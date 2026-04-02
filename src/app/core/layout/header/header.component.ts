@@ -247,7 +247,7 @@ export class HeaderComponent implements OnInit {
     }
 
     this.closeNotificationsPanel(true);
-    this.router.navigate(['/app/attendance']);
+    this.router.navigateByUrl(notification.route);
   }
 
   getNotifications(): void {
@@ -276,38 +276,38 @@ export class HeaderComponent implements OnInit {
     if (pendingLeave > 0) {
       notifications.push({
         title: `Pending Leave Requests (${pendingLeave})`,
-        description: `${pendingLeave} leave request${pendingLeave === 1 ? '' : 's'} waiting in Attendance.`,
-        time: 'Open Attendance',
+        description: `${pendingLeave} leave request${pendingLeave === 1 ? '' : 's'} waiting in Leave Management.`,
+        time: 'Open Leave Management',
         icon: 'event_note',
-        route: '/app/attendance',
+        route: '/app/attendance/app-leave-management',
       });
     }
 
     if (pendingOnDuty > 0) {
       notifications.push({
         title: `Pending OD Requests (${pendingOnDuty})`,
-        description: `${pendingOnDuty} on duty request${pendingOnDuty === 1 ? '' : 's'} waiting in Attendance.`,
-        time: 'Open Attendance',
+        description: `${pendingOnDuty} on duty request${pendingOnDuty === 1 ? '' : 's'} waiting in Leave Management.`,
+        time: 'Open Leave Management',
         icon: 'work_history',
-        route: '/app/attendance',
+        route: '/app/attendance/app-leave-management',
       });
     }
     if (pending_swipe > 0) {
       notifications.push({
         title: `Swipe Requests (${pending_swipe})`,
-        description: `${pending_swipe} Swipe request${pending_swipe === 1 ? '' : 's'} waiting in Attendance.`,
-        time: 'Open Attendance',
+        description: `${pending_swipe} Swipe request${pending_swipe === 1 ? '' : 's'} waiting in Leave Management.`,
+        time: 'Open Leave Management',
         icon: 'work_history',
-        route: '/app/attendance',
+        route: '/app/attendance/app-leave-management',
       });
     }
     if (pending_permission > 0) {
       notifications.push({
         title: `Pending OD Requests (${pending_permission})`,
-        description: `${pending_permission} Permission request${pending_permission === 1 ? '' : 's'} waiting in Attendance.`,
-        time: 'Open Attendance',
+        description: `${pending_permission} Permission request${pending_permission === 1 ? '' : 's'} waiting in Leave Management.`,
+        time: 'Open Leave Management',
         icon: 'work_history',
-        route: '/app/attendance',
+        route: '/app/attendance/app-leave-management',
       });
     }
 

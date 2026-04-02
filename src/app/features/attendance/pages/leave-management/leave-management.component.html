@@ -1,0 +1,184 @@
+<section class="leave-dashboard">
+  <mat-card class="leave-dashboard__hero">
+    <div class="leave-dashboard__hero-copy">
+      <p class="leave-dashboard__eyebrow">{{ leaveDeskTitle }}</p>
+      <h1>Leave Management </h1>
+    </div>
+
+    <div class="leave-dashboard__hero-actions" *ngIf="canManageLeaveDesk">
+      <button mat-flat-button class="leave-dashboard__primary-action" routerLink="/app/attendance/leave-creation">
+        <mat-icon>event_available</mat-icon>
+        Create Leave
+      </button>
+      <button mat-stroked-button class="leave-dashboard__secondary-action" routerLink="/app/company">
+        <mat-icon>calendar_month</mat-icon>
+        Holiday Calendar
+      </button>
+    </div>
+  </mat-card>
+
+  <section class="leave-dashboard__stats-grid">
+    <mat-card class="leave-stat-card" *ngFor="let stat of dashboardStats" [class]="'leave-stat-card leave-stat-card--' + stat.tone">
+      <div class="leave-stat-card__icon">
+        <mat-icon>{{ stat.icon }}</mat-icon>
+      </div>
+      <div class="leave-stat-card__copy">
+        <span>{{ stat.label }}</span>
+        <strong>{{ stat.value }}</strong>
+        <small>{{ stat.caption }}</small>
+      </div>
+    </mat-card>
+  </section>
+
+  <section class="leave-dashboard__content-grid">
+    <mat-card class="leave-panel leave-panel--requests">
+      <div class="leave-panel__request-header">
+        <div>
+          <h2>All Requests</h2>
+          <p>{{ filteredLeaveRequests.length }} request{{ filteredLeaveRequests.length === 1 ? '' : 's' }} shown for {{ activeStatusLabel.toLowerCase() }} and {{ activeRequestTypeLabel.toLowerCase() }}.</p>
+        </div>
+
+        <div class="leave-panel__filters">
+          <mat-form-field appearance="outline" class="leave-filter-field">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="statusFilter">
+              <mat-option *ngFor="let filter of statusFilters" [value]="filter.value">
+                {{ filter.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="leave-filter-field">
+            <mat-label>Request Type</mat-label>
+            <mat-select [(ngModel)]="requestTypeFilter">
+              <mat-option *ngFor="let filter of requestTypeFilters" [value]="filter.value">
+                {{ filter.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="leave-request-list" *ngIf="filteredLeaveRequests.length; else emptyRequestsState">
+        <mat-card class="leave-request-card" *ngFor="let request of filteredLeaveRequests">
+          <div class="leave-request-card__header">
+            <div class="leave-request-card__profile">
+              <span class="leave-request-card__avatar">
+                <mat-icon>event</mat-icon>
+              </span>
+
+              <div class="leave-request-card__identity">
+                <h3>{{ request.employeeName }}</h3>
+                <span>{{ request.employeeCode }}</span>
+              </div>
+            </div>
+
+            <mat-chip-set class="leave-request-card__chips">
+              <mat-chip class="leave-type-pill leave-type-pill--info">
+                {{ request.requestCategoryLabel }}
+              </mat-chip>
+              <mat-chip class="leave-type-pill" [class]="'leave-type-pill leave-type-pill--' + getLeaveTypeTone(request.leaveType)">
+                {{ request.leaveType }}
+              </mat-chip>
+              <mat-chip class="status-chip" [class]="'status-chip status-chip--' + request.status.toLowerCase()">
+                {{ request.status }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+
+          <div class="leave-request-card__details">
+            <div class="leave-request-card__detail">
+              <span>{{ request.detailOneLabel }}</span>
+              <strong>{{ request.detailOneValue }}</strong>
+            </div>
+            <div class="leave-request-card__detail">
+              <span>{{ request.detailTwoLabel }}</span>
+              <strong>{{ request.detailTwoValue }}</strong>
+            </div>
+            <div class="leave-request-card__detail">
+              <span>{{ request.detailThreeLabel }}</span>
+              <strong>{{ request.detailThreeValue }}</strong>
+            </div>
+            <div class="leave-request-card__detail">
+              <span>Reason</span>
+              <strong>{{ request.reason }}</strong>
+            </div>
+          </div>
+
+          <div class="leave-request-card__actions" *ngIf="showDecisionActions(request)">
+            <button mat-flat-button class="leave-request-card__approve" (click)="openDecisionDialog(request, 'Approved')"><mat-icon>check_circle</mat-icon>Approve</button>
+            <button mat-flat-button class="leave-request-card__reject" (click)="openDecisionDialog(request, 'Rejected')"><mat-icon>cancel</mat-icon>Reject</button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-card>
+
+    <div class="leave-dashboard__side-column">
+      <mat-card class="leave-panel leave-panel--balances">
+        <div class="leave-panel__header leave-panel__header--compact">
+          <div>
+            <p class="leave-panel__eyebrow">Balances</p>
+            <h2>Leave Balance</h2>
+          </div>
+        </div>
+
+        <div class="leave-balance-list">
+          <mat-card class="leave-balance-card" *ngFor="let balance of leaveBalances" [class]="'leave-balance-card leave-balance-card--' + balance.tone">
+            <div class="leave-balance-card__top">
+              <div>
+                <p>{{ balance.code }}</p>
+                <h3>{{ balance.label }}</h3>
+              </div>
+              <strong>{{ getBalanceAvailable(balance) }} left</strong>
+            </div>
+
+            <div class="leave-balance-card__meter">
+              <span [style.width.%]="getBalanceUsagePercent(balance)"></span>
+            </div>
+
+            <div class="leave-balance-card__meta">
+              <span>Used {{ balance.used }} / {{ balance.total }}</span>
+              <span>{{ balance.carry }}</span>
+            </div>
+
+            <p>{{ balance.note }}</p>
+          </mat-card>
+        </div>
+      </mat-card>
+
+      <!-- <mat-card class="leave-panel leave-panel--actions">
+        <div class="leave-panel__header leave-panel__header--compact">
+          <div>
+            <p class="leave-panel__eyebrow">Actions</p>
+            <h2>Manager Shortcuts</h2>
+          </div>
+        </div>
+
+        <div class="leave-quick-action-list">
+          <a class="leave-quick-action-card" *ngFor="let action of quickActions" [routerLink]="action.route"
+            [state]="buildRouteState(action.route)">
+            <span class="leave-quick-action-card__icon">
+              <mat-icon>{{ action.icon }}</mat-icon>
+            </span>
+            <div>
+              <h3>{{ action.title }}</h3>
+              <p>{{ action.subtitle }}</p>
+            </div>
+          </a>
+        </div>
+      </mat-card> -->
+    </div>
+  </section>
+
+  <ng-template #emptyRequestsState>
+    <div class="leave-empty-state">
+      <mat-icon>inbox</mat-icon>
+      <h3>No requests match this status</h3>
+      <p>Switch the status filter or create a new request from this dashboard.</p>
+      <button mat-flat-button class="leave-request-card__cta" routerLink="/app/attendance/apply-leave"
+        [state]="buildRouteState('/app/attendance/apply-leave')" *ngIf="canManageLeaveDesk">
+        Create Request
+      </button>
+    </div>
+  </ng-template>
+</section>

@@ -1,89 +1,600 @@
-<section class="documents-page">
-  <div class="documents-hero">
-    <div>
-      <p class="documents-eyebrow">Documents</p>
-      <h2>Pay Slip</h2>
-      <p>Review the latest salary breakup, deductions, and recent payroll documents from one place.</p>
-    </div>
-
-    <div class="documents-hero__actions">
-      <button mat-stroked-button type="button" (click)="printPage()">Print</button>
-      <button mat-flat-button color="primary" type="button" (click)="downloadPaySlip()">Download</button>
+<section class="pay-slip-page">
+  <div class="pay-slip-loading" *ngIf="loading">
+    <div class="pay-slip-loading__card">
+      <span class="pay-slip-loading__spinner"></span>
+      <strong>Preparing payslip data...</strong>
+      <small>Fetching payroll structure and attendance details.</small>
     </div>
   </div>
 
-  <div class="summary-grid">
-    <article class="summary-card" *ngFor="let card of summaryCards" [class]="'summary-card summary-card--' + card.tone">
-      <span>{{ card.label }}</span>
-      <strong>{{ card.value }}</strong>
-      <small>{{ card.caption }}</small>
-    </article>
+  <div class="pay-slip-hero">
+    <div class="pay-slip-hero__copy">
+      <p class="pay-slip-eyebrow">Payroll Documents</p>
+      <h2>{{ isRestrictedPayrollView ? 'Download Payslip' : 'Monthly Pay Slip' }}</h2>
+      <!-- <p>
+        {{ isRestrictedPayrollView
+        ? 'Choose a month from your API payroll records and download the payslip.'
+        : 'Fixed salary, earned salary, deductions, and company contribution are calculated from your selected month.' }}
+      </p> -->
+    </div>
+
+    <div class="pay-slip-hero__controls" *ngIf="canManagePayroll">
+      <div class="pay-slip-filter-bar">
+        <article class="pay-slip-filter-card pay-slip-filter-card--group">
+          <section class="pay-slip-filter-segment pay-slip-filter-segment--employee">
+            <div class="pay-slip-filter-card__head">
+              <span>Employee</span>
+              <!-- <small>{{ employeeCode }}</small> -->
+            </div>
+
+            <ng-container *ngIf="canManagePayroll; else paySlipReadonlyEmployee">
+              <mat-form-field appearance="outline" class="pay-slip-filter-field pay-slip-filter-field--employee">
+                <mat-icon matPrefix>badge</mat-icon>
+                <mat-label>Employee Name</mat-label>
+                <mat-select [(ngModel)]="selectedEmployeeId" (ngModelChange)="onEmployeeSelectionChange($event)"
+                  (openedChange)="onEmployeeSelectOpened($event)">
+                  <div class="pay-slip-select-search" (click)="$event.stopPropagation()">
+                    <input type="search" [(ngModel)]="employeeSearchTerm" placeholder="Search by name or code"
+                      (keydown)="$event.stopPropagation()">
+                  </div>
+                  <mat-option *ngFor="let employee of filteredEmployeeOptions; trackBy: trackByEmployeeId"
+                    [value]="employee.id">
+                    {{ getEmployeeOptionLabel(employee) }}
+                  </mat-option>
+                  <mat-option *ngIf="!filteredEmployeeOptions.length" [value]="null" disabled>No employees
+                    found</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ng-container>
+
+            <ng-template #paySlipReadonlyEmployee>
+              <mat-form-field appearance="outline" class="pay-slip-filter-field pay-slip-filter-field--employee">
+                <mat-icon matPrefix>badge</mat-icon>
+                <mat-label>Employee Name</mat-label>
+                <input matInput [value]="employeeName" readonly>
+              </mat-form-field>
+            </ng-template>
+          </section>
+
+          <section class="pay-slip-filter-segment">
+            <div class="pay-slip-filter-card__head">
+              <span>Month</span>
+              <small>{{ selectedMonthName }}</small>
+            </div>
+
+            <mat-form-field appearance="outline" class="pay-slip-filter-field">
+              <mat-icon matPrefix>calendar_month</mat-icon>
+              <mat-label>Payroll Month</mat-label>
+              <mat-select [(ngModel)]="selectedMonthIndex" (ngModelChange)="loadPayrollData()">
+                <mat-option *ngFor="let month of monthNames; index as index" [value]="index">{{ month }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </section>
+
+          <section class="pay-slip-filter-segment">
+            <div class="pay-slip-filter-card__head">
+              <span>Year</span>
+              <small>{{ selectedYear }}</small>
+            </div>
+
+            <mat-form-field appearance="outline" class="pay-slip-filter-field">
+              <mat-icon matPrefix>event_repeat</mat-icon>
+              <mat-label>Payroll Year</mat-label>
+              <mat-select [(ngModel)]="selectedYear" (ngModelChange)="onYearChange()">
+                <mat-option *ngFor="let year of years" [value]="year">{{ year }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </section>
+        </article>
+      </div>
+
+      <div class="pay-slip-hero__actions">
+        <button *ngIf="isAdminPayrollView" mat-flat-button class="pay-slip-action-btn pay-slip-action-btn--primary"
+          type="button" (click)="getcalculatepayroll()" [disabled]="generatingPayroll || loading">
+          <span class="pay-slip-button-spinner" *ngIf="generatingPayroll"></span>
+          <span>{{ generatingPayroll ? 'Generating...' : 'Generate Payroll' }}</span>
+        </button>
+        <button mat-stroked-button class="pay-slip-action-btn pay-slip-action-btn--secondary" type="button"
+          (click)="printPage()">Print</button>
+        <button mat-stroked-button class="pay-slip-action-btn pay-slip-action-btn--secondary" type="button"
+          (click)="downloadPaySlip()" [disabled]="downloadingPdf">
+          {{ activeDownloadKey === 'current-payslip' ? 'Preparing PDF...' : 'Download' }}
+        </button>
+        <button *ngIf="canManagePayroll" mat-flat-button class="pay-slip-action-btn pay-slip-action-btn--primary"
+          color="primary" type="button" (click)="savePayroll()" [disabled]="saving || loading">
+          <span class="pay-slip-button-spinner" *ngIf="saving"></span>
+          <span>{{ saving ? 'Saving...' : 'Save Payroll' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- <ng-template #paySlipRestrictedHero>
+      <div class="pay-slip-hero__controls">
+        <div class="pay-slip-filter-bar">
+          <article class="pay-slip-filter-card pay-slip-filter-card--group">
+            <section class="pay-slip-filter-segment pay-slip-filter-segment--employee">
+              <div class="pay-slip-filter-card__head">
+                <span>Employee</span>
+                <small>{{ employeeCode }}</small>
+              </div>
+
+              <mat-form-field appearance="outline" class="pay-slip-filter-field pay-slip-filter-field--employee">
+                <mat-icon matPrefix>badge</mat-icon>
+                <mat-label>Employee Name</mat-label>
+                <input matInput [value]="employeeName" readonly>
+              </mat-form-field>
+            </section>
+          </article>
+        </div>
+      </div>
+    </ng-template> -->
   </div>
 
-  <div class="documents-layout">
-    <mat-card class="panel">
-      <div class="panel__head">
+  <ng-container *ngIf="!isRestrictedPayrollView; else restrictedPaySlipList">
+    <div class="pay-slip-summary">
+      <article class="summary-card" *ngFor="let card of summaryCards"
+        [class]="'summary-card summary-card--' + card.tone">
+        <span>{{ card.label }}</span>
+        <strong>{{ card.value }}</strong>
+        <small>{{ card.caption }}</small>
+      </article>
+    </div>
+
+    <mat-card class="admin-payroll-card" *ngIf="isAdminPayrollView">
+      <div class="admin-payroll-card__head">
         <div>
-          <h3>March 2026 Pay Slip</h3>
-          <p>Employee Id: EMP-1024 • Payroll period: 01 Mar 2026 to 31 Mar 2026</p>
+          <h3>{{ adminPayrollListTitle }}</h3>
+          <p>Month and year based payslip list from <code>getallsalarydetails(month, year, companyid)</code>.</p>
         </div>
-        <span class="status-chip">Paid</span>
+        <span class="admin-payroll-card__count">{{ adminSalaryList.length }} records</span>
       </div>
 
-      <div class="slip-grid">
-        <section class="slip-section">
-          <h4>Earnings</h4>
-          <div class="value-list">
-            <div class="value-row" *ngFor="let item of earnings">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
+      <div class="admin-payroll-card__message" *ngIf="adminPayrollMessage">
+        <mat-icon>info</mat-icon>
+        <span>{{ adminPayrollMessage }}</span>
+      </div>
+
+      <div class="admin-payroll-card__loading" *ngIf="adminSalaryListLoading">
+        <span class="pay-slip-button-spinner"></span>
+        <span>Loading admin payslip list...</span>
+      </div>
+
+      <div class="admin-payroll-table-wrap"
+        *ngIf="!adminSalaryListLoading && adminSalaryList.length; else adminPayrollEmpty">
+        <table class="admin-payroll-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Code</th>
+              <th>Working Days</th>
+              <th>Gross</th>
+              <th>Net Pay</th>
+              <th>CTC</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of adminSalaryList; trackBy: trackByAdminSalaryRecord">
+              <td>
+                <div class="admin-payroll-table__employee">
+                  <strong>{{ item.employeeName }}</strong>
+                  <small>{{ item.month }} {{ item.year }}</small>
+                </div>
+              </td>
+              <td>{{ item.employeeCode }}</td>
+              <td>{{ item.workingDays }} / {{ item.totalDays }}</td>
+              <td>Rs {{ formatCurrency(item.gross) }}</td>
+              <td>Rs {{ formatCurrency(item.netPay) }}</td>
+              <td>Rs {{ formatCurrency(item.ctc) }}</td>
+              <td class="admin-payroll-table__actions">
+                <!-- <button mat-stroked-button type="button" class="pay-slip-action-btn pay-slip-action-btn--secondary"
+                  (click)="openAdminPayrollRecord(item)">
+                  Open Payslip
+                </button> -->
+                <button mat-stroked-button type="button" class="pay-slip-action-btn pay-slip-action-btn--secondary"
+                  (click)="downloadAdminPayrollRecord(item)" [disabled]="downloadingPdf">
+                  {{ isDownloadInProgressForAdminRecord(item) ? 'Preparing PDF...' : 'Download' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-payroll-mobile-list" *ngIf="!adminSalaryListLoading && adminSalaryList.length">
+        <article class="admin-payroll-mobile-card"
+          *ngFor="let item of adminSalaryList; trackBy: trackByAdminSalaryRecord">
+          <div class="admin-payroll-mobile-card__head">
+            <div>
+              <strong>{{ item.employeeName }}</strong>
+              <small>{{ item.employeeCode }} • {{ item.month }} {{ item.year }}</small>
+            </div>
+            <div class="admin-payroll-mobile-card__actions">
+              <button mat-stroked-button type="button" class="pay-slip-action-btn pay-slip-action-btn--secondary"
+                (click)="openAdminPayrollRecord(item)">
+                Open
+              </button>
+              <button mat-stroked-button type="button" class="pay-slip-action-btn pay-slip-action-btn--secondary"
+                (click)="downloadAdminPayrollRecord(item)" [disabled]="downloadingPdf">
+                {{ isDownloadInProgressForAdminRecord(item) ? 'Preparing PDF...' : 'Download' }}
+              </button>
             </div>
           </div>
-        </section>
-
-        <section class="slip-section">
-          <h4>Deductions</h4>
-          <div class="value-list">
-            <div class="value-row" *ngFor="let item of deductions">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
+          <div class="admin-payroll-mobile-card__grid">
+            <div>
+              <span>Working Days</span>
+              <strong>{{ item.workingDays }} / {{ item.totalDays }}</strong>
             </div>
-          </div>
-        </section>
-      </div>
-
-      <div class="pay-slip-total">
-        <div>
-          <span>Net Pay</span>
-          <strong>Rs 43,860</strong>
-        </div>
-        <div>
-          <span>Payment Mode</span>
-          <strong>Bank Transfer</strong>
-        </div>
-      </div>
-    </mat-card>
-
-    <mat-card class="panel panel--side">
-      <div class="panel__head">
-        <div>
-          <h3>Recent Pay Slips</h3>
-          <p>Latest generated payroll documents</p>
-        </div>
-      </div>
-
-      <div class="month-list">
-        <article class="month-card" *ngFor="let item of paySlipMonths">
-          <div>
-            <strong>{{ item.month }}</strong>
-            <span>{{ item.status }}</span>
-          </div>
-          <div class="month-card__meta">
-            <strong>{{ item.net }}</strong>
-            <button mat-button type="button" (click)="printPage()">Print</button>
+            <div>
+              <span>Gross</span>
+              <strong>Rs {{ formatCurrency(item.gross) }}</strong>
+            </div>
+            <div>
+              <span>Net Pay</span>
+              <strong>Rs {{ formatCurrency(item.netPay) }}</strong>
+            </div>
+            <div>
+              <span>CTC</span>
+              <strong>Rs {{ formatCurrency(item.ctc) }}</strong>
+            </div>
           </div>
         </article>
       </div>
     </mat-card>
-  </div>
+
+    <div class="pay-slip-layout" *ngIf="!loading">
+      <mat-card class="pay-slip-sheet">
+        <div class="pay-slip-sheet__head">
+          <div>
+            <span class="pay-slip-badge">{{ selectedPeriodLabel }}</span>
+            <h3>{{ employeeName }}</h3>
+            <!-- <p>{{ employeeCode }} • {{ designation }} • {{ department }}</p> -->
+            <small>Payroll period: {{ payrollPeriodLabel }}</small>
+          </div>
+
+          <div class="pay-slip-sheet__status">
+            <strong>Ready</strong>
+            <span>Computer generated payroll slip</span>
+          </div>
+        </div>
+
+        <div class="pay-slip-sheet__body">
+          <div class="pay-slip-sheet__meta">
+            <article>
+              <span>Working Days</span>
+              <strong>{{ workingDayDetails?.working_days || 0 }}</strong>
+            </article>
+            <article>
+              <span>Total Days</span>
+              <strong>{{ workingDayDetails?.total_days || 0 }}</strong>
+            </article>
+            <article>
+              <span>CL / SL</span>
+              <strong>{{ workingDayDetails?.cl_count || 0 }} / {{ workingDayDetails?.sl_count || 0 }}</strong>
+            </article>
+            <article>
+              <span>Weekends</span>
+              <strong>{{ workingDayDetails?.weekend || 0 }}</strong>
+            </article>
+          </div>
+
+          <div class="pay-slip-block">
+            <div class="pay-slip-block__head">
+              <h4>Earnings</h4>
+              <!-- <p>Fixed salary structure versus earned salary for the selected month.</p> -->
+            </div>
+
+            <div class="pay-table pay-table--stacked">
+              <div class="pay-table__head">
+                <span>Pay Head</span>
+                <span>Fixed Gross</span>
+                <span>Earnings</span>
+              </div>
+
+              <div class="pay-table__row" *ngFor="let row of earningsRows"
+                [class.pay-table__row--total]="row.label === 'Gross Salary'">
+                <span>{{ row.label }}</span>
+                <strong class="pay-table__metric" data-label="Fixed Gross">{{ formatCurrency(row.fixed) }}</strong>
+                <strong class="pay-table__metric" data-label="Earnings">{{ formatCurrency(row.earned) }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="pay-slip-columns">
+            <section class="pay-slip-block">
+              <div class="pay-slip-block__head">
+                <h4>Deductions</h4>
+                <!-- <p>Employee-side statutory deductions for fixed and earned payroll.</p> -->
+              </div>
+
+              <div class="pay-table pay-table--compact pay-table--stacked">
+                <div class="pay-table__head">
+                  <span>Deduction</span>
+                  <span>Fixed</span>
+                  <span>Earned</span>
+                </div>
+
+                <div class="pay-table__row" *ngFor="let row of deductionRows"
+                  [class.pay-table__row--total]="row.label === 'Net Pay' || row.label === 'Total Deductions'">
+                  <span>{{ row.label }}</span>
+                  <strong class="pay-table__metric" data-label="Fixed">{{ formatCurrency(row.fixed) }}</strong>
+                  <strong class="pay-table__metric" data-label="Earned">{{ formatCurrency(row.earned) }}</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="pay-slip-block">
+              <div class="pay-slip-block__head">
+                <h4>Company Contribution</h4>
+                <!-- <p>Employer-side cost components for fixed and attendance-adjusted payroll.</p> -->
+              </div>
+
+              <div class="pay-table pay-table--compact pay-table--stacked pay-table--contribution">
+                <div class="pay-table__head">
+                  <span>Pay Head</span>
+                  <span>Fixed CTC</span>
+                  <span>Earned CTC</span>
+                </div>
+
+                <div class="pay-table__row" *ngFor="let row of contributionRows"
+                  [class.pay-table__row--total]="row.label === 'CTC'">
+                  <span>{{ row.label }}</span>
+                  <strong class="pay-table__metric" data-label="Fixed CTC">{{ formatCurrency(row.fixed) }}</strong>
+                  <strong class="pay-table__metric" data-label="Earned CTC">{{ formatCurrency(row.earned) }}</strong>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="pay-slip-footer">
+            <div>
+              <span>Earned Net Pay</span>
+              <strong>Rs {{ formatCurrency(payroll.earnedNetPay) }}</strong>
+            </div>
+            <div>
+              <span>Fixed Net Pay</span>
+              <strong>Rs {{ formatCurrency(payroll.fixedNetPay) }}</strong>
+            </div>
+            <div>
+              <span>LOP Deduction</span>
+              <strong>Rs {{ formatCurrency(payroll.lopDeduction) }}</strong>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+
+      <div class="pay-slip-side">
+        <mat-card class="pay-slip-panel">
+          <div class="pay-slip-panel__head">
+            <h4>Attendance Snapshot</h4>
+            <p>Day-wise counts from `getworkingdaydetailsforpayslip()`.</p>
+          </div>
+
+          <div class="pay-slip-panel__body">
+            <div class="attendance-grid">
+              <article class="attendance-item" *ngFor="let row of attendanceRows">
+                <span>{{ row.label }}</span>
+                <strong>{{ row.value }}</strong>
+              </article>
+            </div>
+          </div>
+        </mat-card>
+
+        <mat-card class="pay-slip-panel">
+          <div class="pay-slip-panel__head">
+            <h4>Payroll Periods</h4>
+            <p>Jump between months and refresh the salary slip instantly.</p>
+          </div>
+
+          <div class="pay-slip-panel__body">
+            <div class="month-list">
+              <button type="button" class="month-chip pay-slip-action-btn" *ngFor="let item of monthCards"
+                [class.month-chip--active]="item.active" (click)="selectMonth(item.index)">
+                {{ item.label }}
+              </button>
+            </div>
+          </div>
+        </mat-card>
+
+        <mat-card class="pay-slip-panel pay-slip-panel--note">
+          <div class="pay-slip-panel__head">
+            <h4>Calculation Logic</h4>
+            <p>The earned slip is prorated using actual working days for the selected month.</p>
+          </div>
+
+          <div class="pay-slip-panel__body">
+            <div class="logic-list">
+              <div class="logic-list__item">
+                <span>Attendance Ratio</span>
+                <strong>{{ roundPercentage(payroll.attendanceRatio * 100) }}%</strong>
+              </div>
+              <div class="logic-list__item">
+                <span>Employer PF Rate</span>
+                <strong>{{ roundPercentage(payroll.employerPfRate) }}%</strong>
+              </div>
+              <div class="logic-list__item">
+                <span>Employer ESI Rate</span>
+                <strong>{{ roundPercentage(payroll.employerEsiRate) }}%</strong>
+              </div>
+              <div class="logic-list__item">
+                <span>Gratuity Rate</span>
+                <strong>{{ roundPercentage(payroll.gratuityRate) }}%</strong>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #adminPayrollEmpty>
+    <div class="pay-slip-history-empty">
+      <mat-icon>receipt_long</mat-icon>
+      <strong>No admin payslip records found</strong>
+      <small>The selected month and year did not return any salary rows for this company.</small>
+    </div>
+  </ng-template>
+
+  <ng-template #restrictedPaySlipList>
+    <mat-card class="pay-slip-history-card" *ngIf="!loading">
+      <div class="pay-slip-history-card__head">
+        <h3>Download for the Month</h3>
+      </div>
+
+      <div class="pay-slip-history-table" *ngIf="salaryHistoryRows.length; else noPaySlipHistory">
+        <div class="pay-slip-history-row" *ngFor="let item of salaryHistoryRows; trackBy: trackBySalaryHistoryId"
+          [class.pay-slip-history-row--active]="isActiveSalaryHistoryRecord(item)"
+          (click)="viewSalaryHistoryRecord(item)">
+          <span class="pay-slip-history-row__icon">
+            <mat-icon>picture_as_pdf</mat-icon>
+          </span>
+          <span class="pay-slip-history-row__copy">
+            <strong>{{ getSalaryHistoryLabel(item) }}</strong>
+            <small>Net Pay: Rs {{ formatCurrency(item.netpay) }} | CTC: Rs {{ formatCurrency(item.ctc) }}</small>
+          </span>
+          <span class="pay-slip-history-row__action">
+            <button mat-stroked-button type="button" class="pay-slip-action-btn pay-slip-action-btn--secondary"
+              (click)="$event.stopPropagation(); downloadSalaryHistoryRecord(item)" [disabled]="downloadingPdf">
+              {{ isDownloadInProgressForSalaryRecord(item) ? 'Preparing PDF...' : 'Download' }}
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <ng-template #noPaySlipHistory>
+        <div class="pay-slip-history-empty">
+          <mat-icon>receipt_long</mat-icon>
+          <strong>No payslip records found</strong>
+          <small>The payroll API did not return any saved salary details for this employee.</small>
+        </div>
+      </ng-template>
+    </mat-card>
+  </ng-template>
 </section>
+
+<div class="pay-slip-pdf-host" *ngIf="paySlipPdfData" #paySlipPdfHost>
+  <section class="pay-slip-pdf-sheet">
+    <div class="pay-slip-pdf-sheet__hero">
+      <span class="pay-slip-pdf-sheet__eyebrow">Monthly Salary Slip</span>
+      <span class="pay-slip-pdf-sheet__period">{{ paySlipPdfData.periodLabel }}</span>
+    </div>
+
+    <div class="pay-slip-pdf-sheet__header">
+      <img [src]="paySlipPdfData.logoSrc" alt="Company Logo">
+      <div class="pay-slip-pdf-sheet__company">
+        <h2>{{ paySlipPdfData.companyName }}</h2>
+        <p>Payslip For The Month: {{ paySlipPdfData.periodLabel }}</p>
+      </div>
+    </div>
+
+    <div class="pay-slip-pdf-meta-card">
+      <table class="pay-slip-pdf-meta">
+        <tr>
+          <th>Employee Name:</th>
+          <td>{{ paySlipPdfData.employeeName }}</td>
+          <th>Join Date:</th>
+          <td>{{ paySlipPdfData.joinDate }}</td>
+        </tr>
+        <tr>
+          <th>Emp Code:</th>
+          <td>{{ paySlipPdfData.employeeCode }}</td>
+          <th>UAN:</th>
+          <td>{{ paySlipPdfData.uan }}</td>
+        </tr>
+        <tr>
+          <th>Designation:</th>
+          <td>{{ paySlipPdfData.designation }}</td>
+          <th>ESIC Number:</th>
+          <td>{{ paySlipPdfData.esicNumber }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="pay-slip-pdf-panel">
+      <div class="pay-slip-pdf-panel__title">Earnings & Deductions</div>
+
+      <div class="pay-slip-pdf-grid">
+        <table class="pay-slip-pdf-table pay-slip-pdf-table--earnings">
+          <thead>
+            <tr>
+              <th>Pay Head</th>
+              <th>Fixed Gross</th>
+              <th>Earnings</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of paySlipPdfData.earningsRows"
+              [class.pay-slip-pdf-table__total]="row.label === 'Gross Salary'">
+              <td>{{ row.label }}</td>
+              <td>{{ row.fixed }}</td>
+              <td>{{ row.earned }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="pay-slip-pdf-table pay-slip-pdf-table--deduction">
+          <thead>
+            <tr>
+              <th>Deduction</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of paySlipPdfData.deductionRows">
+              <td>{{ row.label }}</td>
+              <td>{{ row.amount }}</td>
+            </tr>
+            <tr class="pay-slip-pdf-table__total">
+              <td>Total Deductions:</td>
+              <td>{{ paySlipPdfData.totalDeductions }}</td>
+            </tr>
+            <tr class="pay-slip-pdf-table__total pay-slip-pdf-table__total--net">
+              <td>Net Pay:</td>
+              <td>{{ paySlipPdfData.netPay }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pay-slip-pdf-sheet__networds">
+      <span>Net Pay In Words</span>
+      <strong>{{ paySlipPdfData.netPayWords }}</strong>
+    </div>
+
+    <div class="pay-slip-pdf-panel">
+      <div class="pay-slip-pdf-panel__title">Company Contribution & Attendance</div>
+
+      <div class="pay-slip-pdf-grid pay-slip-pdf-grid--bottom">
+        <table class="pay-slip-pdf-table pay-slip-pdf-table--contribution">
+          <thead>
+            <tr>
+              <th>Company Contribution</th>
+              <th>Fixed CTC</th>
+              <th>Earned CTC</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of paySlipPdfData.contributionRows">
+              <td>{{ row.label }}</td>
+              <td>{{ row.fixed }}</td>
+              <td>{{ row.earned }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="pay-slip-pdf-table pay-slip-pdf-table--attendance">
+          <tbody>
+            <tr *ngFor="let row of paySlipPdfData.attendanceRows">
+              <td>{{ row.label }}</td>
+              <td>{{ row.value }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="pay-slip-pdf-sheet__footer">This is a Computer Generated Pay Slip.</div>
+  </section>
+</div>

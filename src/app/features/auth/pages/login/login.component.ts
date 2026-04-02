@@ -196,10 +196,12 @@ export class LoginComponent implements OnInit {
       });
   }
   private buildWelcomeMessage(response: LoginResponse): string {
-    const rawName = `${response.employee_name || response.username || 'Employee'}`.trim();
-    const displayName = rawName.includes('@') ? rawName.split('@')[0] : rawName;
+    console.log("1111111------------->", response);
+
+    const displayName = this.authService.resolveDisplayName(response.employee_name, response.username);
     const roleName = this.formatRoleLabel(response.roles?.[0] || '');
     const roleMessage = roleName ? `Your ${roleName} workspace is ready.` : 'Your workspace is ready.';
+    console.log("22222222222222222222------------->", displayName);
 
     return `Welcome ${displayName}. Have a nice day. ${roleMessage}`;
   }
@@ -237,7 +239,7 @@ export class LoginComponent implements OnInit {
     console.log(payload);
     this.authService.createCompany(payload).pipe(
       finalize(() => {
-        
+
         this.loading = false;
       })
     ).subscribe({

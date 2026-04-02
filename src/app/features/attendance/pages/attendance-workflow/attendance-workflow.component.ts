@@ -383,6 +383,7 @@ export class AttendanceWorkflowComponent implements OnInit {
 
   config: WorkflowConfig = this.workflowConfigs['apply-leave'];
   empid: any;
+  userid: any;
   currentRole: AppRole | null = null;
   currentEmployeeId = 0;
   username: any;
@@ -399,6 +400,9 @@ export class AttendanceWorkflowComponent implements OnInit {
     private dialog: MatDialog
   ) {
     this.username = tokenService.getUsername();
+    this.userid = tokenService.getID();
+    console.log(this.userid);
+    
   }
 
   ngOnInit(): void {
@@ -1253,7 +1257,7 @@ export class AttendanceWorkflowComponent implements OnInit {
   }
 
   private loadEmployeeDirectory(): void {
-    this.apiService.getEmployeeList().subscribe({
+    this.apiService.getEmployeeList(this.userid).subscribe({
       next: (data: any) => {
         const employees = this.extractRequestList<Employee>(data)
           .map((item: any) => item as Employee)

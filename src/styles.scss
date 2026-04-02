@@ -898,11 +898,15 @@ h6 {
 }
 
 .mat-mdc-snack-bar-container.app-feedback-snackbar--welcome {
+  width: fit-content;
+  max-width: calc(100vw - 40px);
   margin-top: clamp(140px, 34vh, 320px);
+  margin-inline: auto;
 }
 
 .mat-mdc-snack-bar-container.app-feedback-snackbar--welcome .mdc-snackbar__surface {
   min-width: min(560px, calc(100vw - 40px));
+  margin-inline: auto;
 }
 
 .mat-mdc-snack-bar-container.app-feedback-snackbar--welcome .mdc-snackbar__label {

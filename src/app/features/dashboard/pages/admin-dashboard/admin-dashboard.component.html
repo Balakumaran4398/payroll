@@ -1,140 +1,289 @@
-<section class="dashboard">
-  <h2>Admin Dashboard</h2>
-  <p class="sub">System-wide overview and administrative controls</p>
+<section class="admin-dashboard">
+  <header class="hero-banner">
+    <div class="hero-banner__copy">
+      <p class="hero-banner__eyebrow">Admin Workspace</p>
+      <h1>HR Dashboard</h1>
+      <!-- <p class="hero-banner__subtitle">
+        Employee management, attendance tracking, and leave operations in one responsive admin view.
+      </p> -->
 
-  <div class="stats-grid">
-    <mat-card class="stat-card" *ngFor="let card of statCards">
-      <div>
-        <p class="stat-card__label">{{ card.title }}</p>
-        <h3>{{ card.value }}</h3>
-        <small>{{ card.trend }}</small>
+      <div class="hero-banner__chips">
+        <span class="hero-chip">
+          <mat-icon>shield</mat-icon>
+          {{ adminName }}
+        </span>
+        <!-- <span class="hero-chip hero-chip--light">
+          <mat-icon>calendar_month</mat-icon>
+          {{ todayLabel }}
+        </span> -->
       </div>
-      <mat-icon>{{ card.icon }}</mat-icon>
-    </mat-card>
+    </div>
+
+    <div class="hero-banner__summary">
+       <span class="hero-chip hero-chip--light">
+          <mat-icon>calendar_month</mat-icon>
+          {{ todayLabel }}
+        </span>
+      <!-- <strong>{{ directoryEmployees.length }}</strong>
+      <span>employees in directory</span>
+      <small>{{ pendingLeaveRequests.length }} pending leave request{{ pendingLeaveRequests.length === 1 ? '' : 's' }}</small> -->
+    </div>
+  </header>
+
+  <section class="metrics-grid">
+    <article
+      class="metric-card"
+      *ngFor="let card of statCards; trackBy: trackByMetricLabel"
+      [class]="'metric-card metric-card--' + card.tone"
+    >
+      <div class="metric-card__copy">
+        <span>{{ card.label }}</span>
+        <strong>{{ card.value }}</strong>
+        <small>{{ card.helper }}</small>
+      </div>
+      <span class="metric-card__icon">
+        <mat-icon>{{ card.icon }}</mat-icon>
+      </span>
+    </article>
+  </section>
+
+  <div class="state-card" *ngIf="loadError">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ loadError }}</p>
   </div>
 
-  <div class="chart-grid">
-    <mat-card class="chart-card chart-card--activity">
-      <div class="chart-card__header">
+  <div class="state-card" *ngIf="isLoading && !loadError">
+    <mat-progress-spinner diameter="42" mode="indeterminate"></mat-progress-spinner>
+    <p>Loading employee directory, leave requests, and today&apos;s attendance...</p>
+  </div>
+
+  <section class="content-grid" *ngIf="!isLoading && !loadError">
+    <article class="panel-card">
+      <div class="panel-card__header">
         <div>
-          <p class="chart-card__eyebrow">Analytics</p>
-          <h3>Weekly Activity</h3>
-          <p class="chart-card__copy">Smooth animated trend lines styled from the active theme palette.</p>
+          <p class="panel-card__eyebrow">Today</p>
+          <h2>Today&apos;s Attendance</h2>
+          <!-- <span>Latest biometric check-in records for active employees</span> -->
         </div>
-        <span class="chart-card__badge">Live Trend</span>
+
+        <button type="button" class="panel-link" (click)="openAttendanceDesk()">
+          View All
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
       </div>
 
-      <div class="chart-wrap chart-wrap--line">
-        <canvas
-          baseChart
-          [data]="lineChartData"
-          [options]="lineChartOptions"
-          [type]="lineChartType"
-        ></canvas>
-      </div>
-
-      <div class="chart-insights">
-        <article class="chart-insight chart-insight--primary">
-          <span>Peak Day</span>
-          <strong>{{ weeklyPeakDay }}</strong>
-          <small>{{ weeklyPeakTotal }} total actions</small>
-        </article>
-        <article class="chart-insight chart-insight--secondary">
-          <span>Daily Average</span>
-          <strong>{{ weeklyAverageTotal }}</strong>
-          <small>actions per day</small>
-        </article>
-        <article class="chart-insight chart-insight--neutral">
-          <span>Momentum</span>
-          <strong>{{ weeklyMomentum }}</strong>
-          <small>first day vs last day</small>
-        </article>
-      </div>
-    </mat-card>
-
-    <mat-card class="chart-card chart-card--distribution">
-      <div class="chart-card__header">
-        <div>
-          <p class="chart-card__eyebrow">Access Mix</p>
-          <h3>Role Distribution</h3>
-          <p class="chart-card__copy">A cleaner role split with animated segments and theme-aware accents.</p>
-        </div>
-        <span class="chart-card__badge">{{ totalRoleCount }} Users</span>
-      </div>
-
-      <div class="chart-wrap chart-wrap--doughnut">
-        <canvas
-          baseChart
-          [data]="doughnutChartData"
-          [options]="doughnutChartOptions"
-          [type]="doughnutChartType"
-        ></canvas>
-
-        <div class="chart-center">
-          <span>Total Roles</span>
-          <strong>{{ totalRoleCount }}</strong>
-          <small>{{ leadingRoleLabel }} · {{ leadingRoleShare }}</small>
-        </div>
-      </div>
-
-      <div class="distribution-list">
-        <article class="distribution-item" *ngFor="let item of roleBreakdown">
-          <span class="distribution-item__swatch" [style.background]="item.color"></span>
-          <div class="distribution-item__copy">
-            <strong>{{ item.label }}</strong>
-            <small>{{ item.value }} users</small>
+      <div class="panel-card__body panel-card__body--spaced" *ngIf="attendancePreview.length; else noAttendanceState">
+        <button
+          type="button"
+          class="attendance-item"
+          *ngFor="let item of attendancePreview; trackBy: trackByAttendanceEmployee"
+          (click)="openEmployeeAttendance(item.employeeId)"
+        >
+          <div class="attendance-item__identity">
+            <span class="person-avatar">{{ item.initials }}</span>
+            <div>
+              <strong>{{ item.employeeName }}</strong>
+              <small>{{ item.employeeCode }} • {{ item.department }}</small>
+            </div>
           </div>
-          <span class="distribution-item__value">{{ item.share }}</span>
+
+          <div class="attendance-item__meta">
+            <div>
+              <span>Check In / Out</span>
+              <strong>{{ item.checkIn }} / {{ item.checkOut }}</strong>
+            </div>
+            <div>
+              <span>Hours</span>
+              <strong>{{ item.workingHours }}</strong>
+            </div>
+            <span class="status-pill" [class]="'status-pill status-pill--' + item.tone">
+              {{ item.statusLabel }}
+            </span>
+          </div>
+        </button>
+      </div>
+    </article>
+
+    <article class="panel-card">
+      <div class="panel-card__header">
+        <div>
+          <p class="panel-card__eyebrow">Approvals</p>
+          <h2>Pending Leave Requests</h2>
+          <!-- <span>Awaiting admin approval and leave queue review</span> -->
+        </div>
+
+        <button type="button" class="panel-link" (click)="openLeaveManagement()">
+          View All
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+
+      <div class="panel-card__body panel-card__body--spaced" *ngIf="leavePreview.length; else noLeaveState">
+        <article class="leave-item" *ngFor="let request of leavePreview; trackBy: trackByLeaveId">
+          <div class="leave-item__identity">
+            <span class="person-avatar person-avatar--warning">{{ request.initials }}</span>
+            <div>
+              <strong>{{ request.employeeName }}</strong>
+              <small>{{ request.employeeCode }} • {{ request.leaveType }}</small>
+            </div>
+          </div>
+
+          <div class="leave-item__details">
+            <div>
+              <span>Duration</span>
+              <strong>{{ request.duration }}</strong>
+            </div>
+            <div>
+              <span>Date Range</span>
+              <strong>{{ request.dateRange }}</strong>
+            </div>
+          </div>
+
+          <p>{{ request.reason }}</p>
         </article>
       </div>
-    </mat-card>
-  </div>
+    </article>
+  </section>
 
-  <mat-card class="activity-panel">
-    <h3>Recent System Activity</h3>
-    <div class="table-wrap">
-      <table mat-table [dataSource]="recentActivity" class="mat-elevation-z0">
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef>Action</th>
-          <td mat-cell *matCellDef="let row">{{ row.action }}</td>
-        </ng-container>
+  <section class="panel-card panel-card--directory" *ngIf="!isLoading && !loadError">
+    <div class="panel-card__header panel-card__header--directory">
+      <div>
+        <p class="panel-card__eyebrow">Directory</p>
+        <h2>Employees Directory</h2>
+        <span>Complete employee list with key profile details and direct attendance access</span>
+      </div>
 
-        <ng-container matColumnDef="user">
-          <th mat-header-cell *matHeaderCellDef>User</th>
-          <td mat-cell *matCellDef="let row">{{ row.user }}</td>
-        </ng-container>
+      <mat-form-field appearance="outline" class="directory-search">
+        <mat-label>Search employee</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="directorySearchTerm"
+          placeholder="Name, department, position, biometric ID..."
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          *ngIf="directorySearchTerm"
+          (click)="directorySearchTerm = ''"
+          aria-label="Clear employee search"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-icon matSuffix *ngIf="!directorySearchTerm">search</mat-icon>
+      </mat-form-field>
+    </div>
 
-        <ng-container matColumnDef="module">
-          <th mat-header-cell *matHeaderCellDef>Module</th>
-          <td mat-cell *matCellDef="let row">{{ row.module }}</td>
-        </ng-container>
+    <div class="directory-table-wrap" *ngIf="filteredDirectoryEmployees.length; else emptyDirectoryState">
+      <table class="directory-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th>Position</th>
+            <th>Biometric ID</th>
+            <th>Base Salary</th>
+            <th>Join Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
 
-        <ng-container matColumnDef="timestamp">
-          <th mat-header-cell *matHeaderCellDef>Timestamp</th>
-          <td mat-cell *matCellDef="let row">{{ row.timestamp }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let row">
-            <span class="status" [class]="'status--' + row.status.toLowerCase()">{{ row.status }}</span>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tbody>
+          <tr *ngFor="let employee of filteredDirectoryEmployees; trackBy: trackByEmployeeId">
+            <td>
+              <div class="employee-cell">
+                <span class="person-avatar person-avatar--primary">{{ employee.initials }}</span>
+                <div>
+                  <strong>{{ employee.name }}</strong>
+                  <small>{{ employee.email }}</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ employee.department }}</td>
+            <td>{{ employee.position }}</td>
+            <td>{{ employee.biometricId }}</td>
+            <td>{{ employee.baseSalary }}</td>
+            <td>{{ employee.joinDate }}</td>
+            <td>
+              <button
+                mat-flat-button
+                type="button"
+                class="directory-action"
+                (click)="openEmployeeAttendance(employee.id)"
+              >
+                <mat-icon>visibility</mat-icon>
+                View Details
+              </button>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
-    <div class="activity-mobile-list">
-      <article class="activity-mobile-card" *ngFor="let row of recentActivity">
-        <div class="activity-mobile-card__header">
-          <strong>{{ row.action }}</strong>
-          <span class="status" [class]="'status--' + row.status.toLowerCase()">{{ row.status }}</span>
+    <div class="directory-mobile-list" *ngIf="filteredDirectoryEmployees.length">
+      <article class="directory-mobile-card" *ngFor="let employee of filteredDirectoryEmployees; trackBy: trackByEmployeeId">
+        <div class="employee-cell">
+          <span class="person-avatar person-avatar--primary">{{ employee.initials }}</span>
+          <div>
+            <strong>{{ employee.name }}</strong>
+            <small>{{ employee.email }}</small>
+          </div>
         </div>
-        <p class="activity-mobile-card__meta">{{ row.user }} · {{ row.module }}</p>
-        <small>{{ row.timestamp }}</small>
+
+        <div class="directory-mobile-card__grid">
+          <div>
+            <span>Department</span>
+            <strong>{{ employee.department }}</strong>
+          </div>
+          <div>
+            <span>Position</span>
+            <strong>{{ employee.position }}</strong>
+          </div>
+          <div>
+            <span>Biometric ID</span>
+            <strong>{{ employee.biometricId }}</strong>
+          </div>
+          <div>
+            <span>Join Date</span>
+            <strong>{{ employee.joinDate }}</strong>
+          </div>
+        </div>
+
+        <button
+          mat-flat-button
+          type="button"
+          class="directory-action"
+          (click)="openEmployeeAttendance(employee.id)"
+        >
+          <mat-icon>visibility</mat-icon>
+          View Details
+        </button>
       </article>
     </div>
-  </mat-card>
+  </section>
 </section>
+
+<ng-template #noAttendanceState>
+  <div class="empty-state">
+    <mat-icon>event_busy</mat-icon>
+    <h3>No attendance records yet</h3>
+    <p>Today&apos;s attendance will appear here once biometric records are available.</p>
+  </div>
+</ng-template>
+
+<ng-template #noLeaveState>
+  <div class="empty-state">
+    <mat-icon>check_circle</mat-icon>
+    <h3>No pending leave requests</h3>
+    <p>The leave queue is clear for now.</p>
+  </div>
+</ng-template>
+
+<ng-template #emptyDirectoryState>
+  <div class="empty-state">
+    <mat-icon>groups</mat-icon>
+    <h3>No employees found</h3>
+    <p>Try changing the search term or refresh once employee records are available.</p>
+  </div>
+</ng-template>

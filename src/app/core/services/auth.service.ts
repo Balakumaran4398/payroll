@@ -32,7 +32,7 @@ export interface LoginResponse {
   username: string;
   roles: string[];
   employee_name: string;
-  id: number;
+  empid: number;
 }
 
 export interface SignUpResponse {
@@ -55,14 +55,14 @@ export interface CompanyDetails {
 })
 export class AuthService implements OnInit {
   static AUTH_URL(): string {
-    return 'http://192.168.1.105:8081/api/auth';
-    // return 'http://192.168.70.100:8585/dsr/api/auth';
+    // return 'http://192.168.1.105:8081/api/auth';
+    return 'http://192.168.70.100:8585/dsr/api/auth';
     // return 'https://crm.ridsys.in:8080/dsr/api/auth';
   }
 
   static BASE_URL(): string {
-    return 'http://192.168.1.105:8081/api/v1';
-    // return 'http://192.168.70.100:8585/dsr/api/v1';
+    // return 'http://192.168.1.105:8081/api/v1';
+    return 'http://192.168.70.100:8585/dsr/api/v1';
     // return 'https://crm.ridsys.in:8080/dsr/api/v1';
   }
   username: any;
@@ -84,11 +84,12 @@ export class AuthService implements OnInit {
       password: payload.password,
     }).pipe(
       tap((res) => {
+        const displayName = this.resolveDisplayName(res.employee_name, res.username);
         this.storage.saveToken(res.token);
         this.storage.saveRole(res.roles);
         this.storage.saveUsername(res.username);
-        this.storage.saveEmployee(res.employee_name);
-        this.storage.saveID(res.id);
+        this.storage.saveEmployee(displayName);
+        this.storage.saveID(res.empid);
         this.securityService.setLoginTimestamp();
       })
     );
@@ -179,17 +180,18 @@ export class AuthService implements OnInit {
     return this.storage.getToken();
   }
   getID(): any | null {
+    console.log("ID   ======>",this.storage.getID());
+    
     return this.storage.getID();
   }
 
   getUsername(): string {
-    console.log("111111111111 ===", this.storage.getUsername());
-
     return this.storage.getUsername() || '';
   }
 
   getEmpname(): string {
-    return this.storage.getEmpname() || '';
+    const storedName = `${this.storage.getEmpname() || ''}`.trim();
+    return storedName || this.resolveDisplayName('', this.getUsername());
   }
 
   getRememberedUsername(): string {
@@ -199,5 +201,39 @@ export class AuthService implements OnInit {
   hasAnyRole(roles: AppRole[]): boolean {
     const currentRole = this.getRole();
     return !!currentRole && roles.includes(currentRole);
+  }
+
+  resolveDisplayName(employeeName?: string | null, username?: string | null): string {
+    const normalizedEmployeeName = `${employeeName || ''}`.trim();
+
+    if (normalizedEmployeeName && !normalizedEmployeeName.includes('@')) {
+      return this.toDisplayCase(normalizedEmployeeName);
+    }
+
+    const normalizedUsername = `${username || ''}`.trim();
+    const source = normalizedEmployeeName || normalizedUsername;
+
+    if (!source) {
+      return 'Employee';
+    }
+
+    const localPart = source.includes('@') ? source.split('@')[0] : source;
+    const cleanedName = localPart.replace(/[._-]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+    return cleanedName ? this.toDisplayCase(cleanedName) : 'Employee';
+  }
+
+  private toDisplayCase(value: string): string {
+    return value
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => {
+        if (part.length <= 2) {
+          return part.toUpperCase();
+        }
+
+        return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+      })
+      .join(' ');
   }
 }

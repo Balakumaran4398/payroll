@@ -12,6 +12,7 @@ import { Employee, EmployeeFormDialogResult, EmployeeFormMode } from '../../empl
 import { EmployeeProfileDialogComponent } from '../../components/employee-profile-dialog/employee-profile-dialog.component';
 import { EmployeeFormDialogComponent } from '../../components/employee-form-dialog/employee-form-dialog.component';
 import { EmployeeDeleteDialogComponent } from '../../components/employee-delete-dialog/employee-delete-dialog.component';
+import { TokenStorageService } from 'src/app/core/services/token-storage.service';
 
 
 @Component({
@@ -63,15 +64,18 @@ export class EmployeeComponent implements OnInit {
   get isFilterApplied(): boolean {
     return this.statusFilter !== 'all' || !!this.searchTerm.trim();
   }
-
+  userid: any;
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private dialog: MatDialog,
+    private dialog: MatDialog, private tokenService: TokenStorageService,
     private feedback: UiFeedbackService,
     private sanitizer: DomSanitizer
-  ) { }
+  ) {
+    this.userid = tokenService.getID();
+    this.loadEmployeeList();
+  }
 
   ngOnInit(): void {
     this.currentRole = this.authService.getRole();
@@ -85,13 +89,14 @@ export class EmployeeComponent implements OnInit {
       return;
     }
 
-    this.loadEmployeeList();
- 
+
   }
 
   loadEmployeeList(): void {
     this.loading = true;
-    this.apiService.getEmployeeList().subscribe({
+    console.log("AAAAAAAAAAAAA   =>", this.userid);
+
+    this.apiService.getEmployeeList(this.userid).subscribe({
       next: (data) => {
         this.employees = data || [];
         this.applyFilters();

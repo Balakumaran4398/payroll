@@ -603,3 +603,40 @@
     right: 10px;
   }
 }
+              .auth-meta {
+  margin-top: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--theme-auth-field-border) 82%, transparent);
+}
+
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-auth-field-bg) 92%, #ffffff 8%);
+  border: 1px solid var(--theme-auth-field-border);
+  color: var(--auth-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.meta-powered {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--auth-text-muted);
+  font-size: 0.78rem;
+}
+
+.meta-powered img {
+  height: 22px;
+  width: auto;
+  object-fit: contain;
+}

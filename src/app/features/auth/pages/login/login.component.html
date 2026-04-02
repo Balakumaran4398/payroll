@@ -68,7 +68,7 @@
             <!-- <small class="error-text" *ngIf="hasControlError(signInForm, 'password', 'pattern')">Use at least 8
               characters including a letter and number.</small> -->
 
-            <div class="inline-row">
+            <!-- <div class="inline-row">
               <label class="remember">
                 <input type="checkbox" formControlName="rememberMe" />
                 <span>Remember Me</span>
@@ -76,7 +76,7 @@
               <button type="button" class="link-btn" (click)="switchView('forgot')">
                 Forgot Password?
               </button>
-            </div>
+            </div> -->
 
             <div class="action-row">
               <button class="btn-secondary" type="button" (click)="resetSignInForm()" [disabled]="loading">
@@ -93,6 +93,13 @@
                 Create Account
               </button>
             </p>
+            <div class="auth-meta">
+              <span class="meta-chip">Version 1.01</span>
+              <div class="meta-powered">
+                <span>Powered by</span>
+                <img src="assets/images/Ridsyslogo.png" alt="Ridsys logo" />
+              </div>
+            </div>
           </form>
 
           <form class="auth-form" *ngIf="activeView === 'signUp'" [formGroup]="signUpForm" (ngSubmit)="submitSignUp()"
@@ -118,8 +125,10 @@
               </mat-select>
             </mat-form-field>
             <small class="helper-text" *ngIf="loadingBusinessUnitTypes">Loading company types...</small>
-            <small class="error-text" *ngIf="!loadingBusinessUnitTypes && !businessUnitTypes.length">Company types are not available right now.</small>
-            <small class="error-text" *ngIf="hasControlError(signUpForm, 'companyTypeId', 'required')">Company type is required.</small>
+            <small class="error-text" *ngIf="!loadingBusinessUnitTypes && !businessUnitTypes.length">Company types are
+              not available right now.</small>
+            <small class="error-text" *ngIf="hasControlError(signUpForm, 'companyTypeId', 'required')">Company type is
+              required.</small>
 
             <label class="field-label">Mobile Number</label>
             <div class="field" [class.invalid]="
@@ -127,10 +136,13 @@
                 hasControlError(signUpForm, 'mobile', 'pattern')
               ">
               <mat-icon>phone_iphone</mat-icon>
-              <input type="tel" formControlName="mobile" placeholder="Enter mobile number" inputmode="numeric" maxlength="10" />
+              <input type="tel" formControlName="mobile" placeholder="Enter mobile number" inputmode="numeric"
+                maxlength="10" />
             </div>
-            <small class="error-text" *ngIf="hasControlError(signUpForm, 'mobile', 'required')">Mobile number is required.</small>
-            <small class="error-text" *ngIf="hasControlError(signUpForm, 'mobile', 'pattern')">Enter a valid 10 digit mobile number.</small>
+            <small class="error-text" *ngIf="hasControlError(signUpForm, 'mobile', 'required')">Mobile number is
+              required.</small>
+            <small class="error-text" *ngIf="hasControlError(signUpForm, 'mobile', 'pattern')">Enter a valid 10 digit
+              mobile number.</small>
 
             <label class="field-label">Company Email</label>
             <div class="field" [class.invalid]="
@@ -162,10 +174,12 @@
               required.</small>
             <!-- <small class="error-text" *ngIf="hasControlError(signUpForm, 'password', 'pattern')">Use at least 8
               characters including a letter and number.</small> -->
-          
+
             <div class="action-row">
-              <button class="btn-secondary" type="button" (click)="resetSignUpForm()" [disabled]="loading">Clear</button>
-              <button class="btn-primary" type="submit" [disabled]="loading || loadingBusinessUnitTypes || !businessUnitTypes.length">
+              <button class="btn-secondary" type="button" (click)="resetSignUpForm()"
+                [disabled]="loading">Clear</button>
+              <button class="btn-primary" type="submit"
+                [disabled]="loading || loadingBusinessUnitTypes || !businessUnitTypes.length">
                 <span>{{ loading ? 'Registering...' : 'Register' }}</span>
               </button>
             </div>
@@ -235,8 +249,8 @@
           <div class="highlight-card">
             <mat-icon>groups</mat-icon>
             <div>
-              <strong>12,000+</strong>
-              <span>Employees Managed</span>
+              <strong>High</strong>
+              <span>Employee Volume Managed</span>
             </div>
           </div>
           <div class="highlight-card">

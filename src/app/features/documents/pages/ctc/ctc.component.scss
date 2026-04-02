@@ -1,4 +1,6 @@
 .ctc-page {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -46,7 +48,7 @@
 .ctc-panel__head h3,
 .reconciliation-card h4 {
   margin: 0;
-  color: var(--theme-text-primary);
+  color: var(--theme-primary);
 }
 
 .ctc-hero p,
@@ -105,7 +107,7 @@
   grid-template-columns: minmax(320px, 1fr) minmax(380px, 1.05fr);
   gap: 1rem;
   width: 100%;
-}
+} 
 
 .ctc-layout_1 {
   // display: grid;
@@ -164,6 +166,30 @@
 
 .ctc-settings-grid mat-form-field {
   width: 100%;
+}
+
+.ctc-select-search {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.65rem 0.75rem 0.35rem;
+  background: var(--theme-surface-card);
+}
+
+.ctc-select-search input {
+  width: 100%;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  background: color-mix(in srgb, var(--theme-page-bg) 24%, var(--theme-surface-card));
+  color: var(--theme-text-primary);
+  font: inherit;
+  outline: none;
+}
+
+.ctc-select-search input:focus {
+  border-color: color-mix(in srgb, var(--theme-primary) 45%, var(--theme-border-soft));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 12%, transparent);
 }
 
 .ctc-validation-banner {
@@ -269,7 +295,7 @@
 .ctc-form-section__head h4,
 .ctc-create-note h4 {
   margin: 0;
-  color: var(--theme-text-primary);
+  color: var(--theme-primary);
 }
 
 .ctc-create-hero p,
@@ -835,6 +861,13 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.ctc-save-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: none;
+}
+
 .ctc-save-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px color-mix(in srgb, var(--theme-primary) 22%, transparent);
@@ -848,6 +881,51 @@
   border-radius: 50%;
   background: var(--theme-button-gradient);
   color: var(--theme-button-text);
+}
+
+.ctc-page-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  background: rgba(248, 250, 252, 0.82);
+  backdrop-filter: blur(4px);
+  z-index: 1200;
+}
+
+.ctc-page-loading__card {
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 16%, #d7e1ea);
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--theme-primary) 10%, #ffffff), #ffffff);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+  text-align: center;
+}
+
+.ctc-page-loading__card strong {
+  color: var(--theme-text-primary);
+  font-size: 0.98rem;
+}
+
+.ctc-page-loading__card small {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}
+
+.ctc-page-loading__spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid color-mix(in srgb, var(--theme-primary) 24%, transparent);
+  border-top-color: var(--theme-primary);
+  border-radius: 50%;
+  animation: ctcSpin 0.8s linear infinite;
 }
 
 .ctc-save-btn__label {
@@ -1480,4 +1558,11 @@
   .ctc-form-section--right {
     grid-column: auto;
   }
+}
+.ctc-letter-export-host {
+  left: -100000px;
+  position: fixed;
+  top: 0;
+  width: 210mm;
+  z-index: -1;
 }

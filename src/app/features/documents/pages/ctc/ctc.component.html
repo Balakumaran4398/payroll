@@ -1,4 +1,14 @@
 <section class="ctc-page">
+  <div class="ctc-page-loading" *ngIf="loadingInitialData">
+    <div class="ctc-page-loading__card">
+      <span class="ctc-page-loading__spinner"></span>
+      <strong>
+        {{ 'Loading payroll data...' }}
+      </strong>
+      <small>Please wait a moment.</small>
+    </div>
+  </div>
+
   <div class="ctc-hero" [class.ctc-hero--calculator]="activeTab === 'calculator'">
     <div class="ctc-hero__title">
       <div class="ctc-hero__icon">
@@ -6,48 +16,67 @@
       </div>
       <div>
         <h2>{{ activeTab === 'calculator' ? 'CTC Payroll Calculator' : 'CTC Payroll Create' }}</h2>
-        <p>
+        <!-- <p>
           {{ activeTab === 'calculator'
           ? 'PF · ESI · Gratuity · Attendance · Medical insurance'
           : 'Save payroll salary settings for company structure and deductions' }}
-        </p>
+        </p> -->
       </div>
     </div>
 
     <div class="ctc-hero__actions">
-      <span class="ctc-badge" *ngIf="activeTab === 'calculator'">India Payroll Model</span>
-      <button class="ctc-tab" type="button" [class.ctc-tab--active]="activeTab === 'calculator'"
+      <!-- <span class="ctc-badge" *ngIf="activeTab === 'calculator'">India Payroll Model</span> -->
+      <button *ngIf="canManagePayroll" class="ctc-tab" type="button" [class.ctc-tab--active]="activeTab === 'calculator'"
         (click)="setActiveTab('calculator')">
         CTC Payroll Calculator
       </button>
-      <button class="ctc-tab" type="button" [class.ctc-tab--active]="activeTab === 'create'"
+      <button *ngIf="canManagePayroll" class="ctc-tab" type="button" [class.ctc-tab--active]="activeTab === 'create'"
         (click)="setActiveTab('create')">
         CTC Payroll Create
       </button>
-      <button mat-stroked-button type="button" (click)="printPage()" *ngIf="activeTab === 'calculator'">Print</button>
+      <!-- <button mat-stroked-button type="button" (click)="printPage()" *ngIf="activeTab === 'calculator'">Print</button>
       <button mat-stroked-button type="button" (click)="downloadCalculation()" *ngIf="activeTab === 'calculator'">
         Download
-      </button>
-      <button class="ctc-save-btn" type="button" (click)="saveBreakdown()" *ngIf="activeTab === 'calculator'">
+      </button> -->
+      <button class="ctc-save-btn" type="button" (click)="saveBreakdown()" *ngIf="activeTab === 'calculator'"
+        [disabled]="isPageBusy">
         <span class="ctc-save-btn__icon">
-          <mat-icon>picture_as_pdf</mat-icon>
+          <span class="ctc-button-spinner" *ngIf="downloadingBreakdownPdf"></span>
+          <mat-icon *ngIf="!downloadingBreakdownPdf">picture_as_pdf</mat-icon>
         </span>
         <span class="ctc-save-btn__label">
-          <strong>Save Breakdown</strong>
-          <small>Download as PDF</small>
+          <strong>{{ downloadingBreakdownPdf ? 'Preparing PDF' : 'Save Breakdown' }}</strong>
+          <small>{{ downloadingBreakdownPdf ? 'Fetching API data and generating file' : 'Download as PDF' }}</small>
         </span>
       </button>
     </div>
   </div>
 
   <div class="ctc-layout ctc-layout--calculator" *ngIf="activeTab === 'calculator'">
-    <mat-card class="ctc-panel ctc-panel--calculator-form">
+    <mat-card class="ctc-panel ctc-panel--calculator-form" *ngIf="canManagePayroll; else ctcReadonlyPanel">
       <div class="ctc-panel__head">
         <h3>Inputs</h3>
         <p>Annual CTC preview: Rs {{ formatCurrency(annualCtcDisplay) }}</p>
       </div>
 
       <div class="ctc-form-grid ctc-form-grid--calculator">
+        <mat-form-field appearance="outline">
+          <mat-label>Employee Name</mat-label>
+          <mat-select [(ngModel)]="selectedEmployeeId" (ngModelChange)="onEmployeeSelectionChange($event)"
+            (openedChange)="onEmployeeSelectOpened($event)">
+            <div class="ctc-select-search" (click)="$event.stopPropagation()">
+              <input matInput type="text" [(ngModel)]="employeeSearchTerm" placeholder="Search by name or code"
+                (keydown)="$event.stopPropagation()">
+            </div>
+            <mat-option *ngFor="let employee of filteredEmployeeOptions; trackBy: trackByEmployeeId" [value]="employee.id">
+              {{ getEmployeeOptionLabel(employee) }}
+            </mat-option>
+            <mat-option *ngIf="!filteredEmployeeOptions.length" [value]="null" disabled>
+              No employees found
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
         <mat-form-field appearance="outline">
           <mat-label>Monthly CTC</mat-label>
           <input matInput type="number" [(ngModel)]="model.ctc">
@@ -62,14 +91,18 @@
           <mat-label>HRA % of basic</mat-label>
           <input matInput type="number" [(ngModel)]="model.hraPercent">
         </mat-form-field>
-
         <mat-form-field appearance="outline">
-          <mat-label>LTA % of basic</mat-label>
-          <input matInput type="number" [(ngModel)]="model.ltaPercent">
+          <mat-label>DA % of basic</mat-label>
+          <input matInput type="number" [(ngModel)]="model.daPercent">
         </mat-form-field>
 
+        <!-- <mat-form-field appearance="outline">
+          <mat-label>LTA % of basic</mat-label>
+          <input matInput type="number" [(ngModel)]="model.ltaPercent" >
+        </mat-form-field> -->
+
         <mat-form-field appearance="outline">
-          <mat-label>PF wage ceiling (Rs/month, 0 = no cap)</mat-label>
+          <mat-label>PF wage ceiling (Rs/month)</mat-label>
           <input matInput type="number" min="0" [(ngModel)]="model.pfWageCeiling" [disabled]="!model.isPf"
             (keydown)="preventInvalidNumberInput($event)">
         </mat-form-field>
@@ -82,7 +115,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Employer PF rate (% of same wage base)</mat-label>
+          <mat-label>Employer PF rate (%)</mat-label>
           <input matInput type="number" min="0" max="100" step="0.01" inputmode="decimal"
             [(ngModel)]="model.employerPfRate" [disabled]="!model.isPf" (keydown)="preventInvalidNumberInput($event)"
             (paste)="preventInvalidPercentagePaste($event)">
@@ -97,18 +130,43 @@
         <mat-form-field appearance="outline">
           <mat-label>Employee ESI rate (%)</mat-label>
           <input matInput type="number" min="0" max="100" step="0.01" inputmode="decimal"
-            [(ngModel)]="model.employeeEsiRate" [disabled]="!model.isEsi"
-            (keydown)="preventInvalidNumberInput($event)" (paste)="preventInvalidPercentagePaste($event)">
+            [(ngModel)]="model.employeeEsiRate" [disabled]="!model.isEsi" (keydown)="preventInvalidNumberInput($event)"
+            (paste)="preventInvalidPercentagePaste($event)">
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Employer ESI rate (%)</mat-label>
           <input matInput type="number" min="0" max="100" step="0.01" inputmode="decimal"
-            [(ngModel)]="model.employerEsiRate" [disabled]="!model.isEsi"
-            (keydown)="preventInvalidNumberInput($event)" (paste)="preventInvalidPercentagePaste($event)">
+            [(ngModel)]="model.employerEsiRate" [disabled]="!model.isEsi" (keydown)="preventInvalidNumberInput($event)"
+            (paste)="preventInvalidPercentagePaste($event)">
         </mat-form-field>
 
+        <mat-form-field appearance="outline">
+          <mat-label>Employee Medical Insurance Amount (Rs/month)</mat-label>
+          <input matInput type="number" min="0" [(ngModel)]="model.employeeMedRate" [disabled]="!isMedicalInsuranceEditable"
+            (keydown)="preventInvalidNumberInput($event)">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Employer Medical Insurance Amount (Rs/month)</mat-label>
+          <input matInput type="number" min="0" [(ngModel)]="model.employerMedRate" [disabled]="!isMedicalInsuranceEditable"
+            (keydown)="preventInvalidNumberInput($event)">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Gratuity Rate (%)</mat-label>
+          <input matInput type="number" min="0" max="100" step="0.01" inputmode="decimal"
+            [(ngModel)]="model.gratuityRate" [disabled]="!model.isGratuity"
+            (keydown)="preventInvalidNumberInput($event)" (paste)="preventInvalidPercentagePaste($event)">
+        </mat-form-field>
       
+        <div class="year-pill">
+          <!-- <span class="year-pill__label">Year</span> -->
+          <mat-form-field appearance="outline" class="holiday-field holiday-field--pill">
+            <mat-select [(value)]="selectedYear">
+              <mat-option *ngFor="let year of years; trackBy: trackByYear" [value]="year">{{ year }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
 
       <div class="ctc-form-grid ctc-form-grid--toggle-row">
@@ -119,20 +177,62 @@
 
         <div class="ctc-toggle-card">
           <strong>Include ESI</strong>
-          <mat-checkbox [(ngModel)]="model.isEsi"></mat-checkbox>
+          <mat-checkbox [(ngModel)]="model.isEsi" (ngModelChange)="onEsiToggle($event)"></mat-checkbox>
         </div>
 
         <div class="ctc-toggle-card">
           <strong>Include Gratuity</strong>
-          <mat-checkbox [(ngModel)]="model.isGratuity"></mat-checkbox>
+          <mat-checkbox [(ngModel)]="model.isGratuity" (ngModelChange)="onGratuityToggle($event)"></mat-checkbox>
         </div>
       </div>
 
       <div class="reconciliation-card reconciliation-card--calculator">
         <h4>CTC Payroll Calculator</h4>
-        <p>`fixed_ctc` and `ctc` stay aligned with the monthly input while the table updates instantly.</p>
+        <div class="ctc-chip-row">
+          <span class="ctc-chip">Gratuity Rate: {{ formatPercentage(model.gratuityRate || 0) }}%</span>
+          <span class="ctc-chip">Gratuity Amount: Rs {{ formatCurrency(gratuity) }}</span>
+        </div>
+      </div>
+
+      <div class="ctc-submit-row">
+        <button mat-flat-button color="primary" type="button" class="ctc-submit-button" [disabled]="isPageBusy"
+          (click)="getupdateemployeectcdetail()">
+          <span class="ctc-button-spinner" *ngIf="updatingEmployeeCtc"></span>
+          <mat-icon *ngIf="!updatingEmployeeCtc">save</mat-icon>
+          <span>{{ updatingEmployeeCtc ? 'Updating employee CTC...' : 'Save Salary Settings' }}</span>
+        </button>
       </div>
     </mat-card>
+
+    <ng-template #ctcReadonlyPanel>
+      <mat-card class="ctc-panel ctc-panel--calculator-form">
+        <div class="ctc-panel__head">
+          <h3>Employee CTC</h3>
+          <p>Showing API payroll data for the logged-in employee.</p>
+        </div>
+
+        <div class="metric-grid metric-grid--calculator">
+          <article class="metric-card">
+            <span>Employee</span>
+            <strong>{{ employeeProfile?.employee_name || employeeProfile?.employeeName || employeeProfile?.firstname || 'Employee' }}</strong>
+            <small>{{ employeeProfile?.employee_code || employeeProfile?.emp_code || employeeId }}</small>
+          </article>
+
+          <article class="metric-card">
+            <span>Payroll Year</span>
+            <strong>{{ selectedYear }}</strong>
+            <small>Filter CTC record by year</small>
+          </article>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Year</mat-label>
+          <mat-select [(value)]="selectedYear" (selectionChange)="onReadonlyYearChange()">
+            <mat-option *ngFor="let year of years; trackBy: trackByYear" [value]="year">{{ year }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-card>
+    </ng-template>
 
     <mat-card id="ctc-breakdown-print" class="ctc-panel ctc-panel--calculator-summary ctc-print-sheet">
       <div class="ctc-panel__head">
@@ -155,7 +255,8 @@
 
         <article class="metric-card">
           <span>Employer Cost</span>
-          <strong>Rs {{ formatCurrency(gross + employer_pf_amount + employer_esi_amount + medical_insurance + gratuity) }}</strong>
+          <strong>Rs {{ formatCurrency(gross + employer_pf_amount + employer_esi_amount + medical_insurance + gratuity)
+            }}</strong>
           <small>Gross with employer contributions</small>
         </article>
       </div>
@@ -168,48 +269,62 @@
         </div>
 
         <div class="ctc-table__section">EARNINGS</div>
-        <div class="ctc-table__row"><span>Basic Pay</span><strong>{{ formatCurrency(basic_pay) }}</strong><strong>{{ formatCurrency(annualize(basic_pay)) }}</strong></div>
-        <div class="ctc-table__row"><span>FRA</span><strong>{{ formatCurrency(hra) }}</strong><strong>{{ formatCurrency(annualize(hra)) }}</strong></div>
-        <div class="ctc-table__row"><span>DA</span><strong>{{ formatCurrency(da) }}</strong><strong>{{ formatCurrency(annualize(da)) }}</strong></div>
+        <div class="ctc-table__row"><span>Basic Pay</span><strong>{{ formatCurrency(basic_pay) }}</strong><strong>{{
+            formatCurrency(annualize(basic_pay)) }}</strong></div>
+        <div class="ctc-table__row"><span>HRA</span><strong>{{ formatCurrency(hra) }}</strong><strong>{{
+            formatCurrency(annualize(hra)) }}</strong></div>
+        <div class="ctc-table__row"><span>DA</span><strong>{{ formatCurrency(da) }}</strong><strong>{{
+            formatCurrency(annualize(da)) }}</strong></div>
         <div class="ctc-table__row"><span>Special Allowance</span><strong>{{ formatCurrency(special_allowance) }}</strong><strong>{{ formatCurrency(annualize(special_allowance)) }}</strong></div>
         <div class="ctc-table__row"><span>Fixed Gross</span><strong>{{ formatCurrency(fixed_gross) }}</strong><strong>{{ formatCurrency(annualize(fixed_gross)) }}</strong></div>
-        <div class="ctc-table__row ctc-table__row--total"><span>Gross</span><strong>{{ formatCurrency(gross) }}</strong><strong>{{ formatCurrency(annualize(gross)) }}</strong></div>
+        <div class="ctc-table__row ctc-table__row--total"><span>Gross</span><strong>{{ formatCurrency(gross)
+            }}</strong><strong>{{ formatCurrency(annualize(gross)) }}</strong></div>
 
         <div class="ctc-table__section">EMPLOYEE DEDUCTIONS</div>
-        <div class="ctc-table__row"><span>Employee PF Amount</span><strong>{{ formatCurrency(employee_pf_amount) }}</strong><strong>{{ formatCurrency(annualize(employee_pf_amount)) }}</strong></div>
-        <div class="ctc-table__row"><span>Employee ESI Amount</span><strong>{{ formatCurrency(employee_esi_amount) }}</strong><strong>{{ formatCurrency(annualize(employee_esi_amount)) }}</strong></div>
-        <div class="ctc-table__row ctc-table__row--total"><span>Total Deduction</span><strong>{{ formatCurrency(total_deduction) }}</strong><strong>{{ formatCurrency(annualize(total_deduction)) }}</strong></div>
+        <div class="ctc-table__row"><span>Employee PF Amount</span><strong>{{ formatCurrency(employee_pf_amount)
+            }}</strong><strong>{{ formatCurrency(annualize(employee_pf_amount)) }}</strong></div>
+        <div class="ctc-table__row"><span>Employee ESI Amount</span><strong>{{ formatCurrency(employee_esi_amount)
+            }}</strong><strong>{{ formatCurrency(annualize(employee_esi_amount)) }}</strong></div>
+        <div class="ctc-table__row ctc-table__row--total"><span>Total Deduction</span><strong>{{
+            formatCurrency(total_deduction) }}</strong><strong>{{ formatCurrency(annualize(total_deduction)) }}</strong>
+        </div>
 
         <div class="ctc-table__section">EMPLOYER CONTRIBUTIONS</div>
-        <div class="ctc-table__row"><span>Employer PF Amount</span><strong>{{ formatCurrency(employer_pf_amount) }}</strong><strong>{{ formatCurrency(annualize(employer_pf_amount)) }}</strong></div>
-        <div class="ctc-table__row"><span>Employer ESI Amount</span><strong>{{ formatCurrency(employer_esi_amount) }}</strong><strong>{{ formatCurrency(annualize(employer_esi_amount)) }}</strong></div>
-        <div class="ctc-table__row"><span>Medical Insurance</span><strong>{{ formatCurrency(medical_insurance) }}</strong><strong>{{ formatCurrency(annualize(medical_insurance)) }}</strong></div>
-        <div class="ctc-table__row"><span>Gratuity</span><strong>{{ formatCurrency(gratuity) }}</strong><strong>{{ formatCurrency(annualize(gratuity)) }}</strong></div>
-
-        <div class="ctc-table__section">ATTENDANCE</div>
+        <div class="ctc-table__row"><span>Employer PF Amount</span><strong>{{ formatCurrency(employer_pf_amount)
+            }}</strong><strong>{{ formatCurrency(annualize(employer_pf_amount)) }}</strong></div>
+        <div class="ctc-table__row"><span>Employer ESI Amount</span><strong>{{ formatCurrency(employer_esi_amount)
+            }}</strong><strong>{{ formatCurrency(annualize(employer_esi_amount)) }}</strong></div>
+        <div class="ctc-table__row"><span>Medical Insurance</span><strong>{{ formatCurrency(medical_insurance)
+            }}</strong><strong>{{ formatCurrency(annualize(medical_insurance)) }}</strong></div>
+        <div class="ctc-table__row"><span>Gratuity</span><strong>{{ formatCurrency(gratuity) }}</strong><strong>{{
+            formatCurrency(annualize(gratuity)) }}</strong></div>
+        <!-- <div class="ctc-table__section">ATTENDANCE</div>
         <div class="ctc-table__row"><span>Week Off</span><strong>{{ week_off }}</strong><strong>{{ annualize(week_off) }}</strong></div>
         <div class="ctc-table__row"><span>Paid Holiday</span><strong>{{ paid_holiday }}</strong><strong>{{ annualize(paid_holiday) }}</strong></div>
         <div class="ctc-table__row"><span>LOP Absent</span><strong>{{ lop_absent }}</strong><strong>{{ annualize(lop_absent) }}</strong></div>
         <div class="ctc-table__row"><span>LOP Deduction</span><strong>{{ formatCurrency(lop_deduction) }}</strong><strong>{{ formatCurrency(annualize(lop_deduction)) }}</strong></div>
         <div class="ctc-table__row"><span>Total Days</span><strong>{{ total_days }}</strong><strong>{{ annualize(total_days) }}</strong></div>
-        <div class="ctc-table__row"><span>Working Days</span><strong>{{ working_days }}</strong><strong>{{ annualize(working_days) }}</strong></div>
+        <div class="ctc-table__row"><span>Working Days</span><strong>{{ working_days }}</strong><strong>{{ annualize(working_days) }}</strong></div> -->
 
         <div class="ctc-table__section">SUMMARY</div>
-        <div class="ctc-table__row"><span>Fixed CTC</span><strong>{{ formatCurrency(fixed_ctc) }}</strong><strong>{{ formatCurrency(annualize(fixed_ctc)) }}</strong></div>
-        <div class="ctc-table__row"><span>CTC</span><strong>{{ formatCurrency(fixed_ctc) }}</strong><strong>{{ formatCurrency(ctc) }}</strong></div>
-        <div class="ctc-table__row ctc-table__row--total"><span>Netpay</span><strong>{{ formatCurrency(netpay) }}</strong><strong>{{ formatCurrency(annualize(netpay)) }}</strong></div>
+        <div class="ctc-table__row"><span>Fixed CTC</span><strong>{{ formatCurrency(fixed_ctc) }}</strong><strong>{{
+            formatCurrency(annualize(fixed_ctc)) }}</strong></div>
+        <div class="ctc-table__row"><span>CTC</span><strong>{{ formatCurrency(fixed_ctc) }}</strong><strong>{{
+            formatCurrency(ctc) }}</strong></div>
+        <div class="ctc-table__row ctc-table__row--total"><span>Netpay</span><strong>{{ formatCurrency(netpay)
+            }}</strong><strong>{{ formatCurrency(annualize(netpay)) }}</strong></div>
       </div>
-
+      <!-- 
       <div class="reconciliation-card reconciliation-card--calculator reconciliation-card--summary">
         <h4>CTC Reconciliation</h4>
         <p>CTC: Rs {{ formatCurrency(ctc) }}</p>
         <p>Netpay: Rs {{ formatCurrency(annualize(netpay)) }}</p>
         <p>LOP Deduction: Rs {{ formatCurrency(annualize(lop_deduction)) }}</p>
-      </div>
+      </div> -->
     </mat-card>
   </div>
 
-  <div class="ctc-layout_1 ctc-layout--settings" *ngIf="activeTab === 'create'">
+  <div class="ctc-layout_1 ctc-layout--settings" *ngIf="activeTab === 'create' && canManagePayroll">
     <mat-card class="ctc-panel ctc-panel--create-shell">
       <div class="ctc-panel__accent-bar"></div>
 
@@ -221,10 +336,10 @@
         </div>
 
         <div class="ctc-create-actions">
-          <button mat-stroked-button type="button" class="ctc-action-button" (click)="useCalculatorValues()">
+          <!-- <button mat-stroked-button type="button" class="ctc-action-button" (click)="useCalculatorValues()">
             <mat-icon>calculate</mat-icon>
             <span>Use Calculator Values</span>
-          </button>
+          </button> -->
           <button mat-stroked-button type="button" class="ctc-action-button" (click)="resetSalarySettings()">
             <mat-icon>restart_alt</mat-icon>
             <span>Reset</span>
@@ -244,16 +359,18 @@
         <section class="ctc-form-section ctc-form-section--left">
           <div class="ctc-form-section__head">
             <div>
-              <span class="ctc-form-section__eyebrow">Basic Salary</span>
-              <!-- <h4>💰 Salary foundation</h4> -->
-              <p>Set the fixed earning components that shape the payroll baseline.</p>
+              <!-- <span class="ctc-form-section__eyebrow">Basic Salary</span> -->
+              <h4>💰 Salary foundation</h4>
+              <!-- <p>Set the fixed earning components that shape the payroll baseline.</p> -->
             </div>
           </div>
 
           <div class="ctc-settings-grid">
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('basic_pay')">
-              <mat-label>Basic Pay</mat-label>
-              <input matInput type="number" formControlName="basic_pay">
+              <mat-label>Basic Pay (%)</mat-label>
+              <input matInput type="number" formControlName="basic_pay" min="0" max="100" step="0.01"
+                inputmode="decimal" (keydown)="preventInvalidNumberInput($event)"
+                (paste)="preventInvalidPercentagePaste($event)">
               <mat-error *ngIf="hasSalaryFieldError('basic_pay')">{{ getSalaryFieldError('basic_pay') }}</mat-error>
             </mat-form-field>
 
@@ -276,9 +393,9 @@
         <section class="ctc-form-section ctc-form-section--left">
           <div class="ctc-form-section__head">
             <div>
-              <span class="ctc-form-section__eyebrow">PF Settings</span>
-              <!-- <h4>🏦 Provident Fund setup</h4> -->
-              <p>Control ceiling rules, contribution values, and employee-employer rate split.</p>
+              <!-- <span class="ctc-form-section__eyebrow">PF Settings</span> -->
+              <h4>🏦 Provident Fund setup</h4>
+              <!-- <p>Control ceiling rules, contribution values, and employee-employer rate split.</p> -->
             </div>
           </div>
 
@@ -286,7 +403,8 @@
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('pf_Ceiling_limit')">
               <mat-label>PF Ceiling Limit</mat-label>
               <input matInput type="number" formControlName="pf_Ceiling_limit">
-              <mat-error *ngIf="hasSalaryFieldError('pf_Ceiling_limit')">{{ getSalaryFieldError('pf_Ceiling_limit') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('pf_Ceiling_limit')">{{ getSalaryFieldError('pf_Ceiling_limit')
+                }}</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('pf_amount')">
@@ -300,7 +418,8 @@
               <input matInput type="number" formControlName="employee_pf_rate" min="0" max="100" step="0.01"
                 inputmode="decimal" (keydown)="preventInvalidNumberInput($event)"
                 (paste)="preventInvalidPercentagePaste($event)">
-              <mat-error *ngIf="hasSalaryFieldError('employee_pf_rate')">{{ getSalaryFieldError('employee_pf_rate') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('employee_pf_rate')">{{ getSalaryFieldError('employee_pf_rate')
+                }}</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('employer_pf_rate')">
@@ -308,7 +427,8 @@
               <input matInput type="number" formControlName="employer_pf_rate" min="0" max="100" step="0.01"
                 inputmode="decimal" (keydown)="preventInvalidNumberInput($event)"
                 (paste)="preventInvalidPercentagePaste($event)">
-              <mat-error *ngIf="hasSalaryFieldError('employer_pf_rate')">{{ getSalaryFieldError('employer_pf_rate') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('employer_pf_rate')">{{ getSalaryFieldError('employer_pf_rate')
+                }}</mat-error>
             </mat-form-field>
           </div>
 
@@ -327,9 +447,9 @@
         <section class="ctc-form-section ctc-form-section--right">
           <div class="ctc-form-section__head">
             <div>
-              <span class="ctc-form-section__eyebrow">ESI Settings</span>
-              <!-- <h4>🏥 ESI coverage rules</h4> -->
-              <p>Keep statutory coverage limits and contribution rates aligned with your structure.</p>
+              <!-- <span class="ctc-form-section__eyebrow">ESI Settings</span> -->
+              <h4>🏥 ESI coverage rules</h4>
+              <!-- <p>Keep statutory coverage limits and contribution rates aligned with your structure.</p> -->
             </div>
           </div>
 
@@ -337,7 +457,8 @@
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('esi_Ceiling_limit')">
               <mat-label>ESI Ceiling Limit</mat-label>
               <input matInput type="number" formControlName="esi_Ceiling_limit">
-              <mat-error *ngIf="hasSalaryFieldError('esi_Ceiling_limit')">{{ getSalaryFieldError('esi_Ceiling_limit') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('esi_Ceiling_limit')">{{ getSalaryFieldError('esi_Ceiling_limit')
+                }}</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('employee_esi_rate')">
@@ -345,7 +466,8 @@
               <input matInput type="number" formControlName="employee_esi_rate" min="0" max="100" step="0.01"
                 inputmode="decimal" (keydown)="preventInvalidNumberInput($event)"
                 (paste)="preventInvalidPercentagePaste($event)">
-              <mat-error *ngIf="hasSalaryFieldError('employee_esi_rate')">{{ getSalaryFieldError('employee_esi_rate') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('employee_esi_rate')">{{ getSalaryFieldError('employee_esi_rate')
+                }}</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('employer_esi_rate')">
@@ -353,7 +475,8 @@
               <input matInput type="number" formControlName="employer_esi_rate" min="0" max="100" step="0.01"
                 inputmode="decimal" (keydown)="preventInvalidNumberInput($event)"
                 (paste)="preventInvalidPercentagePaste($event)">
-              <mat-error *ngIf="hasSalaryFieldError('employer_esi_rate')">{{ getSalaryFieldError('employer_esi_rate') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('employer_esi_rate')">{{ getSalaryFieldError('employer_esi_rate')
+                }}</mat-error>
             </mat-form-field>
           </div>
         </section>
@@ -361,23 +484,27 @@
         <section class="ctc-form-section ctc-form-section--right">
           <div class="ctc-form-section__head">
             <div>
-              <span class="ctc-form-section__eyebrow">Insurance & Others</span>
-              <!-- <h4>🏥 Insurance and retention cost</h4> -->
-              <p>Capture medical coverage and gratuity values that complete the payroll design.</p>
+              <!-- <span class="ctc-form-section__eyebrow">Insurance & Others</span> -->
+              <h4>🏥 Insurance and retention cost</h4>
+              <!-- <p>Capture medical coverage and gratuity values that complete the payroll design.</p> -->
             </div>
           </div>
 
           <div class="ctc-settings-grid">
-            <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('employee_med_ins_amount')">
+            <mat-form-field appearance="outline"
+              [class.ctc-field--invalid]="hasSalaryFieldError('employee_med_ins_amount')">
               <mat-label>Employee Medical Insurance Amount</mat-label>
               <input matInput type="number" formControlName="employee_med_ins_amount">
-              <mat-error *ngIf="hasSalaryFieldError('employee_med_ins_amount')">{{ getSalaryFieldError('employee_med_ins_amount') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('employee_med_ins_amount')">{{
+                getSalaryFieldError('employee_med_ins_amount') }}</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('employer_med_ins_amount')">
+            <mat-form-field appearance="outline"
+              [class.ctc-field--invalid]="hasSalaryFieldError('employer_med_ins_amount')">
               <mat-label>Employer Medical Insurance Amount</mat-label>
               <input matInput type="number" formControlName="employer_med_ins_amount">
-              <mat-error *ngIf="hasSalaryFieldError('employer_med_ins_amount')">{{ getSalaryFieldError('employer_med_ins_amount') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('employer_med_ins_amount')">{{
+                getSalaryFieldError('employer_med_ins_amount') }}</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" [class.ctc-field--invalid]="hasSalaryFieldError('gratuity_rate')">
@@ -385,20 +512,26 @@
               <input matInput type="number" formControlName="gratuity_rate" min="0" max="100" step="0.01"
                 inputmode="decimal" (keydown)="preventInvalidNumberInput($event)"
                 (paste)="preventInvalidPercentagePaste($event)">
-              <mat-error *ngIf="hasSalaryFieldError('gratuity_rate')">{{ getSalaryFieldError('gratuity_rate') }}</mat-error>
+              <mat-error *ngIf="hasSalaryFieldError('gratuity_rate')">{{ getSalaryFieldError('gratuity_rate')
+                }}</mat-error>
             </mat-form-field>
           </div>
         </section>
       </div>
 
       <div class="ctc-submit-row">
-        <button mat-flat-button color="primary" type="button" class="ctc-submit-button" [disabled]="submittingSettings"
+        <button mat-flat-button color="primary" type="button" class="ctc-submit-button" [disabled]="isPageBusy"
           (click)="saveSalarySettings()">
-          <span class="ctc-button-spinner" *ngIf="submittingSettings"></span>
-          <mat-icon *ngIf="!submittingSettings">save</mat-icon>
-          <span>{{ submittingSettings ? 'Saving payroll structure...' : 'Save Salary Settings' }}</span>
+          <span class="ctc-button-spinner" *ngIf="savingSalarySettings"></span>
+          <mat-icon *ngIf="!savingSalarySettings">save</mat-icon>
+          <span>{{ savingSalarySettings ? 'Saving payroll settings...' : 'Generate Salary Settings' }}</span>
         </button>
       </div>
     </mat-card>
   </div>
 </section>
+
+<div class="ctc-letter-export-host" *ngIf="salaryRevisionLetterData" #salaryRevisionPdfHost>
+  <app-salary-revision-letter [data]="salaryRevisionLetterData" [hideActions]="true">
+  </app-salary-revision-letter>
+</div>

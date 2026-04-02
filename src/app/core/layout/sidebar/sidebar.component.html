@@ -11,6 +11,7 @@
   <nav class="menu">
     <ng-container *ngFor="let item of visibleMenu">
       <a *ngIf="!item.children" mat-button [routerLink]="item.route" routerLinkActive="menu__item--active"
+        [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
         class="menu__item" [matTooltip]="shouldShowLabels() ? '' : item.label" matTooltipPosition="right"
         (click)="handleMenuNavigate()">
         <mat-icon>{{ item.icon }}</mat-icon>
@@ -30,6 +31,7 @@
         <div class="submenu" *ngIf="item.children" [class.submenu--open]="shouldShowSubmenu(item) && isGroupExpanded(item)"
           [class.submenu--collapsed]="!shouldShowLabels()">
           <a *ngFor="let child of item.children" mat-button class="submenu__item" [routerLink]="child.route"
+            [routerLinkActiveOptions]="{ exact: child.exact ?? false }"
             routerLinkActive="submenu__item--active" (click)="handleMenuNavigate()">
             <span class="submenu__label">{{ child.label }}</span>
           </a>

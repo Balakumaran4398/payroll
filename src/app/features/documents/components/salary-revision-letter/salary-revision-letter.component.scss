@@ -1,0 +1,480 @@
+.salary-revision-letter {
+  // background:
+  //   radial-gradient(circle at top left, rgba(15, 71, 107, 0.12), transparent 28%),
+  //   radial-gradient(circle at top right, rgba(193, 143, 46, 0.1), transparent 26%),
+  //   linear-gradient(180deg, #eaf1f6 0%, #f8fafc 100%);
+  color: #12202f;
+  display: block;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  padding: 24px;
+}
+
+.salary-revision-letter__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin: 0 auto 20px;
+  max-width: 210mm;
+}
+
+.salary-revision-letter__document {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.salary-revision-letter__page {
+  // background: linear-gradient(180deg, rgba(245, 249, 252, 0.85) 0%, rgba(255, 255, 255, 0.98) 16%, #ffffff 100%);
+  border: 1px solid #d8e2eb;
+  box-shadow: 0 22px 54px rgba(15, 23, 42, 0.12);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  min-height: 297mm;
+  overflow: hidden;
+  padding: 20mm 22mm 18mm;
+  position: relative;
+  width: 210mm;
+}
+
+.salary-revision-letter__page::before,
+.salary-revision-letter__page::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+}
+
+.salary-revision-letter__page::before {
+  top: 20mm;
+  right: 18mm;
+  width: 48mm;
+  height: 48mm;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(23, 79, 118, 0.12) 0%, rgba(23, 79, 118, 0) 72%);
+}
+
+.salary-revision-letter__page::after {
+  left: 16mm;
+  bottom: 18mm;
+  width: 56mm;
+  height: 18mm;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(193, 143, 46, 0.1), rgba(23, 79, 118, 0));
+}
+
+.salary-revision-letter__page-accent {
+  background: linear-gradient(90deg, #0d2f4a 0%, #17618e 42%, #3a94b8 70%, #c48d29 100%);
+  border-radius: 0 0 18px 18px;
+  height: 8px;
+  left: 22mm;
+  position: absolute;
+  right: 22mm;
+  top: 0;
+}
+
+.salary-revision-letter__header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.salary-revision-letter__header--hero {
+  align-items: center;
+  margin-top: 6px;
+}
+
+.salary-revision-letter__header--stacked {
+  margin-bottom: 12px;
+}
+
+.salary-revision-letter__header--single {
+  justify-content: flex-end;
+  margin-bottom: 18px;
+}
+
+.salary-revision-letter__brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.salary-revision-letter__tag {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #e4eef7 0%, #f6fafc 100%);
+  border: 1px solid #c9dae8;
+  border-radius: 999px;
+  color: #134765;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  text-transform: uppercase;
+}
+
+.salary-revision-letter__date,
+.salary-revision-letter__employee-meta p,
+.salary-revision-letter__employee-block p,
+.salary-revision-letter__closing p,
+.salary-revision-letter__body p,
+.salary-revision-letter__terms p,
+.salary-revision-letter__terms li {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 5px;
+}
+
+.salary-revision-letter__logo {
+  height: auto;
+  max-width: 164px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 14px rgba(15, 47, 74, 0.08));
+}
+
+.salary-revision-letter__hero-card,
+.salary-revision-letter__terms-card {
+  background: linear-gradient(140deg, rgba(16, 74, 111, 0.08) 0%, rgba(255, 255, 255, 0.96) 48%, rgba(196, 141, 41, 0.08) 100%);
+  border: 1px solid #d7e3ed;
+  border-radius: 24px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  margin-bottom: 18px;
+  padding: 18px 18px 16px;
+}
+
+.salary-revision-letter__employee-block {
+  position: relative;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(23, 79, 118, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.salary-revision-letter__employee-block::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #17618e 0%, #c48d29 100%);
+}
+
+.salary-revision-letter__employee-name {
+  color: #0f3a58;
+  font-size: 16px !important;
+  font-weight: 700;
+}
+
+.salary-revision-letter__summary-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.salary-revision-letter__summary-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 247, 251, 0.92) 100%);
+  border: 1px solid #d4e0ea;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(15, 47, 74, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 94px;
+  padding: 14px 14px 12px;
+}
+
+.salary-revision-letter__summary-card span,
+.salary-revision-letter__mini-summary span {
+  color: #5d6c7b;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.salary-revision-letter__summary-card strong,
+.salary-revision-letter__mini-summary strong {
+  color: #0e2238;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.salary-revision-letter__summary-card small {
+  color: #556476;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+.salary-revision-letter__summary-card--highlight {
+  background: linear-gradient(160deg, #0d3553 0%, #17618e 58%, #1d7fa4 100%);
+  border-color: #0d3553;
+  box-shadow: 0 16px 30px rgba(13, 53, 83, 0.18);
+}
+
+.salary-revision-letter__summary-card--highlight span,
+.salary-revision-letter__summary-card--highlight strong,
+.salary-revision-letter__summary-card--highlight small {
+  color: #fff;
+}
+
+.salary-revision-letter__title,
+.salary-revision-letter__annexure-title {
+  color: #0f3655;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.salary-revision-letter__title {
+  text-align: left;
+  text-decoration: none;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.salary-revision-letter__title::after,
+.salary-revision-letter__annexure-title::after {
+  content: '';
+  display: block;
+  width: 92px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #17618e 0%, #c48d29 100%);
+}
+
+.salary-revision-letter__annexure-title {
+  text-align: center;
+}
+
+.salary-revision-letter__annexure-title::after {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.salary-revision-letter__body {
+  margin-bottom: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(23, 79, 118, 0.12);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 252, 0.98));
+}
+
+.salary-revision-letter__closing {
+  margin-top: auto;
+}
+
+.salary-revision-letter__signature-gap {
+  height: 28px;
+}
+
+.salary-revision-letter__signature-gap--compact {
+  height: 24px;
+}
+
+.salary-revision-letter__note,
+.salary-revision-letter__tax-note {
+  color: #516073;
+  font-size: 12px;
+  margin: 12px 0 0;
+}
+
+.salary-revision-letter__note {
+  font-style: italic;
+}
+
+.salary-revision-letter__mini-summary {
+  background: linear-gradient(135deg, rgba(15, 53, 83, 0.06) 0%, rgba(255, 255, 255, 0.98) 48%, rgba(196, 141, 41, 0.08) 100%);
+  border: 1px solid #d9e4ed;
+  border-radius: 18px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.salary-revision-letter__mini-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.salary-revision-letter__table {
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.salary-revision-letter__table th,
+.salary-revision-letter__table td {
+  border: 1px solid #233648;
+  padding: 8px 9px;
+  vertical-align: middle;
+}
+
+.salary-revision-letter__table th {
+  background: linear-gradient(180deg, #e9f0f6 0%, #dce8f1 100%);
+  color: #0f3655;
+  font-weight: 700;
+  text-align: center;
+}
+
+.salary-revision-letter__table td:first-child {
+  width: 34%;
+}
+
+.salary-revision-letter__table tbody tr:nth-child(even):not(.salary-revision-letter__table-row--section):not(.salary-revision-letter__table-row--total) td {
+  background: #fbfdff;
+}
+
+.salary-revision-letter__table-row--section td,
+.salary-revision-letter__table-row--total td {
+  font-weight: 700;
+}
+
+.salary-revision-letter__table-row--section td {
+  background: linear-gradient(90deg, rgba(15, 54, 85, 0.1), rgba(15, 54, 85, 0.03));
+  color: #0f3655;
+}
+
+.salary-revision-letter__table-row--total td {
+  background: linear-gradient(90deg, rgba(196, 141, 41, 0.1), rgba(255, 255, 255, 0.96));
+}
+
+.salary-revision-letter__terms {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.salary-revision-letter__terms-title {
+  color: #0f3655;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.salary-revision-letter__terms-list {
+  margin: 8px 0 18px 18px;
+  padding: 0;
+}
+
+.salary-revision-letter__terms-list li::marker {
+  color: #17618e;
+}
+
+.salary-revision-letter__acceptance {
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.salary-revision-letter__employee-signature {
+  margin-top: 28px;
+}
+
+.salary-revision-letter__employee-signature-line {
+  border-bottom: 1px solid #233648;
+  margin-bottom: 10px;
+  width: 220px;
+}
+
+.salary-revision-letter__footer-bar {
+  border-top: 1px solid #c8d6e2;
+  color: #415366;
+  font-size: 11px;
+  line-height: 1.45;
+  margin-top: 14px;
+  padding-top: 10px;
+  background: linear-gradient(180deg, rgba(234, 241, 246, 0.44), rgba(255, 255, 255, 0));
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .salary-revision-letter {
+    padding: 12px;
+  }
+
+  .salary-revision-letter__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .salary-revision-letter__page {
+    min-height: auto;
+    padding: 18mm 14mm;
+    width: 100%;
+  }
+
+  .salary-revision-letter__header,
+  .salary-revision-letter__summary-grid,
+  .salary-revision-letter__mini-summary {
+    gap: 16px;
+  }
+
+  .salary-revision-letter__summary-grid,
+  .salary-revision-letter__mini-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .salary-revision-letter__table {
+    font-size: 12px;
+  }
+
+  .salary-revision-letter__table th,
+  .salary-revision-letter__table td {
+    padding: 7px 6px;
+  }
+}
+
+@media print {
+  @page {
+    margin: 0;
+    size: A4;
+  }
+
+  .salary-revision-letter {
+    background: #fff;
+    padding: 0;
+  }
+
+  .salary-revision-letter__actions {
+    display: none !important;
+  }
+
+  .salary-revision-letter__document {
+    gap: 0;
+  }
+
+  .salary-revision-letter__page {
+    border: 0;
+    box-shadow: none;
+    break-after: page;
+    margin: 0;
+    min-height: 297mm;
+    page-break-after: always;
+    padding: 18mm 18mm 15mm;
+    width: 210mm;
+  }
+
+  .salary-revision-letter__page::before,
+  .salary-revision-letter__page::after {
+    display: none;
+  }
+
+  .salary-revision-letter__page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}

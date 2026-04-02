@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AppRole, AuthService } from '../../../../core/services/auth.service';
 import { ApiService } from '../../../../core/services/api.service';
 import { Employee } from '../../../employee/employee.types';
+import { TokenStorageService } from 'src/app/core/services/token-storage.service';
 
 type AttendanceState = 'present' | 'absent' | 'late' | 'half-day' | 'leave' | 'holiday' | 'weekend' | 'upcoming';
 type ActionTone = 'blue' | 'purple' | 'orange' | 'teal';
@@ -137,7 +138,6 @@ interface CalendarDay {
   details: AttendanceRecord | null;
   specialEvent: CalendarEvent | null;
 }
-
 @Component({
   selector: 'app-employee-dashboard',
   templateUrl: './employee-dashboard.component.html',
@@ -325,8 +325,12 @@ export class EmployeeDashboardComponent implements OnInit {
     { title: 'Request OD', subtitle: 'Submit on-duty movement for field visits, client meetings, or travel work', icon: 'work_history', tone: 'orange', route: '/app/attendance/request-od' },
     // { title: 'Attendance Report', subtitle: 'Review monthly attendance summary', icon: 'insights', tone: 'teal', route: '/app/reports' },
   ];
-
-  constructor(private authService: AuthService, private apiService: ApiService, private router: Router) { }
+  userid: number;
+  constructor(private authService: AuthService,
+    private apiService: ApiService,private tokenStorage:TokenStorageService,
+    private router: Router) {
+      this.userid=tokenStorage.getID();
+     }
 
   ngOnInit(): void {
     this.employeeName = this.resolveEmployeeName();
@@ -334,7 +338,7 @@ export class EmployeeDashboardComponent implements OnInit {
     this.heroDate = this.formatHeroDate(new Date());
     this.heroSubtitle = this.resolveHeroSubtitle(this.authService.getRole());
     console.log(this.heroSubtitle);
-    
+
     this.heroRoleLabel = this.formatRoleLabel(this.authService.getRole());
     this.heroWelcomeMessage = this.buildWelcomeMessage(this.greetingName);
     this.heroImageUrl = this.buildFallbackAvatar(this.employeeName);
@@ -546,7 +550,7 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   private loadEmployeeHero(): void {
-    this.apiService.getEmployeeList().subscribe({
+    this.apiService.getEmployeeList(this.userid).subscribe({
       next: (employees: Employee[] = []) => {
         if (!Array.isArray(employees) || !employees.length) {
           return;

@@ -7,6 +7,7 @@ interface MenuChildItem {
   label: string;
   route: string;
   roles: AppRole[];
+  exact?: boolean;
 }
 
 interface MenuItem {
@@ -14,6 +15,7 @@ interface MenuItem {
   route?: string;
   icon: string;
   roles: AppRole[];
+  exact?: boolean;
   children?: MenuChildItem[];
 }
 
@@ -52,40 +54,49 @@ export class SidebarComponent implements OnInit, OnDestroy {
           roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
         },
 
-        {
-          label: 'Payroll',
-          route: '/app/users',
-          roles: ['ROLE_ADMIN'],
-        },
+        // {
+        //   label: 'Payroll',
+        //   route: '/app/users',
+        //   roles: ['ROLE_ADMIN'],
+        // },
       ],
-    }, 
+    },
     {
-      label: 'Documents',
+      label: 'Payroll',
       icon: 'folder_open',
-      roles: ['ROLE_ADMIN'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
       children: [
         {
           label: 'Pay Slip',
           route: '/app/documents/pay-slip',
-          roles: ['ROLE_ADMIN',],
+          roles: ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
         },
         {
           label: 'CTC',
           route: '/app/documents/ctc',
-          roles: ['ROLE_ADMIN',],
+          roles: ['ROLE_ADMIN'],
+          // roles: ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
         },
-        {
-          label: 'Call Letter',
-          route: '/app/documents/call-letter',
-          roles: ['ROLE_ADMIN',],
-        },
+        // {
+        //   label: 'Call Letter',
+        //   route: '/app/documents/call-letter',
+        //   roles: ['ROLE_ADMIN',],
+        // },
       ],
     },
     {
-      label: 'Leave',
+      label: 'Attendance',
       route: '/app/attendance',
       icon: 'event_note',
-      roles: ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+      exact: true,
+    },
+    {
+      label: 'Leave Management',
+      route: '/app/attendance/app-leave-management',
+      icon: 'assignment',
+      roles: ['ROLE_ADMIN', 'ROLE_COMPANY', 'ROLE_MANAGER', 'ROLE_EMPLOYEE'],
+      exact: true,
     },
     // {
     //   label: 'Departments',
@@ -133,29 +144,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const currentRole = this.authService.getRole();
 
     if (!currentRole) {
-      this.visibleMenu = this.menu.map((item) => {
-        if (!item.children) {
-          return item;
-        }
-        return { ...item, children: item.children };
-      });
+      this.visibleMenu = this.menu.map((item) => this.mapMenuItem(item, null));
       this.syncExpandedMenuWithRoute();
       return;
     }
 
     this.visibleMenu = this.menu
       .filter((item) => this.isAllowed(item.roles, currentRole))
-      .map((item) => {
-        if (!item.children) {
-          return item;
-        }
-
-        const filteredChildren = item.children.filter((child) =>
-          this.isAllowed(child.roles, currentRole)
-        );
-
-        return { ...item, children: filteredChildren };
-      })
+      .map((item) => this.mapMenuItem(item, currentRole))
       .filter((item) => !item.children || item.children.length > 0);
 
     this.syncExpandedMenuWithRoute();
@@ -238,6 +234,32 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   private isAllowed(roles: AppRole[], currentRole: AppRole | null): boolean {
     return !!currentRole && roles.includes(currentRole);
+  }
+
+  private mapMenuItem(item: MenuItem, currentRole: AppRole | null): MenuItem {
+    const label = this.resolveMenuLabel(item.label, currentRole);
+
+    if (!item.children) {
+      return { ...item, label };
+    }
+
+    const children = currentRole
+      ? item.children.filter((child) => this.isAllowed(child.roles, currentRole))
+      : item.children;
+
+    return {
+      ...item,
+      label,
+      children,
+    };
+  }
+
+  private resolveMenuLabel(label: string, currentRole: AppRole | null): string {
+    if (label !== 'Payroll') {
+      return label;
+    }
+
+    return currentRole === 'ROLE_ADMIN' ? 'Payroll' : 'Documents';
   }
 
   private syncExpandedMenuWithRoute(): void {

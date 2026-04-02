@@ -22,7 +22,7 @@ export class TokenStorageService {
   getToken(): string | null {
     return this.authStorage.getItem(this.TOKEN_KEY);
   }
-  saveID(id: any): void {  
+  saveID(id: any): void {
     this.authStorage.setItem(this.ID_KEY, id);
   }
 

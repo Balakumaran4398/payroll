@@ -1,35 +1,117 @@
-import { DOCUMENT } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { ChartConfiguration, ChartOptions } from 'chart.js';
-import { merge, Subscription } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 import { ApiService } from '../../../../core/services/api.service';
-import { ThemeService } from '../../../../core/services/theme.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { Employee } from '../../../employee/employee.types';
+import { TokenStorageService } from 'src/app/core/services/token-storage.service';
 
-interface ActivityRow {
-  action: string;
-  user: string;
-  module: string;
-  timestamp: string;
-  status: 'Success' | 'Pending' | 'Failed';
-}
+type MetricTone = 'primary' | 'success' | 'warning' | 'danger';
+type AttendanceTone = 'present' | 'late' | 'absent' | 'leave' | 'half-day' | 'weekend' | 'holiday' | 'neutral';
 
-interface RoleBreakdownItem {
+interface AdminMetricCard {
   label: string;
-  value: number;
-  share: string;
-  color: string;
+  value: string;
+  helper: string;
+  icon: string;
+  tone: MetricTone;
 }
 
-interface ChartPalette {
-  primary: string;
-  secondary: string;
-  accent: string;
-  textPrimary: string;
-  textSecondary: string;
-  textMuted: string;
-  surface: string;
-  surfaceStrong: string;
-  borderSoft: string;
+interface DashboardEmployeeRecord extends Employee {
+  [key: string]: unknown;
+}
+
+interface AdminDirectoryEmployee {
+  id: number;
+  name: string;
+  email: string;
+  mobile: string;
+  initials: string;
+  department: string;
+  position: string;
+  biometricId: string;
+  baseSalary: string;
+  joinDate: string;
+}
+
+interface DashboardAttendanceApiItem {
+  date?: string | null;
+  day?: string | null;
+  in_time?: string | null;
+  out_time?: string | null;
+  inTime?: string | null;
+  outTime?: string | null;
+  thump_status?: string | null;
+  thumb_status?: string | null;
+  thumbstatus?: string | null;
+  thumbStatus?: string | null;
+  leave_status?: string | null;
+  attendance_status?: string | null;
+  attendanceStatus?: string | null;
+  day_status?: string | null;
+  dayStatus?: string | null;
+  status?: string | null;
+  working_hours?: string | null;
+  workingHours?: string | null;
+  total_hours?: string | null;
+  totalHours?: string | null;
+  shift?: string | null;
+  shift_name?: string | null;
+  shift_type?: string | null;
+  shiftName?: string | null;
+  is_holiday?: boolean | string | number | null;
+  is_weekoff?: boolean | string | number | null;
+}
+
+interface AdminAttendanceItem {
+  employeeId: number;
+  employeeName: string;
+  employeeCode: string;
+  department: string;
+  initials: string;
+  checkIn: string;
+  checkOut: string;
+  workingHours: string;
+  statusLabel: string;
+  tone: AttendanceTone;
+  note: string;
+}
+
+interface DashboardPendingLeaveItem {
+  id?: number | string | null;
+  empid?: number | string | null;
+  leave_type_id?: number | string | null;
+  leave_type?: string | null;
+  leaveType?: string | null;
+  leave_type_label?: string | null;
+  fromdate?: string | null;
+  todate?: string | null;
+  totaldays?: number | string | null;
+  reason?: string | null;
+  status?: string | null;
+  createddate?: string | null;
+  employee_name?: string | null;
+}
+
+interface DashboardLeaveRequestItem {
+  id: number;
+  employeeId: number;
+  employeeName: string;
+  employeeCode: string;
+  initials: string;
+  leaveType: string;
+  dateRange: string;
+  duration: string;
+  reason: string;
+}
+
+interface DashboardAllRequestsResponse {
+  leave?: {
+    pending?: DashboardPendingLeaveItem[];
+  };
+  data?: DashboardAllRequestsResponse;
+  result?: DashboardAllRequestsResponse;
 }
 
 @Component({
@@ -37,554 +119,640 @@ interface ChartPalette {
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
-export class AdminDashboardComponent implements OnInit, OnDestroy {
-  private readonly defaultLineChartSource: ChartConfiguration<'line'>['data'] = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      { data: [65, 59, 80, 81, 56, 55, 72], label: 'User Registrations' },
-      { data: [32, 45, 29, 66, 52, 39, 48], label: 'System Activity' },
-    ],
-  };
+export class AdminDashboardComponent implements OnInit {
+  readonly today = new Date();
+  readonly todayLabel = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(this.today);
+  readonly currentMonth = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(this.today);
+  readonly currentYear = `${this.today.getFullYear()}`;
+  readonly attendancePreviewLimit = 8;
+  readonly leavePreviewLimit = 4;
 
-  private readonly defaultDoughnutChartSource: ChartConfiguration<'doughnut'>['data'] = {
-    labels: ['Admins', 'Companies', 'Employees'],
-    datasets: [{ data: [12, 35, 53] }],
-  };
+  adminName = 'Admin';
+  directorySearchTerm = '';
+  isLoading = false;
+  loadError = '';
 
-  private themeSubscription?: Subscription;
-  private lineChartSource = this.cloneLineChartSource(this.defaultLineChartSource);
-  private doughnutChartSource = this.cloneDoughnutChartSource(this.defaultDoughnutChartSource);
-
-  chartPalette: ChartPalette = {
-    primary: '#2e4fae',
-    secondary: '#33b4b2',
-    accent: '#59dee7',
-    textPrimary: '#122a4d',
-    textSecondary: '#445f86',
-    textMuted: '#5d7499',
-    surface: '#ffffff',
-    surfaceStrong: '#f8fbff',
-    borderSoft: 'rgba(18, 57, 110, 0.16)',
-  };
-
-  statCards = [
-    { title: 'Total Users', value: '1,286', trend: '+5.6%', icon: 'groups' },
-    { title: 'Active Companies', value: '94', trend: '+2.1%', icon: 'apartment' },
-    { title: 'Total Employees', value: '2,450', trend: '+8.4%', icon: 'badge' },
-    { title: 'System Health', value: '99.7%', trend: 'Stable', icon: 'monitor_heart' },
-  ];
-
-  lineChartData: ChartConfiguration<'line'>['data'] = this.cloneLineChartSource(this.defaultLineChartSource);
-  lineChartType: 'line' = 'line';
-  lineChartOptions: ChartOptions<'line'> = {};
-
-  doughnutChartData: ChartConfiguration<'doughnut'>['data'] = this.cloneDoughnutChartSource(this.defaultDoughnutChartSource);
-  doughnutChartType: 'doughnut' = 'doughnut';
-  doughnutChartOptions: ChartOptions<'doughnut'> = {};
-
-  displayedColumns = ['action', 'user', 'module', 'timestamp', 'status'];
-  recentActivity: ActivityRow[] = [
-    {
-      action: 'User Created',
-      user: 'admin',
-      module: 'Users',
-      timestamp: '2026-03-13 10:11',
-      status: 'Success',
-    },
-    {
-      action: 'Company Added',
-      user: 'admin',
-      module: 'Company',
-      timestamp: '2026-03-13 09:45',
-      status: 'Success',
-    },
-    {
-      action: 'Employee Updated',
-      user: 'company1',
-      module: 'Employee',
-      timestamp: '2026-03-13 09:30',
-      status: 'Success',
-    },
-    {
-      action: 'Report Generated',
-      user: 'employee1',
-      module: 'Reports',
-      timestamp: '2026-03-13 09:15',
-      status: 'Success',
-    },
-    {
-      action: 'Settings Changed',
-      user: 'admin',
-      module: 'Settings',
-      timestamp: '2026-03-13 08:50',
-      status: 'Pending',
-    },
-  ];
-
+  directoryEmployees: AdminDirectoryEmployee[] = [];
+  todayAttendance: AdminAttendanceItem[] = [];
+  pendingLeaveRequests: DashboardLeaveRequestItem[] = [];
+  userid: number;
   constructor(
     private apiService: ApiService,
-    private themeService: ThemeService,
-    @Inject(DOCUMENT) private document: Document
-  ) {}
+    private authService: AuthService, private tokenStorage: TokenStorageService,
+    private router: Router
+  ) {
+    this.userid = tokenStorage.getID();
+  }
 
   ngOnInit(): void {
-    this.applyChartTheme();
-    this.themeSubscription = merge(this.themeService.preset$, this.themeService.mode$).subscribe(() => {
-      this.applyChartTheme();
-    });
-    this.loadDashboardData();
+    this.adminName = `${this.authService.getEmpname() || 'Admin'}`.trim() || 'Admin';
+    this.loadAdminWorkspace();
   }
 
-  ngOnDestroy(): void {
-    this.themeSubscription?.unsubscribe();
-  }
+  get statCards(): AdminMetricCard[] {
+    const presentCount = this.todayAttendance.filter((item) => item.tone === 'present' || item.tone === 'late').length;
+    const leaveCount = this.todayAttendance.filter((item) => item.tone === 'leave' || item.tone === 'half-day').length;
+    const departmentCount = new Set(
+      this.directoryEmployees
+        .map((item) => item.department)
+        .filter((item) => item && item !== 'Not assigned')
+    ).size;
 
-  get weeklyPeakDay(): string {
-    const labels = this.lineChartSource.labels || [];
-    const totals = this.getWeeklyTotals();
-    if (!labels.length || !totals.length) {
-      return 'No Data';
-    }
-
-    let peakIndex = 0;
-    totals.forEach((value, index) => {
-      if (value > totals[peakIndex]) {
-        peakIndex = index;
-      }
-    });
-
-    return `${labels[peakIndex] || 'Day'}`;
-  }
-
-  get weeklyPeakTotal(): string {
-    const totals = this.getWeeklyTotals();
-    return totals.length ? `${Math.max(...totals)}` : '0';
-  }
-
-  get weeklyAverageTotal(): string {
-    const totals = this.getWeeklyTotals();
-    if (!totals.length) {
-      return '0';
-    }
-
-    const average = totals.reduce((sum, value) => sum + value, 0) / totals.length;
-    return average.toFixed(1);
-  }
-
-  get weeklyMomentum(): string {
-    const totals = this.getWeeklyTotals();
-    if (totals.length < 2 || totals[0] === 0) {
-      return '0%';
-    }
-
-    const momentum = ((totals[totals.length - 1] - totals[0]) / totals[0]) * 100;
-    return `${momentum >= 0 ? '+' : ''}${momentum.toFixed(1)}%`;
-  }
-
-  get totalRoleCount(): string {
-    const values = this.getDoughnutValues();
-    return `${values.reduce((sum, value) => sum + value, 0)}`;
-  }
-
-  get leadingRoleLabel(): string {
-    const labels = this.doughnutChartSource.labels || [];
-    const values = this.getDoughnutValues();
-    if (!labels.length || !values.length) {
-      return 'No Data';
-    }
-
-    let leadingIndex = 0;
-    values.forEach((value, index) => {
-      if (value > values[leadingIndex]) {
-        leadingIndex = index;
-      }
-    });
-
-    return `${labels[leadingIndex] || 'Role'}`;
-  }
-
-  get leadingRoleShare(): string {
-    const values = this.getDoughnutValues();
-    const total = values.reduce((sum, value) => sum + value, 0);
-    if (!values.length || total === 0) {
-      return '0%';
-    }
-
-    const share = (Math.max(...values) / total) * 100;
-    return `${share.toFixed(1)}%`;
-  }
-
-  get roleBreakdown(): RoleBreakdownItem[] {
-    const labels = (this.doughnutChartSource.labels || []).map((label) => `${label}`);
-    const values = this.getDoughnutValues();
-    const total = values.reduce((sum, value) => sum + value, 0);
-    const colors = [
-      this.chartPalette.primary,
-      this.chartPalette.secondary,
-      this.chartPalette.accent,
-      this.withAlpha(this.chartPalette.primary, 0.45),
+    return [
+      {
+        label: 'Total Employees',
+        value: `${this.directoryEmployees.length}`,
+        helper: `${departmentCount || 0} departments`,
+        icon: 'groups',
+        tone: 'primary',
+      },
+      {
+        label: 'Present Today',
+        value: `${presentCount}`,
+        helper: `${Math.max(this.todayAttendance.length - presentCount, 0)} need review`,
+        icon: 'task_alt',
+        tone: 'success',
+      },
+      {
+        label: 'Pending Leave Requests',
+        value: `${this.pendingLeaveRequests.length}`,
+        helper: 'Waiting for review',
+        icon: 'event_busy',
+        tone: 'warning',
+      },
+      {
+        label: 'On Leave Today',
+        value: `${leaveCount}`,
+        helper: `${this.currentMonth} ${this.currentYear} snapshot`,
+        icon: 'beach_access',
+        tone: 'danger',
+      },
     ];
+  }
 
-    return labels.map((label, index) => {
-      const value = values[index] || 0;
-      return {
-        label,
-        value,
-        share: total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0%',
-        color: colors[index % colors.length],
-      };
+  get attendancePreview(): AdminAttendanceItem[] {
+    return this.todayAttendance.slice(0, this.attendancePreviewLimit);
+  }
+
+  get leavePreview(): DashboardLeaveRequestItem[] {
+    return this.pendingLeaveRequests.slice(0, this.leavePreviewLimit);
+  }
+
+  get filteredDirectoryEmployees(): AdminDirectoryEmployee[] {
+    const searchTerm = this.directorySearchTerm.trim().toLowerCase();
+    if (!searchTerm) {
+      return this.directoryEmployees;
+    }
+
+    return this.directoryEmployees.filter((employee) => [
+      employee.name,
+      employee.email,
+      employee.mobile,
+      employee.department,
+      employee.position,
+      employee.biometricId,
+      employee.id,
+    ].join(' ').toLowerCase().includes(searchTerm));
+  }
+
+  trackByMetricLabel(_index: number, item: AdminMetricCard): string {
+    return item.label;
+  }
+
+  trackByAttendanceEmployee(_index: number, item: AdminAttendanceItem): number {
+    return item.employeeId;
+  }
+
+  trackByLeaveId(_index: number, item: DashboardLeaveRequestItem): number {
+    return item.id;
+  }
+
+  trackByEmployeeId(_index: number, item: AdminDirectoryEmployee): number {
+    return item.id;
+  }
+
+  openAttendanceDesk(): void {
+    this.router.navigate(['/app/attendance']);
+  }
+
+  openLeaveManagement(): void {
+    this.router.navigate(['/app/attendance/app-leave-management']);
+  }
+
+  openEmployeeAttendance(employeeId: number): void {
+    if (!employeeId) {
+      return;
+    }
+
+    this.router.navigate(['/app/attendance'], {
+      queryParams: {
+        employeeId,
+        month: this.currentMonth,
+        year: this.currentYear,
+      },
     });
   }
 
-  private loadDashboardData(): void {
-    this.apiService.getAdminDashboard().subscribe({
-      next: (data) => {
-        if (!data) {
+  private loadAdminWorkspace(): void {
+    const currentEmployeeId = Number(this.authService.getID() || 0) || 0;
+
+    this.isLoading = true;
+    this.loadError = '';
+
+    forkJoin({
+      employees: this.apiService.getEmployeeList(this.userid).pipe(catchError(() => of([]))),
+      requests: currentEmployeeId ? this.apiService.getAllrequests(currentEmployeeId).pipe(catchError(() => of(null))) : of(null),
+    }).subscribe({
+      next: ({ employees, requests }) => {
+        this.directoryEmployees = this.normalizeDirectoryEmployees(employees as DashboardEmployeeRecord[]);
+        this.pendingLeaveRequests = this.extractPendingLeaveRequests(requests);
+
+        if (!this.directoryEmployees.length) {
+          this.todayAttendance = [];
+          this.isLoading = false;
           return;
         }
 
-        if (data.stats) {
-          this.statCards = data.stats;
-        }
-
-        if (data.chartData) {
-          this.lineChartSource = this.normalizeLineChartSource(data.chartData.lineData);
-          this.doughnutChartSource = this.normalizeDoughnutChartSource(data.chartData.doughnutData);
-          this.applyChartTheme();
-        }
-
-        if (data.activities) {
-          this.recentActivity = data.activities;
-        }
+        this.loadTodayAttendance(this.directoryEmployees);
       },
-      error: (error) => {
-        console.error('Error loading admin dashboard data:', error);
+      error: () => {
+        this.loadError = 'Unable to load the admin dashboard right now.';
+        this.isLoading = false;
       },
     });
   }
 
-  private applyChartTheme(): void {
-    this.chartPalette = this.readChartPalette();
-    this.lineChartData = this.buildLineChartData();
-    this.doughnutChartData = this.buildDoughnutChartData();
-    this.lineChartOptions = this.buildLineChartOptions();
-    this.doughnutChartOptions = this.buildDoughnutChartOptions();
-  }
+  private loadTodayAttendance(employees: AdminDirectoryEmployee[]): void {
+    const attendanceRequests = employees.map((employee) =>
+      this.apiService.getAttendanceDetails(employee.id, this.currentMonth, this.currentYear).pipe(
+        map((response) => this.mapTodayAttendance(employee, response)),
+        catchError(() => of(this.createMissingAttendanceRow(employee)))
+      )
+    );
 
-  private buildLineChartData(): ChartConfiguration<'line'>['data'] {
-    const accentColors = [
-      this.chartPalette.primary,
-      this.chartPalette.secondary,
-      this.chartPalette.accent,
-    ];
-
-    return {
-      labels: [...(this.lineChartSource.labels || [])],
-      datasets: this.lineChartSource.datasets.map((dataset, index) => {
-        const strokeColor = accentColors[index % accentColors.length];
-
-        return {
-          ...dataset,
-          borderColor: strokeColor,
-          backgroundColor: (context: any) => this.createLineGradient(context.chart, strokeColor),
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointHitRadius: 18,
-          pointBackgroundColor: strokeColor,
-          pointBorderColor: this.chartPalette.surface,
-          pointHoverBorderColor: this.chartPalette.surface,
-          pointHoverBorderWidth: 3,
-          borderWidth: 3,
-          fill: true,
-          tension: 0.42,
-          cubicInterpolationMode: 'monotone',
-        };
-      }),
-    };
-  }
-
-  private buildDoughnutChartData(): ChartConfiguration<'doughnut'>['data'] {
-    const values = this.getDoughnutValues();
-    const colors = [
-      this.chartPalette.primary,
-      this.chartPalette.secondary,
-      this.chartPalette.accent,
-      this.withAlpha(this.chartPalette.primary, 0.45),
-    ];
-
-    return {
-      labels: [...(this.doughnutChartSource.labels || [])],
-      datasets: [
-        {
-          data: values,
-          backgroundColor: values.map((_, index) => colors[index % colors.length]),
-          hoverBackgroundColor: values.map((_, index) => colors[index % colors.length]),
-          borderColor: this.chartPalette.surface,
-          hoverBorderColor: this.chartPalette.surface,
-          borderWidth: 4,
-          hoverBorderWidth: 4,
-          hoverOffset: 10,
-          spacing: 2,
+    forkJoin(attendanceRequests)
+      .pipe(finalize(() => {
+        this.isLoading = false;
+      }))
+      .subscribe({
+        next: (rows) => {
+          this.todayAttendance = rows.sort((left, right) => {
+            const tonePriority = this.getAttendanceTonePriority(left.tone) - this.getAttendanceTonePriority(right.tone);
+            return tonePriority !== 0
+              ? tonePriority
+              : left.employeeName.localeCompare(right.employeeName);
+          });
         },
-      ],
-    };
-  }
-
-  private buildLineChartOptions(): ChartOptions<'line'> {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
-      animation: {
-        duration: 1300,
-        easing: 'easeOutQuart',
-      },
-      animations: {
-        x: {
-          duration: 900,
-          easing: 'easeOutCubic',
+        error: () => {
+          this.todayAttendance = [];
         },
-        y: {
-          duration: 1100,
-          easing: 'easeOutQuart',
-        },
-      },
-      plugins: {
-        legend: {
-          position: 'top',
-          align: 'start',
-          labels: {
-            color: this.chartPalette.textPrimary,
-            usePointStyle: true,
-            pointStyle: 'circle',
-            boxWidth: 10,
-            boxHeight: 10,
-            padding: 18,
-            font: {
-              size: 12,
-              weight: 600,
-            },
-          },
-        },
-        tooltip: {
-          backgroundColor: this.withAlpha(this.chartPalette.surfaceStrong, 0.96),
-          titleColor: this.chartPalette.textPrimary,
-          bodyColor: this.chartPalette.textSecondary,
-          borderColor: this.withAlpha(this.chartPalette.borderSoft, 0.92),
-          borderWidth: 1,
-          padding: 12,
-          displayColors: true,
-          boxPadding: 6,
-        },
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            color: this.chartPalette.textMuted,
-            font: {
-              size: 11,
-              weight: 600,
-            },
-          },
-        },
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: this.withAlpha(this.chartPalette.borderSoft, 0.85),
-          },
-          ticks: {
-            color: this.chartPalette.textMuted,
-            padding: 10,
-            font: {
-              size: 11,
-            },
-          },
-        },
-      },
-    };
-  }
-
-  private buildDoughnutChartOptions(): ChartOptions<'doughnut'> {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '68%',
-      animation: {
-        duration: 1500,
-        easing: 'easeOutExpo',
-      },
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          backgroundColor: this.withAlpha(this.chartPalette.surfaceStrong, 0.96),
-          titleColor: this.chartPalette.textPrimary,
-          bodyColor: this.chartPalette.textSecondary,
-          borderColor: this.withAlpha(this.chartPalette.borderSoft, 0.92),
-          borderWidth: 1,
-          padding: 12,
-          displayColors: true,
-        },
-      },
-    };
-  }
-
-  private getWeeklyTotals(): number[] {
-    const labelsCount = (this.lineChartSource.labels || []).length;
-    const totals = Array.from({ length: labelsCount }, () => 0);
-
-    this.lineChartSource.datasets.forEach((dataset) => {
-      dataset.data.forEach((value, index) => {
-        totals[index] += Number(value) || 0;
       });
+  }
+
+  private normalizeDirectoryEmployees(employees: DashboardEmployeeRecord[]): AdminDirectoryEmployee[] {
+    return (employees || [])
+      .filter((employee) => employee && employee.isactive !== false && !employee.isdelete)
+      .map((employee) => ({
+        id: Number(employee.id || 0) || 0,
+        name: this.getEmployeeName(employee),
+        email: `${employee.email || employee.alternate_email || 'Not available'}`.trim() || 'Not available',
+        mobile: `${employee.mobile || 'Not available'}`.trim() || 'Not available',
+        initials: this.getInitials(this.getEmployeeName(employee)),
+        department: `${employee.department_name || ''}`.trim() || 'Not assigned',
+        position: `${employee.position || ''}`.trim() || 'Not assigned',
+        biometricId: `${employee.attendanceid || employee.id || '--'}`,
+        baseSalary: this.formatCurrency(this.readRecordValue(employee, ['base_salary', 'baseSalary', 'salary', 'monthly_salary', 'fixed_salary'])),
+        joinDate: this.formatDisplayDate(employee.joining_date),
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  private mapTodayAttendance(employee: AdminDirectoryEmployee, response: unknown): AdminAttendanceItem {
+    const todayKey = this.toIsoDate(this.today);
+    const todayRecord = this.extractAttendanceList(response)
+      .find((item) => this.resolveDateKey(item) === todayKey);
+
+    if (!todayRecord) {
+      return this.createMissingAttendanceRow(employee);
+    }
+
+    const checkIn = this.formatTimeOnly(todayRecord.in_time ?? todayRecord.inTime);
+    const checkOut = this.formatTimeOnly(todayRecord.out_time ?? todayRecord.outTime);
+    const statusLabel = this.resolveAttendanceStatusLabel(todayRecord, checkIn, checkOut);
+    const tone = this.resolveAttendanceTone(todayRecord, statusLabel, checkIn, checkOut);
+    const workingHours = this.resolveWorkingHours(todayRecord.working_hours ?? todayRecord.workingHours ?? todayRecord.total_hours ?? todayRecord.totalHours);
+
+    return {
+      employeeId: employee.id,
+      employeeName: employee.name,
+      employeeCode: employee.biometricId,
+      department: employee.department,
+      initials: employee.initials,
+      checkIn,
+      checkOut,
+      workingHours,
+      statusLabel,
+      tone,
+      note: this.buildAttendanceNote(tone, checkIn, checkOut),
+    };
+  }
+
+  private createMissingAttendanceRow(employee: AdminDirectoryEmployee): AdminAttendanceItem {
+    return {
+      employeeId: employee.id,
+      employeeName: employee.name,
+      employeeCode: employee.biometricId,
+      department: employee.department,
+      initials: employee.initials,
+      checkIn: '--',
+      checkOut: '--',
+      workingHours: '0h 0m',
+      statusLabel: 'Absent',
+      tone: 'absent',
+      note: 'No punch recorded for today',
+    };
+  }
+
+  private extractAttendanceList(response: unknown): DashboardAttendanceApiItem[] {
+    if (Array.isArray(response)) {
+      return response as DashboardAttendanceApiItem[];
+    }
+
+    if (Array.isArray((response as { data?: unknown[] })?.data)) {
+      return (response as { data: DashboardAttendanceApiItem[] }).data;
+    }
+
+    if (Array.isArray((response as { result?: unknown[] })?.result)) {
+      return (response as { result: DashboardAttendanceApiItem[] }).result;
+    }
+
+    if (Array.isArray((response as { records?: unknown[] })?.records)) {
+      return (response as { records: DashboardAttendanceApiItem[] }).records;
+    }
+
+    return [];
+  }
+
+  private extractPendingLeaveRequests(response: unknown): DashboardLeaveRequestItem[] {
+    const source = (response as DashboardAllRequestsResponse)?.data && !Array.isArray((response as DashboardAllRequestsResponse).data)
+      ? (response as DashboardAllRequestsResponse).data
+      : (response as DashboardAllRequestsResponse)?.result && !Array.isArray((response as DashboardAllRequestsResponse).result)
+        ? (response as DashboardAllRequestsResponse).result
+        : response as DashboardAllRequestsResponse | null;
+
+    const pendingItems = Array.isArray(source?.leave?.pending)
+      ? source.leave.pending
+      : [];
+
+    return pendingItems
+      .map((item) => this.mapPendingLeaveRequest(item))
+      .sort((left, right) => right.id - left.id);
+  }
+
+  private mapPendingLeaveRequest(item: DashboardPendingLeaveItem): DashboardLeaveRequestItem {
+    const employeeId = Number(item.empid || 0) || 0;
+    const employeeName = `${item.employee_name || `Employee #${employeeId || '--'}`}`.trim();
+    const leaveType = this.resolveLeaveTypeLabel(item);
+
+    return {
+      id: Number(item.id || 0) || 0,
+      employeeId,
+      employeeName,
+      employeeCode: this.buildEmployeeCode(employeeId),
+      initials: this.getInitials(employeeName),
+      leaveType,
+      dateRange: this.buildLeaveDateRange(item.fromdate, item.todate),
+      duration: this.formatLeaveDuration(item.totaldays),
+      reason: `${item.reason || ''}`.trim() || `${leaveType} request`,
+    };
+  }
+
+  private resolveDateKey(item: DashboardAttendanceApiItem): string {
+    const rawValue = `${item.date || item.in_time || item.inTime || item.out_time || item.outTime || ''}`.trim();
+    if (!rawValue) {
+      return '';
+    }
+
+    const isoMatch = rawValue.match(/\d{4}-\d{2}-\d{2}/);
+    if (isoMatch) {
+      return isoMatch[0];
+    }
+
+    const parsed = new Date(rawValue);
+    return Number.isNaN(parsed.getTime()) ? '' : this.toIsoDate(parsed);
+  }
+
+  private resolveAttendanceStatusLabel(
+    item: DashboardAttendanceApiItem,
+    checkIn: string,
+    checkOut: string
+  ): string {
+    const rawStatus = [
+      item.attendance_status,
+      item.attendanceStatus,
+      item.day_status,
+      item.dayStatus,
+      item.status,
+      item.leave_status,
+    ].map((value) => `${value || ''}`.trim()).find(Boolean);
+
+    if (rawStatus) {
+      return this.formatLabel(rawStatus);
+    }
+
+    if (checkIn !== '--' || checkOut !== '--') {
+      return 'Present';
+    }
+
+    return 'Absent';
+  }
+
+  private resolveAttendanceTone(
+    item: DashboardAttendanceApiItem,
+    statusLabel: string,
+    checkIn: string,
+    checkOut: string
+  ): AttendanceTone {
+    if (this.toBooleanValue(item.is_holiday)) {
+      return 'holiday';
+    }
+
+    if (this.toBooleanValue(item.is_weekoff)) {
+      return 'weekend';
+    }
+
+    const normalizedStatus = statusLabel.trim().toLowerCase();
+
+    if (normalizedStatus.includes('half')) {
+      return 'half-day';
+    }
+
+    if (normalizedStatus.includes('leave')) {
+      return 'leave';
+    }
+
+    if (normalizedStatus.includes('late')) {
+      return 'late';
+    }
+
+    if (normalizedStatus.includes('present')) {
+      return 'present';
+    }
+
+    if (normalizedStatus.includes('absent')) {
+      return 'absent';
+    }
+
+    if (checkIn === '--' && checkOut === '--') {
+      return 'absent';
+    }
+
+    return 'neutral';
+  }
+
+  private resolveWorkingHours(value: string | null | undefined): string {
+    return this.formatHourLabel(value) || '0h 0m';
+  }
+
+  private buildAttendanceNote(tone: AttendanceTone, checkIn: string, checkOut: string): string {
+    switch (tone) {
+      case 'present':
+        return `Checked in at ${checkIn}`;
+      case 'late':
+        return 'Late punch needs review';
+      case 'leave':
+        return 'Marked on approved leave';
+      case 'half-day':
+        return 'Half day attendance recorded';
+      case 'holiday':
+        return 'Holiday schedule';
+      case 'weekend':
+        return 'Weekend off';
+      case 'absent':
+        return checkIn === '--' && checkOut === '--' ? 'No punch recorded for today' : 'Attendance incomplete';
+      default:
+        return 'Attendance captured';
+    }
+  }
+
+  private buildLeaveDateRange(fromDate: string | null | undefined, toDate: string | null | undefined): string {
+    const start = this.formatDisplayDate(fromDate);
+    const end = this.formatDisplayDate(toDate);
+
+    if (start === '--' && end === '--') {
+      return 'Date not available';
+    }
+
+    if (start === end) {
+      return start;
+    }
+
+    return `${start} - ${end}`;
+  }
+
+  private formatLeaveDuration(value: number | string | null | undefined): string {
+    const totalDays = Number(value);
+    if (!Number.isFinite(totalDays) || totalDays <= 0) {
+      return 'Duration not available';
+    }
+
+    return `${totalDays} day${totalDays === 1 ? '' : 's'}`;
+  }
+
+  private resolveLeaveTypeLabel(item: DashboardPendingLeaveItem): string {
+    const directLabel = [
+      item.leave_type,
+      item.leaveType,
+      item.leave_type_label,
+    ].map((value) => `${value || ''}`.trim()).find(Boolean);
+
+    if (directLabel) {
+      return this.formatLabel(directLabel);
+    }
+
+    const leaveTypeId = Number(item.leave_type_id || 0);
+    switch (leaveTypeId) {
+      case 1:
+        return 'Casual Leave';
+      case 2:
+        return 'Sick Leave';
+      case 3:
+        return 'Comp Off';
+      case 4:
+        return 'Earned Leave';
+      default:
+        return 'Leave';
+    }
+  }
+
+  private getAttendanceTonePriority(tone: AttendanceTone): number {
+    switch (tone) {
+      case 'present':
+        return 0;
+      case 'late':
+        return 1;
+      case 'leave':
+        return 2;
+      case 'half-day':
+        return 3;
+      case 'absent':
+        return 4;
+      case 'weekend':
+        return 5;
+      case 'holiday':
+        return 6;
+      default:
+        return 7;
+    }
+  }
+
+  private formatTimeOnly(value: string | null | undefined): string {
+    const rawValue = `${value || ''}`.trim();
+    if (!rawValue) {
+      return '--';
+    }
+
+    const timeMatch = rawValue.match(/(\d{1,2}):(\d{2})(?::\d{2})?/);
+    if (timeMatch) {
+      const hours = Number(timeMatch[1]);
+      const minutes = timeMatch[2];
+      const normalizedHours = Number.isFinite(hours) ? `${hours}`.padStart(2, '0') : timeMatch[1];
+      return `${normalizedHours}:${minutes}`;
+    }
+
+    const parsed = new Date(rawValue);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    }
+
+    return rawValue;
+  }
+
+  private formatHourLabel(value: string | null | undefined): string {
+    const rawValue = `${value || ''}`.trim();
+    if (!rawValue) {
+      return '';
+    }
+
+    if (/^\d+(\.\d+)?$/.test(rawValue)) {
+      const numericValue = Number(rawValue);
+      if (!Number.isFinite(numericValue)) {
+        return '';
+      }
+
+      const totalMinutes = Math.round(numericValue * 60);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${hours}h ${minutes}m`;
+    }
+
+    const parts = rawValue.split(':').map((item) => Number(item) || 0);
+    if (parts.length >= 2) {
+      const hours = parts[0];
+      const minutes = parts[1];
+      return `${hours}h ${minutes}m`;
+    }
+
+    return rawValue;
+  }
+
+  private formatDisplayDate(value: string | null | undefined): string {
+    const rawValue = `${value || ''}`.trim();
+    if (!rawValue) {
+      return '--';
+    }
+
+    const isoMatch = rawValue.match(/\d{4}-\d{2}-\d{2}/);
+    const parsed = new Date(isoMatch ? isoMatch[0] : rawValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return rawValue;
+    }
+
+    return parsed.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
-
-    return totals;
   }
 
-  private getDoughnutValues(): number[] {
-    const dataset = this.doughnutChartSource.datasets[0];
-    return Array.isArray(dataset?.data)
-      ? dataset.data.map((value) => Number(value) || 0)
-      : [];
-  }
-
-  private normalizeLineChartSource(source: any): ChartConfiguration<'line'>['data'] {
-    const fallback = this.cloneLineChartSource(this.defaultLineChartSource);
-    const labels = Array.isArray(source?.labels) && source.labels.length
-      ? source.labels.map((label: any) => `${label}`)
-      : [...(fallback.labels || [])];
-    const rawDatasets = Array.isArray(source?.datasets) && source.datasets.length
-      ? source.datasets
-      : fallback.datasets;
-
-    return {
-      labels,
-      datasets: rawDatasets.map((dataset: any, index: number) => ({
-        label: `${dataset?.label || fallback.datasets[index]?.label || `Series ${index + 1}`}`,
-        data: this.normalizeNumericSeries(
-          Array.isArray(dataset?.data) ? dataset.data : fallback.datasets[index]?.data,
-          labels.length
-        ),
-      })),
-    };
-  }
-
-  private normalizeDoughnutChartSource(source: any): ChartConfiguration<'doughnut'>['data'] {
-    const fallback = this.cloneDoughnutChartSource(this.defaultDoughnutChartSource);
-    const labels = Array.isArray(source?.labels) && source.labels.length
-      ? source.labels.map((label: any) => `${label}`)
-      : [...(fallback.labels || [])];
-    const datasetValues = Array.isArray(source?.datasets) && source.datasets[0]?.data
-      ? source.datasets[0].data
-      : Array.isArray(source?.data)
-        ? source.data
-        : fallback.datasets[0].data;
-
-    return {
-      labels,
-      datasets: [
-        {
-          data: this.normalizeNumericSeries(datasetValues, labels.length),
-        },
-      ],
-    };
-  }
-
-  private normalizeNumericSeries(values: any, expectedLength: number): number[] {
-    const normalized = Array.isArray(values)
-      ? values.map((value) => Number(value) || 0)
-      : [];
-
-    if (normalized.length >= expectedLength) {
-      return normalized.slice(0, expectedLength);
+  private formatCurrency(value: unknown): string {
+    const amount = Number(value);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return 'Not set';
     }
 
-    return [...normalized, ...Array.from({ length: expectedLength - normalized.length }, () => 0)];
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amount);
   }
 
-  private cloneLineChartSource(source: ChartConfiguration<'line'>['data']): ChartConfiguration<'line'>['data'] {
-    return {
-      labels: [...(source.labels || [])],
-      datasets: source.datasets.map((dataset) => ({
-        label: `${dataset.label || ''}`,
-        data: Array.isArray(dataset.data) ? [...dataset.data] : [],
-      })),
-    };
+  private getEmployeeName(employee: DashboardEmployeeRecord): string {
+    return `${employee.firstname || ''} ${employee.lastname || ''}`.trim()
+      || `${employee.username || ''}`.trim()
+      || `${employee.email || ''}`.trim()
+      || `Employee ${employee.id || ''}`.trim();
   }
 
-  private cloneDoughnutChartSource(source: ChartConfiguration<'doughnut'>['data']): ChartConfiguration<'doughnut'>['data'] {
-    return {
-      labels: [...(source.labels || [])],
-      datasets: source.datasets.map((dataset) => ({
-        data: Array.isArray(dataset.data) ? [...dataset.data] : [],
-      })),
-    };
+  private buildEmployeeCode(employeeId: number): string {
+    return employeeId ? `EMP${`${employeeId}`.padStart(3, '0')}` : 'EMP---';
   }
 
-  private readChartPalette(): ChartPalette {
-    const styles = getComputedStyle(this.document.documentElement);
-
-    return {
-      primary: this.readCssVariable(styles, '--theme-primary', '#2e4fae'),
-      secondary: this.readCssVariable(styles, '--theme-secondary', '#33b4b2'),
-      accent: this.readCssVariable(styles, '--theme-accent', '#59dee7'),
-      textPrimary: this.readCssVariable(styles, '--theme-text-primary', '#122a4d'),
-      textSecondary: this.readCssVariable(styles, '--theme-text-secondary', '#445f86'),
-      textMuted: this.readCssVariable(styles, '--theme-text-muted', '#5d7499'),
-      surface: this.readCssVariable(styles, '--theme-surface', '#ffffff'),
-      surfaceStrong: this.readCssVariable(styles, '--theme-surface-strong', '#f8fbff'),
-      borderSoft: this.readCssVariable(styles, '--theme-border-soft', 'rgba(18, 57, 110, 0.16)'),
-    };
-  }
-
-  private readCssVariable(styles: CSSStyleDeclaration, name: string, fallback: string): string {
-    const value = styles.getPropertyValue(name).trim();
-    return value || fallback;
-  }
-
-  private createLineGradient(chart: any, color: string): CanvasGradient | string {
-    const chartArea = chart?.chartArea;
-    if (!chartArea) {
-      return this.withAlpha(color, 0.24);
+  private getInitials(value: string): string {
+    const segments = `${value || ''}`.trim().split(/\s+/).filter(Boolean);
+    if (!segments.length) {
+      return 'EM';
     }
 
-    const gradient = chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, this.withAlpha(color, 0.34));
-    gradient.addColorStop(0.52, this.withAlpha(color, 0.12));
-    gradient.addColorStop(1, this.withAlpha(color, 0.02));
-    return gradient;
+    return segments.slice(0, 2).map((segment) => segment[0]?.toUpperCase() || '').join('') || 'EM';
   }
 
-  private withAlpha(color: string, alpha: number): string {
-    const trimmed = color.trim();
-
-    if (trimmed.startsWith('#')) {
-      const hex = trimmed.slice(1);
-      const normalized = hex.length === 3
-        ? hex.split('').map((part) => part + part).join('')
-        : hex.slice(0, 6);
-
-      const red = parseInt(normalized.slice(0, 2), 16);
-      const green = parseInt(normalized.slice(2, 4), 16);
-      const blue = parseInt(normalized.slice(4, 6), 16);
-
-      return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+  private readRecordValue(record: Record<string, unknown>, keys: string[]): unknown {
+    for (const key of keys) {
+      const value = record[key];
+      if (value !== null && value !== undefined && `${value}`.trim() !== '') {
+        return value;
+      }
     }
 
-    const rgbMatch = trimmed.match(/rgba?\(([^)]+)\)/);
-    if (rgbMatch) {
-      const [red = '0', green = '0', blue = '0'] = rgbMatch[1].split(',').map((part) => part.trim());
-      return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    return null;
+  }
+
+  private formatLabel(value: string): string {
+    return `${value || ''}`
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  private toBooleanValue(value: boolean | string | number | null | undefined): boolean {
+    if (typeof value === 'boolean') {
+      return value;
     }
 
-    return trimmed;
+    if (typeof value === 'number') {
+      return value === 1;
+    }
+
+    const normalizedValue = `${value || ''}`.trim().toLowerCase();
+    return normalizedValue === 'true' || normalizedValue === 'yes' || normalizedValue === '1';
+  }
+
+  private toIsoDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

@@ -1,213 +1,131 @@
 :host {
-  --leave-dashboard-border: color-mix(in srgb, var(--theme-border-soft) 88%, transparent);
-  --leave-dashboard-shadow: 0 18px 42px color-mix(in srgb, var(--theme-shadow-soft) 18%, transparent);
-  --leave-dashboard-shadow-strong: 0 28px 58px color-mix(in srgb, var(--theme-shadow-strong) 18%, transparent);
-  --leave-dashboard-primary: var(--theme-primary);
-  --leave-dashboard-success: #16a34a;
-  --leave-dashboard-warning: #d97706;
-  --leave-dashboard-danger: #dc2626;
-  --leave-dashboard-info: #2563eb;
+  --attendance-border: color-mix(in srgb, var(--theme-border-soft) 82%, transparent);
+  --attendance-shadow: 0 26px 48px color-mix(in srgb, var(--theme-shadow-soft) 14%, transparent);
+  --attendance-shadow-soft: 0 14px 28px color-mix(in srgb, var(--theme-shadow-soft) 10%, transparent);
+  --attendance-present: #17915f;
+  --attendance-late: #e88d1a;
+  --attendance-absent: #d94242;
+  --attendance-leave: #2d68f1;
+  --attendance-half-day: #7856d6;
+  --attendance-holiday: #d4567c;
+  --attendance-neutral: #5f6c82;
   display: block;
 }
 
-.leave-dashboard {
+.attendance-page {
   display: grid;
-  gap: clamp(1rem, 2vw, 1.5rem);
+  gap: 1.2rem;
 }
 
-.leave-dashboard__hero,
-.leave-panel,
-.leave-stat-card,
-.leave-request-card,
-.leave-balance-card {
-  border: 1px solid var(--leave-dashboard-border);
-  box-shadow: var(--leave-dashboard-shadow);
+.attendance-hero,
+.attendance-panel,
+.attendance-summary-card {
+  border: 1px solid var(--attendance-border);
+  border-radius: 28px;
+  box-shadow: var(--attendance-shadow);
 }
 
-.leave-dashboard__hero {
+.attendance-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.5rem;
-  align-items: center;
-  padding: 1.9rem;
-  border-radius: 32px;
-  color: #ffffff;
-  overflow: hidden;
-  background:var(--leave-dashboard-primary);
-    // radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 28%),
-    // radial-gradient(circle at bottom left, rgba(94, 234, 212, 0.18), transparent 34%),
-    // linear-gradient(135deg, color-mix(in srgb, var(--leave-dashboard-primary) 74%, #0f766e 26%), #0f766e 100%);
+  align-items: flex-start;
+  padding: 1.55rem 1.6rem;
+  background: color-mix(in srgb, var(--theme-surface) 98%, #ffffff 2%);
+  color: var(--theme-text-primary);
 }
 
-.leave-dashboard__hero-copy {
+.attendance-hero__copy {
   display: grid;
-  gap: 0.35rem;
-  min-width: 0;
+  gap: 0.55rem;
 }
 
-.leave-dashboard__eyebrow,
-.leave-panel__eyebrow {
+.attendance-hero__eyebrow {
   margin: 0;
-  font-size: 0.78rem;
+  color: var(--theme-primary);
+  font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.leave-dashboard__eyebrow,
-.leave-panel__eyebrow {
-  color: color-mix(in srgb, var(--theme-primary) 88%, #ffffff 12%);
-}
-
-.leave-dashboard__hero .leave-dashboard__eyebrow {
-  color: rgba(255, 255, 255, 0.84);
-}
-
-.leave-dashboard__hero-copy h1,
-.leave-panel__header h2,
-.leave-panel__request-header h2,
-.leave-request-card h3,
-.leave-balance-card h3,
-.leave-quick-action-card h3,
-.leave-empty-state h3 {
+.attendance-hero h1,
+.attendance-panel__header h2 {
   margin: 0;
-  color: var(--theme-text-primary);
   letter-spacing: -0.03em;
 }
 
-.leave-dashboard__hero-copy h1 {
-  color: #ffffff;
-  font-size: clamp(2rem, 3vw, 3rem);
-  line-height: 1.05;
+.attendance-hero h1 {
+  color: var(--theme-primary);
+  font-size: clamp(1.4rem,2vw,1.8rem);
 }
 
-.leave-dashboard__hero-copy p:last-child,
-.leave-panel__header p,
-.leave-panel__request-header p,
-.leave-balance-card p,
-.leave-quick-action-card p,
-.leave-empty-state p {
+.attendance-hero p:last-child {
   margin: 0;
-  color: var(--theme-text-muted);
+  max-width: 64ch;
+  color: var(--theme-text-secondary);
   line-height: 1.6;
 }
 
-.leave-dashboard__hero-copy p:last-child {
-  margin-top: 0.8rem;
-  max-width: 62ch;
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.leave-dashboard__hero-actions {
+.attendance-hero__meta {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.85rem;
+  gap: 0.7rem;
+  margin-top: 0.25rem;
 }
 
-.leave-dashboard__primary-action,
-.leave-request-card__cta {
-  background: #ffffff !important;
-  color: var(--leave-dashboard-primary) !important;
+.attendance-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 34px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
   font-weight: 700;
 }
 
-.leave-dashboard__secondary-action {
-  border-color: rgba(255, 255, 255, 0.28) !important;
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.08) !important;
+.attendance-chip .mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
 }
 
-.leave-dashboard__stats-grid {
+.attendance-chip--light {
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 14%, var(--theme-border-soft));
+  background: color-mix(in srgb, var(--theme-primary) 8%, #ffffff 92%);
+  color: var(--theme-primary);
+}
+
+.attendance-hero__actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
+  justify-items: end;
+  gap: 0.8rem;
 }
 
-.leave-stat-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.95rem;
-  padding: 1.2rem;
-  border-radius: 24px;
-  background: color-mix(in srgb, var(--theme-surface) 97%, transparent);
-}
-
-.leave-stat-card__icon,
-.leave-quick-action-card__icon {
-  display: inline-grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 18px;
-}
-
-.leave-stat-card__copy {
-  display: grid;
-  gap: 0.2rem;
-}
-
-.leave-stat-card__copy span,
-.leave-balance-card__top p,
-.leave-balance-card__meta,
-.leave-request-card__detail span,
-.leave-request-card__identity span {
-  color: var(--theme-text-muted);
-  font-size: 0.82rem;
+.attendance-hero__date {
+  color: var(--theme-text-secondary);
+  font-size: 0.85rem;
   font-weight: 700;
 }
 
-.leave-stat-card__copy strong,
-.leave-balance-card__top strong {
-  color: var(--theme-text-primary);
-  font-size: 1.65rem;
-  font-weight: 800;
+.attendance-hero__button {
+  background: #fff !important;
+  color: var(--theme-primary) !important;
+  font-weight: 700;
 }
 
-.leave-stat-card__copy small {
-  color: var(--theme-text-muted);
+.attendance-panel {
+  padding: 1.25rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--theme-surface) 98%, rgba(255, 255, 255, 0.04)), color-mix(in srgb, var(--theme-surface) 100%, transparent));
 }
 
-.leave-stat-card--primary .leave-stat-card__icon {
-  background: color-mix(in srgb, var(--leave-dashboard-primary) 12%, transparent);
-  color: var(--leave-dashboard-primary);
+.attendance-panel--filters {
+  box-shadow: var(--attendance-shadow-soft);
 }
 
-.leave-stat-card--success .leave-stat-card__icon {
-  background: color-mix(in srgb, var(--leave-dashboard-success) 12%, transparent);
-  color: var(--leave-dashboard-success);
-}
-
-.leave-stat-card--warning .leave-stat-card__icon {
-  background: color-mix(in srgb, var(--leave-dashboard-warning) 14%, transparent);
-  color: var(--leave-dashboard-warning);
-}
-
-.leave-stat-card--danger .leave-stat-card__icon {
-  background: color-mix(in srgb, var(--leave-dashboard-danger) 12%, transparent);
-  color: var(--leave-dashboard-danger);
-}
-
-.leave-stat-card--info .leave-stat-card__icon,
-.leave-balance-card--info .leave-balance-card__meter span {
-  background: color-mix(in srgb, var(--leave-dashboard-info) 12%, transparent);
-  color: var(--leave-dashboard-info);
-}
-
-.leave-dashboard__content-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.95fr);
-  gap: 1rem;
-}
-
-.leave-panel {
-  padding: 1.35rem;
-  border-radius: 28px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--theme-surface) 98%, transparent), color-mix(in srgb, var(--theme-surface-strong) 100%, transparent));
-}
-
-.leave-panel__header,
-.leave-panel__request-header {
+.attendance-panel__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -215,386 +133,798 @@
   margin-bottom: 1rem;
 }
 
-.leave-panel__header--compact {
-  margin-bottom: 0.9rem;
+.attendance-panel__header--stacked {
+  justify-content: flex-start;
 }
 
-.leave-filter-field {
-  min-width: 180px;
-  flex: 1 1 180px;
+.attendance-panel__header h2 {
+  color: var(--theme-text-primary);
+  font-size: 1.2rem;
 }
 
-.leave-panel__filters {
+.attendance-panel__header p {
+  margin: 0.28rem 0 0;
+  color: var(--theme-text-muted);
+  line-height: 1.55;  
+}
+
+.attendance-panel__header--filters {
+  margin-bottom: 1.15rem;
+}
+
+.attendance-panel__stamp {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-primary) 10%, #fff 90%);
+  color: var(--theme-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.attendance-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 0.95rem;
+  align-items: start;
+}
+
+.attendance-refresh {
+  min-height: 56px;
+  border-radius: 18px !important;
+  background: var(--theme-primary) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+:host ::ng-deep .attendance-employee-autocomplete .mat-mdc-option .mdc-list-item__primary-text {
+  width: 100%;
+}
+
+.attendance-employee-option {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+}
+
+.attendance-employee-option strong {
+  color: var(--theme-text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.attendance-employee-option small {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.attendance-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.95rem;
+}
+
+.attendance-summary-card {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.leave-balance-list,
-.leave-request-list {
-  max-height: min(540px, 65vh);
-  overflow-y: auto;
-  padding-right: 0.35rem;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 1.05rem 1.1rem;
+  background: color-mix(in srgb, var(--theme-surface) 99%, transparent);
+  box-shadow: var(--attendance-shadow-soft);
 }
 
-.leave-request-list,
-.leave-balance-list,
-.leave-quick-action-list,
-.leave-dashboard__side-column {
+.attendance-summary-card__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 18px;
+  flex-shrink: 0;
+}
+
+.attendance-summary-card__icon .mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.attendance-summary-card__copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.attendance-summary-card__copy small {
+  color: var(--theme-text-muted);
+  font-size: 0.77rem;
+  font-weight: 700;
+}
+
+.attendance-summary-card__copy strong {
+  color: var(--theme-text-primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.attendance-summary-card--present .attendance-summary-card__icon {
+  background: color-mix(in srgb, var(--attendance-present) 12%, #fff 88%);
+  color: var(--attendance-present);
+}
+
+.attendance-summary-card--late .attendance-summary-card__icon {
+  background: color-mix(in srgb, var(--attendance-late) 12%, #fff 88%);
+  color: var(--attendance-late);
+}
+
+.attendance-summary-card--absent .attendance-summary-card__icon {
+  background: color-mix(in srgb, var(--attendance-absent) 12%, #fff 88%);
+  color: var(--attendance-absent);
+}
+
+.attendance-summary-card--leave .attendance-summary-card__icon,
+.attendance-summary-card--half-day .attendance-summary-card__icon {
+  background: color-mix(in srgb, var(--attendance-leave) 12%, #fff 88%);
+  color: var(--attendance-leave);
+}
+
+.attendance-summary-card--holiday .attendance-summary-card__icon {
+  background: color-mix(in srgb, var(--attendance-holiday) 12%, #fff 88%);
+  color: var(--attendance-holiday);
+}
+
+.attendance-summary-card--neutral .attendance-summary-card__icon {
+  background: color-mix(in srgb, var(--attendance-neutral) 12%, #fff 88%);
+  color: var(--attendance-neutral);
+}
+
+.attendance-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.8fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.attendance-layout__side {
   display: grid;
   gap: 1rem;
-
 }
 
-.leave-request-card,
-.leave-balance-card {
-  padding: 1.1rem 1rem;
+.attendance-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  padding: 2rem 1rem;
+  color: var(--theme-text-muted);
+  text-align: center;
+}
+
+.attendance-state .mat-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+}
+
+.attendance-state p {
+  margin: 0;
+}
+
+.attendance-state--error {
+  color: var(--attendance-absent);
+}
+
+.attendance-table {
+  display: grid;
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.attendance-table__body {
+  overflow-y: auto;
+  max-height: 52rem;
+}
+
+.attendance-table__head,
+.attendance-table__row {
+  display: grid;
+  grid-template-columns:
+    minmax(110px, 0.95fr)
+    minmax(160px, 1.2fr)
+    minmax(120px, 0.95fr)
+    minmax(92px, 0.75fr)
+    minmax(92px, 0.75fr)
+    minmax(104px, 0.82fr)
+    minmax(96px, 0.78fr)
+    minmax(110px, 0.88fr)
+    minmax(130px, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  padding: 1rem 1.05rem;
+}
+
+.attendance-table__head {
+  background: color-mix(in srgb, var(--theme-surface-strong) 92%, transparent);
+  color: var(--theme-text-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.attendance-table__row {
+  width: 100%;
+  border-top: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
+  background: color-mix(in srgb, var(--theme-surface) 99%, transparent);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.attendance-table__row:nth-child(even) {
+  background: color-mix(in srgb, var(--theme-primary) 2.5%, var(--theme-surface));
+}
+
+.attendance-table__row:hover,
+.attendance-table__row:focus-visible,
+.attendance-table__row--active {
+  background: color-mix(in srgb, var(--theme-primary) 7%, var(--theme-surface));
+  outline: none;
+}
+
+.attendance-table__cell {
+  min-width: 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.attendance-table__cell strong {
+  display: block;
+  color: var(--theme-text-primary);
+  font-weight: 800;
+}
+
+.attendance-table__cell small {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--theme-text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.attendance-table__cell--date strong {
+  font-size: 0.95rem;
+}
+
+.attendance-table__cell--strong {
+  color: var(--theme-text-primary);
+}
+
+.attendance-table__cell--accent {
+  color: var(--theme-primary);
+}
+
+.attendance-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.attendance-pill--present {
+  background: color-mix(in srgb, var(--attendance-present) 12%, transparent);
+  color: var(--attendance-present);
+}
+
+.attendance-pill--late {
+  background: color-mix(in srgb, var(--attendance-late) 14%, transparent);
+  color: var(--attendance-late);
+}
+
+.attendance-pill--absent {
+  background: color-mix(in srgb, var(--attendance-absent) 12%, transparent);
+  color: var(--attendance-absent);
+}
+
+.attendance-pill--leave,
+.attendance-pill--half-day {
+  background: color-mix(in srgb, var(--attendance-leave) 12%, transparent);
+  color: var(--attendance-leave);
+}
+
+.attendance-pill--weekend,
+.attendance-pill--holiday {
+  background: color-mix(in srgb, var(--attendance-holiday) 12%, transparent);
+  color: var(--attendance-holiday);
+}
+
+.attendance-pill--neutral {
+  background: color-mix(in srgb, var(--attendance-neutral) 12%, transparent);
+  color: var(--attendance-neutral);
+}
+
+.attendance-pill--thumb {
+  justify-content: flex-start;
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+
+.attendance-snapshot {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.attendance-snapshot article,
+.attendance-insight,
+.attendance-breakdown__item {
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
   border-radius: 18px;
   background: color-mix(in srgb, var(--theme-surface) 99%, transparent);
 }
 
-.leave-request-card {
+.attendance-snapshot article {
   display: grid;
-  gap: 1.1rem;
+  gap: 0.28rem;
+  padding: 0.95rem 1rem;
 }
 
-.leave-request-card__header {
+.attendance-snapshot span {
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.attendance-snapshot strong {
+  color: var(--theme-text-primary);
+  font-weight: 800;
+}
+
+.attendance-insights,
+.attendance-breakdown {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.attendance-insight {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.95rem 1rem;
+}
+
+.attendance-insight strong {
+  color: var(--theme-text-primary);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.attendance-insight span {
+  color: var(--theme-text-primary);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.attendance-insight small {
+  color: var(--theme-text-muted);
+  line-height: 1.45;
+}
+
+.attendance-insight--present {
+  border-color: color-mix(in srgb, var(--attendance-present) 24%, var(--attendance-border));
+}
+
+.attendance-insight--late {
+  border-color: color-mix(in srgb, var(--attendance-late) 24%, var(--attendance-border));
+}
+
+.attendance-insight--neutral {
+  border-color: color-mix(in srgb, var(--attendance-neutral) 24%, var(--attendance-border));
+}
+
+.attendance-breakdown__item {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
 }
 
-.leave-request-card__profile {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
-}
-
-.leave-request-card__avatar {
-  display: inline-grid;
-  place-items: center;
-  width: 3.1rem;
-  height: 3.1rem;
+.attendance-breakdown__tone {
+  width: 12px;
+  height: 12px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #3b82f6, #2563eb);
-  color: #ffffff;
   flex-shrink: 0;
 }
 
-.leave-request-card__identity {
-  display: grid;
-  gap: 0.15rem;
+.attendance-breakdown__tone--present {
+  background: var(--attendance-present);
 }
 
-.leave-request-card__identity h3 {
-  font-size: clamp(1.1rem, 2vw, 1.45rem);
-  line-height: 1.15;
-  overflow-wrap: anywhere;
+.attendance-breakdown__tone--late {
+  background: var(--attendance-late);
 }
 
-.leave-request-card__chips {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+.attendance-breakdown__tone--leave,
+.attendance-breakdown__tone--half-day {
+  background: var(--attendance-leave);
 }
 
-.status-chip,
-.leave-type-pill {
-  border-radius: 999px !important;
-  font-weight: 700;
-  text-transform: lowercase;
+.attendance-breakdown__tone--absent {
+  background: var(--attendance-absent);
 }
 
-.leave-type-pill--primary {
-  background: #dbeafe !important;
-  color: #2563eb !important;
+.attendance-breakdown__tone--holiday,
+.attendance-breakdown__tone--weekend {
+  background: var(--attendance-holiday);
 }
 
-.leave-type-pill--danger {
-  background: #fee2e2 !important;
-  color: #dc2626 !important;
-}
-
-.leave-type-pill--warning {
-  background: #fef3c7 !important;
-  color: #d97706 !important;
-}
-
-.leave-type-pill--success {
-  background: #dcfce7 !important;
-  color: #16a34a !important;
-}
-
-.status-chip--approved {
-  background: #dcfce7 !important;
-  color: #16a34a !important;
-}
-
-.status-chip--pending {
-  background: #fef3c7 !important;
-  color: #d97706 !important;
-}
-
-.status-chip--rejected {
-  background: #fee2e2 !important;
-  color: #dc2626 !important;
-}
-
-.leave-request-card__details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem 2rem;
-  padding-left: 4rem;
-}
-
-.leave-request-card__detail {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.leave-request-card__detail strong {
-  color: var(--theme-text-primary);
-  font-size: 1.05rem;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.leave-request-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  padding-top: 0.85rem;
-  padding-left: 4rem;
-  border-top: 1px solid color-mix(in srgb, var(--theme-border-soft) 70%, transparent);
-}
-
-.leave-request-card__approve,
-.leave-request-card__reject {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  min-width: 118px;
-  border-radius: 8px;
-  font-weight: 700;
-}
-
-.leave-request-card__approve .mat-icon,
-.leave-request-card__reject .mat-icon {
-  width: 1rem;
-  height: 1rem;
-  font-size: 1rem;
-}
-
-.leave-request-card__approve {
-  background: #16a34a !important;
-  color: #ffffff !important;
-}
-
-.leave-request-card__reject {
-  background: #dc2626 !important;
-  color: #ffffff !important;
-}
-
-.leave-balance-card__top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.leave-balance-card__meter {
-  position: relative;
-  height: 0.72rem;
-  margin: 0.95rem 0 0.8rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--theme-primary) 8%, transparent);
-  overflow: hidden;
-}
-
-.leave-balance-card__meter span {
+.attendance-breakdown__item strong {
   display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--leave-dashboard-primary), color-mix(in srgb, var(--theme-secondary) 80%, #ffffff 20%));
+  color: var(--theme-text-primary);
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
-.leave-balance-card--success .leave-balance-card__meter span {
-  background: linear-gradient(90deg, var(--leave-dashboard-success), #34d399);
+.attendance-breakdown__item small {
+  color: var(--theme-text-muted);
 }
 
-.leave-balance-card--warning .leave-balance-card__meter span {
-  background: linear-gradient(90deg, var(--leave-dashboard-warning), #fbbf24);
-}
-
-.leave-balance-card--info .leave-balance-card__meter span {
-  background: linear-gradient(90deg, var(--leave-dashboard-info), #60a5fa);
-}
-
-.leave-balance-card__meta {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 0.8rem;
-}
-
-.leave-quick-action-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.95rem;
-  align-items: flex-start;
-  padding: 1rem;
-  border-radius: 20px;
-  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 70%, transparent);
-  background: color-mix(in srgb, var(--theme-surface) 95%, transparent);
-  text-decoration: none;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-}
-
-.leave-quick-action-card:hover,
-.leave-request-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--leave-dashboard-shadow-strong);
-}
-
-.leave-quick-action-card:hover {
-  border-color: color-mix(in srgb, var(--theme-primary) 24%, transparent);
-}
-
-.leave-quick-action-card__icon {
-  background: color-mix(in srgb, var(--theme-primary) 12%, transparent);
-  color: var(--theme-primary);
-}
-
-.leave-empty-state {
+.attendance-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
   display: grid;
   place-items: center;
-  gap: 0.75rem;
-  padding: 2.4rem 1rem;
-  text-align: center;
+  padding: 1.25rem;
+  background: rgba(12, 20, 34, 0.46);
+  backdrop-filter: blur(8px);
 }
 
-.leave-empty-state .mat-icon {
-  width: 3rem;
-  height: 3rem;
-  font-size: 3rem;
+.attendance-dialog {
+  width: min(980px, 100%);
+  max-height: min(88vh, 920px);
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 74%, transparent);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--theme-primary) 9%, transparent), transparent 26%),
+    color-mix(in srgb, var(--theme-surface) 98%, transparent);
+  box-shadow: 0 34px 80px rgba(15, 23, 42, 0.28);
+}
+
+.attendance-dialog__header,
+.attendance-dialog__body {
+  padding: 1.35rem 1.45rem;
+}
+
+.attendance-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--theme-border-soft) 70%, transparent);
+}
+
+.attendance-dialog__eyebrow {
+  margin: 0;
   color: var(--theme-primary);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-@media (max-width: 1080px) {
-  .leave-dashboard__hero {
-    grid-template-columns: 1fr;
-  }
+.attendance-dialog__header h3 {
+  margin: 0.35rem 0 0;
+  color: var(--theme-text-primary);
+  font-size: 1.38rem;
+  letter-spacing: -0.03em;
+}
 
-  .leave-dashboard__hero-actions {
-    justify-content: flex-start;
+.attendance-dialog__subtitle {
+  margin: 0.3rem 0 0;
+  color: var(--theme-text-muted);
+}
+
+.attendance-dialog__close {
+  display: inline-grid;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border: 0;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+  color: var(--theme-primary);
+  cursor: pointer;
+}
+
+.attendance-dialog__body {
+  display: grid;
+  gap: 1rem;
+}
+
+.attendance-dialog__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 22px;
+  border: 1px solid transparent;
+}
+
+.attendance-dialog__hero--present {
+  background: color-mix(in srgb, var(--attendance-present) 9%, var(--theme-surface));
+  border-color: color-mix(in srgb, var(--attendance-present) 18%, var(--attendance-border));
+}
+
+.attendance-dialog__hero--late {
+  background: color-mix(in srgb, var(--attendance-late) 10%, var(--theme-surface));
+  border-color: color-mix(in srgb, var(--attendance-late) 18%, var(--attendance-border));
+}
+
+.attendance-dialog__hero--absent {
+  background: color-mix(in srgb, var(--attendance-absent) 8%, var(--theme-surface));
+  border-color: color-mix(in srgb, var(--attendance-absent) 18%, var(--attendance-border));
+}
+
+.attendance-dialog__hero--leave,
+.attendance-dialog__hero--half-day {
+  background: color-mix(in srgb, var(--attendance-leave) 8%, var(--theme-surface));
+  border-color: color-mix(in srgb, var(--attendance-leave) 18%, var(--attendance-border));
+}
+
+.attendance-dialog__hero--weekend,
+.attendance-dialog__hero--holiday {
+  background: color-mix(in srgb, var(--attendance-holiday) 8%, var(--theme-surface));
+  border-color: color-mix(in srgb, var(--attendance-holiday) 18%, var(--attendance-border));
+}
+
+.attendance-dialog__hero--neutral {
+  background: color-mix(in srgb, var(--attendance-neutral) 8%, var(--theme-surface));
+  border-color: color-mix(in srgb, var(--attendance-neutral) 18%, var(--attendance-border));
+}
+
+.attendance-dialog__label,
+.attendance-dialog__card-label {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.attendance-dialog__hero strong,
+.attendance-dialog__card strong,
+.attendance-dialog__list-item strong,
+.attendance-punch-list__item strong {
+  display: block;
+  color: var(--theme-text-primary);
+  font-weight: 800;
+}
+
+.attendance-dialog__hero strong {
+  margin-top: 0.35rem;
+  font-size: 1.2rem;
+}
+
+.attendance-dialog__hero p,
+.attendance-dialog__card p,
+.attendance-dialog__helper {
+  margin: 0.28rem 0 0;
+  color: var(--theme-text-muted);
+  line-height: 1.55;
+}
+
+.attendance-dialog__grid,
+.attendance-dialog__section-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.attendance-dialog__grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.attendance-dialog__section-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.attendance-dialog__card,
+.attendance-detail-panel--soft {
+  border: 1px solid color-mix(in srgb, var(--theme-border-soft) 72%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--theme-surface) 99%, transparent);
+}
+
+.attendance-dialog__card {
+  padding: 0.95rem 1rem;
+}
+
+.attendance-detail-panel--soft {
+  padding: 1rem;
+}
+
+.attendance-detail-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.attendance-detail-panel__head h4 {
+  margin: 0;
+  color: var(--theme-text-primary);
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.attendance-dialog__tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 0.72rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-primary) 10%, #fff 90%);
+  color: var(--theme-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.attendance-dialog__stack,
+.attendance-punch-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.attendance-punch-list__item,
+.attendance-dialog__list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--theme-border-soft) 68%, transparent);
+}
+
+.attendance-punch-list__item:last-child,
+.attendance-dialog__list-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.attendance-punch-list__item span,
+.attendance-dialog__list-item span {
+  color: var(--theme-text-muted);
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1400px) {
+  .attendance-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 1180px) {
-  .leave-dashboard__content-grid {
+  .attendance-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .attendance-hero {
     grid-template-columns: 1fr;
   }
 
-  .leave-request-list,
-  .leave-balance-list {
+  .attendance-hero__actions {
+    justify-items: start;
+  }
+
+  .attendance-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .attendance-refresh {
+    width: 100%;
+  }
+
+  .attendance-table__head {
+    display: none;
+  }
+
+  .attendance-table__row {
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+  }
+
+  .attendance-table__body {
     max-height: none;
-    overflow: visible;
-    padding-right: 0;
+  }
+
+  .attendance-table__cell::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.16rem;
+    color: var(--theme-text-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .attendance-dialog {
+    max-height: min(92vh, 960px);
+  }
+
+  .attendance-dialog__grid,
+  .attendance-dialog__section-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-@media (max-width: 900px) {
-  .leave-panel__request-header {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 720px) {
+  .attendance-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .leave-panel__filters {
-    width: 100%;
-  }
-
-  .leave-request-card__details,
-  .leave-request-card__actions {
-    padding-left: 0;
-  }
-}
-
-@media (max-width: 760px) {
-  .leave-dashboard__hero,
-  .leave-panel,
-  .leave-stat-card,
-  .leave-request-card,
-  .leave-balance-card {
-    border-radius: 22px;
-  }
-
-  .leave-dashboard__hero,
-  .leave-panel__header,
-  .leave-panel__request-header,
-  .leave-request-card__header,
-  .leave-balance-card__top,
-  .leave-balance-card__meta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .leave-dashboard__hero-actions,
-  .leave-dashboard__hero-actions button,
-  .leave-filter-field {
-    width: 100%;
-  }
-
-  .leave-dashboard__stats-grid,
-  .leave-request-card__details {
+  .attendance-filters,
+  .attendance-snapshot {
     grid-template-columns: 1fr;
   }
 
-  .leave-request-card__details,
-  .leave-request-card__actions {
-    padding-left: 0;
+  .attendance-dialog-backdrop {
+    padding: 0.8rem;
   }
 
-  .leave-request-card__chips {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+  .attendance-dialog__header,
+  .attendance-dialog__body {
+    padding: 1rem;
   }
 
-  .leave-request-card__actions {
-    width: 100%;
+  .attendance-dialog__hero,
+  .attendance-dialog__header {
     flex-direction: column;
   }
 
-  .leave-request-card__approve,
-  .leave-request-card__reject {
-    width: 100%;
+  .attendance-dialog__grid,
+  .attendance-dialog__section-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 520px) {
-  .leave-dashboard__hero {
-    padding: 1.25rem;
+  .attendance-page {
+    gap: 1rem;
   }
 
-  .leave-panel {
+  .attendance-hero,
+  .attendance-panel,
+  .attendance-summary-card {
+    border-radius: 22px;
+  }
+
+  .attendance-hero,
+  .attendance-panel {
     padding: 1rem;
   }
 
-  .leave-stat-card,
-  .leave-request-card,
-  .leave-balance-card {
-    padding: 1rem 0.9rem;
+  .attendance-summary {
+    grid-template-columns: 1fr;
   }
 
-  .leave-request-card__profile {
-    width: 100%;
-  }
-
-  .leave-request-card__avatar {
-    width: 2.7rem;
-    height: 2.7rem;
+  .attendance-summary-card {
+    padding: 0.95rem 1rem;
   }
 }

@@ -1,184 +1,363 @@
-<section class="leave-dashboard">
-  <mat-card class="leave-dashboard__hero">
-    <div class="leave-dashboard__hero-copy">
-      <p class="leave-dashboard__eyebrow">{{ leaveDeskTitle }}</p>
-      <h1>Leave Management </h1>
+<section class="attendance-page">
+  <header class="attendance-hero">
+    <div class="attendance-hero__copy">
+      <!-- <p class="attendance-hero__eyebrow">Attendance Desk</p> -->
+      <h1>{{ pageTitle }}</h1>
+      <!-- <span>{{ pageSubtitle }}</span> -->
+
+      <div class="attendance-hero__meta">
+        <!-- <div class="attendance-chip attendance-chip--light">
+          <mat-icon>badge</mat-icon>
+          {{ activeEmployeeName }}
+        </div> -->
+        <div class="attendance-chip attendance-chip--light">
+          <mat-icon>calendar_month</mat-icon>
+          {{ selectedPeriodLabel }}
+        </div>
+        <div class="attendance-chip attendance-chip--light">
+          <mat-icon>workspace_premium</mat-icon>
+          {{ headerRoleLabel }}
+        </div>
+      </div>
     </div>
 
-    <div class="leave-dashboard__hero-actions" *ngIf="canManageLeaveDesk">
-      <button mat-flat-button class="leave-dashboard__primary-action" routerLink="/app/attendance/leave-creation">
-        <mat-icon>event_available</mat-icon>
-        Create Leave
-      </button>
-      <button mat-stroked-button class="leave-dashboard__secondary-action" routerLink="/app/company">
-        <mat-icon>calendar_month</mat-icon>
-        Holiday Calendar
+    <div class="attendance-hero__actions">
+      <span class="attendance-hero__date">{{ todayLabel }}</span>
+      <!-- <button mat-flat-button class="attendance-hero__button" type="button" (click)="exportReport()">
+        <mat-icon>download</mat-icon>
+        Export
+      </button> -->
+    </div>
+  </header>
+
+  <mat-card class="attendance-panel attendance-panel--filters">
+    <div class="attendance-panel__header attendance-panel__header--filters">
+      <div>
+        <h2>Attendance Filters</h2>
+        <!-- <p>Use the employee, month, and year filters to refresh the attendance report.</p> -->
+      </div>
+      <span class="attendance-panel__stamp" *ngIf="lastUpdatedLabel">Updated {{ lastUpdatedLabel }}</span>
+    </div>
+
+    <div class="attendance-filters">
+      <mat-form-field appearance="outline" *ngIf="canSelectEmployee">
+        <mat-label>Employee</mat-label>
+        <input matInput type="text" [ngModel]="employeeSearchTerm" (ngModelChange)="onEmployeeInputChange($event)"
+          [matAutocomplete]="employeeAuto" placeholder="Search by name, code, department..." />
+        <button mat-icon-button matSuffix type="button" *ngIf="employeeSearchTerm" (click)="employeeSearchTerm = ''"
+          aria-label="Clear employee search">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-icon matSuffix *ngIf="!employeeSearchTerm">search</mat-icon>
+        <mat-autocomplete #employeeAuto="matAutocomplete" class="attendance-employee-autocomplete">
+          <mat-option *ngFor="let employee of filteredEmployeeOptions; trackBy: trackByEmployeeId"
+            [value]="getEmployeeOptionLabel(employee)"
+            (onSelectionChange)="$event.isUserInput && onEmployeeOptionSelected(employee)">
+            <div class="attendance-employee-option">
+              <strong>{{ employee.name }}</strong>
+              <small>{{ employee.code }} • {{ employee.department }}</small>
+            </div>
+          </mat-option>
+          <mat-option disabled *ngIf="!filteredEmployeeOptions.length">No employees found</mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Month</mat-label>
+        <mat-select [(ngModel)]="selectedMonth">
+          <mat-option *ngFor="let month of monthOptions" [value]="month">{{ month }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Year</mat-label>
+
+        <mat-select [(ngModel)]="selectedYear">
+          <mat-option *ngFor="let year of yearOptions" [value]="year">{{ year }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button class="attendance-refresh" type="button" (click)="refreshAttendance()"
+        [disabled]="isLoading">
+        <!-- <mat-icon>refresh</mat-icon> -->
+        Submit
       </button>
     </div>
   </mat-card>
 
-  <section class="leave-dashboard__stats-grid">
-    <mat-card class="leave-stat-card" *ngFor="let stat of dashboardStats" [class]="'leave-stat-card leave-stat-card--' + stat.tone">
-      <div class="leave-stat-card__icon">
-        <mat-icon>{{ stat.icon }}</mat-icon>
+  <section class="attendance-summary">
+    <article class="attendance-summary-card" *ngFor="let card of summaryCards; trackBy: trackBySummaryLabel"
+      [class]="'attendance-summary-card attendance-summary-card--' + card.tone">
+      <span class="attendance-summary-card__icon">
+        <mat-icon>{{ card.icon }}</mat-icon>
+      </span>
+      <div class="attendance-summary-card__copy">
+        <small>{{ card.label }}</small>
+        <strong>{{ card.value }}</strong>
       </div>
-      <div class="leave-stat-card__copy">
-        <span>{{ stat.label }}</span>
-        <strong>{{ stat.value }}</strong>
-        <small>{{ stat.caption }}</small>
-      </div>
-    </mat-card>
+    </article>
   </section>
 
-  <section class="leave-dashboard__content-grid">
-    <mat-card class="leave-panel leave-panel--requests">
-      <div class="leave-panel__request-header">
+  <section class="attendance-layout">
+    <mat-card class="attendance-panel attendance-panel--records">
+      <div class="attendance-panel__header">
         <div>
-          <h2>All Requests</h2>
-          <p>{{ filteredLeaveRequests.length }} request{{ filteredLeaveRequests.length === 1 ? '' : 's' }} shown for {{ activeStatusLabel.toLowerCase() }} and {{ activeRequestTypeLabel.toLowerCase() }}.</p>
-        </div>
-
-        <div class="leave-panel__filters">
-          <mat-form-field appearance="outline" class="leave-filter-field">
-            <mat-label>Status</mat-label>
-            <mat-select [(ngModel)]="statusFilter">
-              <mat-option *ngFor="let filter of statusFilters" [value]="filter.value">
-                {{ filter.label }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="leave-filter-field">
-            <mat-label>Request Type</mat-label>
-            <mat-select [(ngModel)]="requestTypeFilter">
-              <mat-option *ngFor="let filter of requestTypeFilters" [value]="filter.value">
-                {{ filter.label }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+          <h2>Monthly Attendance Log</h2>
         </div>
       </div>
 
-      <div class="leave-request-list" *ngIf="filteredLeaveRequests.length; else emptyRequestsState">
-        <mat-card class="leave-request-card" *ngFor="let request of filteredLeaveRequests">
-          <div class="leave-request-card__header">
-            <div class="leave-request-card__profile">
-              <span class="leave-request-card__avatar">
-                <mat-icon>event</mat-icon>
+      <div class="attendance-state" *ngIf="isLoading">
+        <mat-progress-spinner diameter="42" mode="indeterminate"></mat-progress-spinner>
+        <p>Loading attendance details...</p>
+      </div>
+
+      <div class="attendance-state attendance-state--error" *ngIf="!isLoading && loadError">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ loadError }}</p>
+      </div>
+
+      <div class="attendance-state" *ngIf="!isLoading && !loadError && !hasAttendanceRecords">
+        <mat-icon>event_busy</mat-icon>
+        <p>No attendance records found for {{ selectedPeriodLabel }}.</p>
+      </div>
+
+      <div class="attendance-table" *ngIf="!isLoading && !loadError && hasAttendanceRecords">
+        <div class="attendance-table__head">
+          <span>Date</span>
+          <span>Shift</span>
+          <span>Shift Time</span>
+          <span>In Time</span>
+          <span>Out Time</span>
+          <span>Working Hrs</span>
+          <span>Extra Hrs</span>
+          <span>Status</span>
+          <span>Thumb</span>
+        </div>
+
+        <div class="attendance-table__body">
+          <button type="button" class="attendance-table__row"
+            [class.attendance-table__row--active]="selectedAttendanceRecord?.dateKey === record.dateKey"
+            *ngFor="let record of attendanceRecords; trackBy: trackByDateKey" (click)="openAttendanceDialog(record)">
+            <div class="attendance-table__cell attendance-table__cell--date" data-label="Date">
+              <strong>{{ record.dateLabel }}</strong>
+              <small>{{ record.dayLabel }}</small>
+            </div>
+
+            <div class="attendance-table__cell" data-label="Shift">
+              <strong>{{ record.shift }}</strong>
+              <small>{{ record.note }}</small>
+            </div>
+
+            <div class="attendance-table__cell" data-label="Shift Time">{{ record.shiftTime }}</div>
+            <div class="attendance-table__cell" data-label="In Time">{{ record.checkIn }}</div>
+            <div class="attendance-table__cell" data-label="Out Time">{{ record.checkOut }}</div>
+            <div class="attendance-table__cell attendance-table__cell--strong" data-label="Working Hrs">{{
+              record.workingHours }}</div>
+            <div class="attendance-table__cell attendance-table__cell--accent" data-label="Extra Hrs">{{
+              record.extraHours }}</div>
+
+            <div class="attendance-table__cell" data-label="Status">
+              <span class="attendance-pill" [class]="'attendance-pill attendance-pill--' + record.statusTone">
+                {{ record.statusLabel }}
               </span>
-
-              <div class="leave-request-card__identity">
-                <h3>{{ request.employeeName }}</h3>
-                <span>{{ request.employeeCode }}</span>
-              </div>
             </div>
 
-            <mat-chip-set class="leave-request-card__chips">
-              <mat-chip class="leave-type-pill leave-type-pill--info">
-                {{ request.requestCategoryLabel }}
-              </mat-chip>
-              <mat-chip class="leave-type-pill" [class]="'leave-type-pill leave-type-pill--' + getLeaveTypeTone(request.leaveType)">
-                {{ request.leaveType }}
-              </mat-chip>
-              <mat-chip class="status-chip" [class]="'status-chip status-chip--' + request.status.toLowerCase()">
-                {{ request.status }}
-              </mat-chip>
-            </mat-chip-set>
-          </div>
-
-          <div class="leave-request-card__details">
-            <div class="leave-request-card__detail">
-              <span>{{ request.detailOneLabel }}</span>
-              <strong>{{ request.detailOneValue }}</strong>
+            <div class="attendance-table__cell" data-label="Thumb">
+              <span class="attendance-pill attendance-pill--thumb"
+                [class]="'attendance-pill attendance-pill--thumb attendance-pill--' + record.thumbTone">
+                {{ record.thumbStatus }}
+              </span>
             </div>
-            <div class="leave-request-card__detail">
-              <span>{{ request.detailTwoLabel }}</span>
-              <strong>{{ request.detailTwoValue }}</strong>
-            </div>
-            <div class="leave-request-card__detail">
-              <span>{{ request.detailThreeLabel }}</span>
-              <strong>{{ request.detailThreeValue }}</strong>
-            </div>
-            <div class="leave-request-card__detail">
-              <span>Reason</span>
-              <strong>{{ request.reason }}</strong>
-            </div>
-          </div>
-
-          <div class="leave-request-card__actions" *ngIf="showDecisionActions(request)">
-            <button mat-flat-button class="leave-request-card__approve" (click)="openDecisionDialog(request, 'Approved')"><mat-icon>check_circle</mat-icon>Approve</button>
-            <button mat-flat-button class="leave-request-card__reject" (click)="openDecisionDialog(request, 'Rejected')"><mat-icon>cancel</mat-icon>Reject</button>
-          </div>
-        </mat-card>
+          </button>
+        </div>
       </div>
     </mat-card>
 
-    <div class="leave-dashboard__side-column">
-      <mat-card class="leave-panel leave-panel--balances">
-        <div class="leave-panel__header leave-panel__header--compact">
+    <div class="attendance-layout__side">
+      <mat-card class="attendance-panel">
+        <div class="attendance-panel__header attendance-panel__header--stacked">
           <div>
-            <p class="leave-panel__eyebrow">Balances</p>
-            <h2>Leave Balance</h2>
+            <h2>Employee Snapshot</h2>
           </div>
         </div>
 
-        <div class="leave-balance-list">
-          <mat-card class="leave-balance-card" *ngFor="let balance of leaveBalances" [class]="'leave-balance-card leave-balance-card--' + balance.tone">
-            <div class="leave-balance-card__top">
-              <div>
-                <p>{{ balance.code }}</p>
-                <h3>{{ balance.label }}</h3>
-              </div>
-              <strong>{{ getBalanceAvailable(balance) }} left</strong>
-            </div>
-
-            <div class="leave-balance-card__meter">
-              <span [style.width.%]="getBalanceUsagePercent(balance)"></span>
-            </div>
-
-            <div class="leave-balance-card__meta">
-              <span>Used {{ balance.used }} / {{ balance.total }}</span>
-              <span>{{ balance.carry }}</span>
-            </div>
-
-            <p>{{ balance.note }}</p>
-          </mat-card>
+        <div class="attendance-snapshot">
+          <article>
+            <span>Employee</span>
+            <strong>{{ activeEmployeeName }}</strong>
+          </article>
+          <article>
+            <span>Employee ID</span>
+            <strong>{{ activeEmployeeDetails?.id || selectedEmployeeId || 'Not available' }}</strong>
+          </article>
+          <article>
+            <span>Employee Code</span>
+            <strong>{{ activeEmployeeCode }}</strong>
+          </article>
+          <article>
+            <span>Department</span>
+            <strong>{{ activeEmployeeDetails?.department || 'Not available' }}</strong>
+          </article>
+          <article>
+            <span>Designation</span>
+            <strong>{{ activeEmployeeDetails?.position || activeEmployeeDetails?.role || 'Not available' }}</strong>
+          </article>
+          <article>
+            <span>Role</span>
+            <strong>{{ activeEmployeeDetails?.role || 'Not available' }}</strong>
+          </article>
+          <article>
+            <span>Shift</span>
+            <strong>{{ activeEmployeeDetails?.shift || 'General Shift' }}</strong>
+          </article>
+          <article>
+            <span>Email</span>
+            <strong>{{ activeEmployeeDetails?.email || 'Not available' }}</strong>
+          </article>
+          <article>
+            <span>Mobile</span>
+            <strong>{{ activeEmployeeDetails?.mobile || 'Not available' }}</strong>
+          </article>
+          <article>
+            <span>Period</span>
+            <strong>{{ selectedPeriodLabel }}</strong>
+          </article>
         </div>
       </mat-card>
 
-      <!-- <mat-card class="leave-panel leave-panel--actions">
-        <div class="leave-panel__header leave-panel__header--compact">
+      <mat-card class="attendance-panel">
+        <div class="attendance-panel__header attendance-panel__header--stacked">
           <div>
-            <p class="leave-panel__eyebrow">Actions</p>
-            <h2>Manager Shortcuts</h2>
+            <h2>Monthly Insights</h2>
           </div>
         </div>
 
-        <div class="leave-quick-action-list">
-          <a class="leave-quick-action-card" *ngFor="let action of quickActions" [routerLink]="action.route"
-            [state]="buildRouteState(action.route)">
-            <span class="leave-quick-action-card__icon">
-              <mat-icon>{{ action.icon }}</mat-icon>
-            </span>
-            <div>
-              <h3>{{ action.title }}</h3>
-              <p>{{ action.subtitle }}</p>
-            </div>
-          </a>
+        <div class="attendance-insights">
+          <article class="attendance-insight" *ngFor="let insight of attendanceInsights; trackBy: trackByInsightLabel"
+            [class]="'attendance-insight attendance-insight--' + insight.tone">
+            <strong>{{ insight.value }}</strong>
+            <span>{{ insight.label }}</span>
+            <small>{{ insight.helper }}</small>
+          </article>
         </div>
-      </mat-card> -->
+      </mat-card>
+
+
     </div>
   </section>
-
-  <ng-template #emptyRequestsState>
-    <div class="leave-empty-state">
-      <mat-icon>inbox</mat-icon>
-      <h3>No requests match this status</h3>
-      <p>Switch the status filter or create a new request from this dashboard.</p>
-      <button mat-flat-button class="leave-request-card__cta" routerLink="/app/attendance/apply-leave"
-        [state]="buildRouteState('/app/attendance/apply-leave')" *ngIf="canManageLeaveDesk">
-        Create Request
-      </button>
-    </div>
-  </ng-template>
 </section>
+
+<ng-container *ngIf="selectedAttendanceRecord as record">
+  <div class="attendance-dialog-backdrop" (click)="closeAttendanceDialog()">
+    <section class="attendance-dialog" role="dialog" aria-modal="true" aria-labelledby="attendance-dialog-title"
+      (click)="onDialogContentClick($event)">
+      <div class="attendance-dialog__header">
+        <div>
+          <p class="attendance-dialog__eyebrow">Attendance details</p>
+          <h3 id="attendance-dialog-title">{{ selectedDialogTitle }}</h3>
+          <p class="attendance-dialog__subtitle">{{ selectedDialogSubtitle }}</p>
+        </div>
+        <button type="button" class="attendance-dialog__close" (click)="closeAttendanceDialog()"
+          aria-label="Close attendance dialog">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="attendance-dialog__body">
+        <div class="attendance-dialog__hero"
+          [class]="'attendance-dialog__hero attendance-dialog__hero--' + record.statusTone">
+          <div>
+            <span class="attendance-dialog__label">Daily status</span>
+            <strong>{{ record.statusLabel }}</strong>
+            <p>{{ record.leaveDescription }}</p>
+          </div>
+          <span class="attendance-pill" [class]="'attendance-pill attendance-pill--' + record.statusTone">
+            {{ record.statusLabel }}
+          </span>
+        </div>
+
+        <div class="attendance-dialog__grid">
+          <article class="attendance-dialog__card">
+            <span class="attendance-dialog__card-label">Shift</span>
+            <strong>{{ record.shift }}</strong>
+            <p>{{ record.shiftTime }}</p>
+          </article>
+          <article class="attendance-dialog__card">
+            <span class="attendance-dialog__card-label">Check In</span>
+            <strong>{{ record.checkIn }}</strong>
+            <p>Scheduled at {{ record.shiftStart }}</p>
+          </article>
+          <article class="attendance-dialog__card">
+            <span class="attendance-dialog__card-label">Check Out</span>
+            <strong>{{ record.checkOut }}</strong>
+            <p>Scheduled at {{ record.shiftEnd }}</p>
+          </article>
+          <article class="attendance-dialog__card">
+            <span class="attendance-dialog__card-label">Working Hours</span>
+            <strong>{{ record.workingHours }}</strong>
+            <p>Extra time {{ record.extraHours }}</p>
+          </article>
+        </div>
+
+        <div class="attendance-dialog__section-grid">
+          <article class="attendance-detail-panel attendance-detail-panel--soft">
+            <div class="attendance-detail-panel__head">
+              <h4>Punch Summary</h4>
+              <span class="attendance-dialog__tag">Daily log</span>
+            </div>
+            <div class="attendance-punch-list">
+              <div class="attendance-punch-list__item">
+                <span>First Punch</span>
+                <strong>{{ record.checkIn }}</strong>
+              </div>
+              <div class="attendance-punch-list__item">
+                <span>Last Punch</span>
+                <strong>{{ record.checkOut }}</strong>
+              </div>
+              <div class="attendance-punch-list__item">
+                <span>Working Hours</span>
+                <strong>{{ record.workingHours }}</strong>
+              </div>
+              <div class="attendance-punch-list__item">
+                <span>Extra Hours</span>
+                <strong>{{ record.extraHours }}</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="attendance-detail-panel attendance-detail-panel--soft">
+            <div class="attendance-detail-panel__head">
+              <h4>Leave Details</h4>
+              <span class="attendance-dialog__tag">Attendance status</span>
+            </div>
+            <div class="attendance-dialog__stack">
+              <div class="attendance-dialog__list-item">
+                <span>Recorded Leave</span>
+                <strong>{{ record.leaveLabel || 'No leave applied' }}</strong>
+              </div>
+              <div class="attendance-dialog__list-item">
+                <span>Portion</span>
+                <strong>{{ record.portionLabel }}</strong>
+              </div>
+              <p class="attendance-dialog__helper">{{ record.leaveDescription }}</p>
+            </div>
+          </article>
+
+          <article class="attendance-detail-panel attendance-detail-panel--soft">
+            <div class="attendance-detail-panel__head">
+              <h4>Thumb Verification</h4>
+              <span class="attendance-dialog__tag">Biometric check</span>
+            </div>
+            <div class="attendance-dialog__stack">
+              <span class="attendance-pill attendance-pill--thumb"
+                [class]="'attendance-pill attendance-pill--thumb attendance-pill--' + record.thumbTone">
+                {{ record.thumbStatus }}
+              </span>
+              <p class="attendance-dialog__helper">{{ record.note }}</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </div>
+</ng-container>

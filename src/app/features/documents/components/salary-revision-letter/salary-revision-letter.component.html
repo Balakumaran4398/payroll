@@ -1,0 +1,225 @@
+<section class="salary-revision-letter">
+  <div class="salary-revision-letter__actions" *ngIf="!hideActions">
+    <button mat-stroked-button type="button" (click)="printDocument()">Print</button>
+    <button mat-flat-button color="primary" type="button" (click)="downloadPdf()" [disabled]="isDownloading">
+      {{ isDownloading ? 'Preparing PDF...' : 'Download as PDF' }}
+    </button>
+  </div>
+
+  <div #documentRoot class="salary-revision-letter__document">
+    <article class="salary-revision-letter__page">
+      <div class="salary-revision-letter__page-accent"></div>
+
+      <header class="salary-revision-letter__header salary-revision-letter__header--hero">
+        <div class="salary-revision-letter__brand-block">
+          <div class="salary-revision-letter__date">{{ formatDate(data.letterDate) }}</div>
+          <div class="salary-revision-letter__tag">Compensation Revision</div>
+        </div>
+        <img class="salary-revision-letter__logo" [src]="logoDataUrl || logoPath" alt="RIDSYS logo">
+      </header>
+
+      <section class="salary-revision-letter__hero-card">
+        <div class="salary-revision-letter__employee-block">
+          <p class="salary-revision-letter__employee-name">Mr.{{ data.employeeName }} ({{ data.empCode }})</p>
+          <p>{{ data.department }}</p>
+          <p>{{ data.designation }}</p>
+          <p>With Effective from : {{ formatDate(data.effectiveFrom) }}</p>
+        </div>
+
+        <div class="salary-revision-letter__summary-grid">
+          <article class="salary-revision-letter__summary-card">
+            <span>Current CTC</span>
+            <strong>{{ formatCurrency(annualCurrentCtc, true) }}</strong>
+            <small>{{ formatCurrency(monthlyCurrentCtc, true) }} per month</small>
+          </article>
+          <article class="salary-revision-letter__summary-card salary-revision-letter__summary-card--highlight">
+            <span>Revised CTC</span>
+            <strong>{{ formatCurrency(annualRevisedCtc, true) }}</strong>
+            <small>{{ formatCurrency(monthlyRevisedCtc, true) }} per month</small>
+          </article>
+          <article class="salary-revision-letter__summary-card">
+            <span>Increment</span>
+            <strong>{{ formatCurrency(annualIncrement, true) }}</strong>
+            <small>{{ formatCurrency(monthlyIncrement, true) }} monthly uplift</small>
+          </article>
+        </div>
+      </section>
+
+      <h1 class="salary-revision-letter__title">Salary Revision Letter FY {{ data.financialYear }}</h1>
+
+      <section class="salary-revision-letter__body">
+        <p>Dear Mr.{{ data.employeeName }},</p>
+        <p>
+          We would like to convey our appreciation for your contribution and dedication to the organization during FY
+          {{ data.previousFY }}.
+        </p>
+        <p>
+          In recognition of your performance, your compensation has been revised and your updated Cost to Company (CTC)
+          will be <strong>{{ formatCurrency(annualRevisedCtc, true) }}</strong> per annum effective from
+          <strong>{{ formatDate(data.effectiveFrom) }}</strong>.
+        </p>
+        <p>
+          The detailed breakup of your revised compensation is enclosed in Annexure - 1 for your reference. We look
+          forward to your continued contribution and wish you success in the year ahead.
+        </p>
+      </section>
+
+      <section class="salary-revision-letter__closing">
+        <p>For {{ companyName }}.</p>
+        <div class="salary-revision-letter__signature-gap"></div>
+        <p><strong>{{ cooName }}</strong></p>
+        <p>{{ cooDesignation }}</p>
+      </section>
+
+      <p class="salary-revision-letter__note">
+        This letter is computer-generated and does not require a signature.
+      </p>
+
+      <footer class="salary-revision-letter__footer-bar">
+        {{ companyName }} | {{ companyAddress }} | Phone: {{ companyPhone }} | Web: {{ companyWebsite }} | Email:
+        {{ companyEmail }}
+      </footer>
+    </article>
+
+    <article class="salary-revision-letter__page">
+      <div class="salary-revision-letter__page-accent"></div>
+
+      <header class="salary-revision-letter__header salary-revision-letter__header--stacked">
+        <div class="salary-revision-letter__employee-meta">
+          <p class="salary-revision-letter__employee-name">Mr.{{ data.employeeName }} ({{ data.empCode }})</p>
+          <p>{{ data.department }} | {{ data.designation }}</p>
+          <p>With Effective from : {{ formatDate(data.effectiveFrom) }}</p>
+        </div>
+        <img class="salary-revision-letter__logo" [src]="logoDataUrl || logoPath" alt="RIDSYS logo">
+      </header>
+
+      <h2 class="salary-revision-letter__annexure-title">Annexure - 1</h2>
+
+      <div class="salary-revision-letter__mini-summary">
+        <div>
+          <span>Current Annual</span>
+          <strong>{{ formatCurrency(annualCurrentCtc, true) }}</strong>
+        </div>
+        <div>
+          <span>Revised Annual</span>
+          <strong>{{ formatCurrency(annualRevisedCtc, true) }}</strong>
+        </div>
+        <div>
+          <span>Effective</span>
+          <strong>{{ formatMonthYear(data.effectiveFrom) }}</strong>
+        </div>
+      </div>
+
+      <table class="salary-revision-letter__table">
+        <thead>
+          <tr>
+            <th rowspan="2">Salary Components</th>
+            <th colspan="2">Current CTC</th>
+            <th colspan="2">Revised CTC</th>
+          </tr>
+          <tr>
+            <th>Per Month</th>
+            <th>Per Annum</th>
+            <th>Per Month</th>
+            <th>Per Annum</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of annexureRows"
+            [class.salary-revision-letter__table-row--section]="row.kind === 'section'"
+            [class.salary-revision-letter__table-row--total]="row.kind === 'total'"
+          >
+            <td>{{ row.label }}</td>
+            <td>
+              {{
+                row.currentMonthly === null
+                  ? ''
+                  : row.currencySymbol
+                    ? formatCurrency(row.currentMonthly, true)
+                    : formatCurrency(row.currentMonthly)
+              }}
+            </td>
+            <td>
+              {{
+                row.currentAnnual === null
+                  ? ''
+                  : row.currencySymbol
+                    ? formatCurrency(row.currentAnnual, true)
+                    : formatCurrency(row.currentAnnual)
+              }}
+            </td>
+            <td>
+              {{
+                row.revisedMonthly === null
+                  ? ''
+                  : row.currencySymbol
+                    ? formatCurrency(row.revisedMonthly, true)
+                    : formatCurrency(row.revisedMonthly)
+              }}
+            </td>
+            <td>
+              {{
+                row.revisedAnnual === null
+                  ? ''
+                  : row.currencySymbol
+                    ? formatCurrency(row.revisedAnnual, true)
+                    : formatCurrency(row.revisedAnnual)
+              }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="salary-revision-letter__tax-note">All remuneration are subject to tax deduction.</p>
+
+      <section class="salary-revision-letter__closing">
+        <p>For {{ companyName }}.</p>
+        <div class="salary-revision-letter__signature-gap salary-revision-letter__signature-gap--compact"></div>
+        <p><strong>{{ cooName }}</strong></p>
+        <p>{{ cooDesignation }}</p>
+      </section>
+
+      <p class="salary-revision-letter__note">
+        This letter is computer-generated and does not require a signature.
+      </p>
+
+      <footer class="salary-revision-letter__footer-bar">
+        {{ companyName }} | {{ companyAddress }} | Phone: {{ companyPhone }} | Web: {{ companyWebsite }} | Email:
+        {{ companyEmail }}
+      </footer>
+    </article>
+
+    <article class="salary-revision-letter__page">
+      <div class="salary-revision-letter__page-accent"></div>
+
+      <header class="salary-revision-letter__header salary-revision-letter__header--single">
+        <img class="salary-revision-letter__logo" [src]="logoDataUrl || logoPath" alt="RIDSYS logo">
+      </header>
+
+      <section class="salary-revision-letter__terms salary-revision-letter__terms-card">
+        <h2 class="salary-revision-letter__terms-title">Note:</h2>
+        <p>
+          Please indicate your understanding and acceptance of the following terms and conditions by signing in the
+          space provided below.
+        </p>
+
+        <ul class="salary-revision-letter__terms-list">
+          <li *ngFor="let term of terms">{{ term }}</li>
+        </ul>
+
+        <p class="salary-revision-letter__acceptance">I accept.</p>
+
+        <div class="salary-revision-letter__employee-signature">
+          <div class="salary-revision-letter__employee-signature-line"></div>
+          <p>Employee Signature, name &amp; date</p>
+        </div>
+      </section>
+
+      <footer class="salary-revision-letter__footer-bar">
+        {{ companyName }} | {{ companyAddress }} | Phone: {{ companyPhone }} | Web: {{ companyWebsite }} | Email:
+        {{ companyEmail }}
+      </footer>
+    </article>
+  </div>
+</section>

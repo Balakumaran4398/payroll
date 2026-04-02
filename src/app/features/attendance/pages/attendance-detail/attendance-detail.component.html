@@ -1,0 +1,195 @@
+<section class="attendance-detail" *ngIf="employeeDetail as detail">
+  <header class="attendance-detail__hero">
+    <button type="button" class="attendance-detail__back" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div class="attendance-detail__copy">
+      <h1>{{ pageTitle }}</h1>
+      <p>{{ pageSubtitle }}</p>
+    </div>
+
+    <button mat-flat-button class="attendance-detail__export" type="button" (click)="exportDetails()">
+      <mat-icon>download</mat-icon>
+      Export Details
+    </button>
+  </header>
+
+  <mat-card class="attendance-detail__profile">
+    <article>
+      <span>Biometric ID</span>
+      <strong>{{ detail.biometricId }}</strong>
+    </article>
+    <article>
+      <span>Email</span>
+      <strong>{{ detail.email }}</strong>
+    </article>
+    <article>
+      <span>Join Date</span>
+      <strong>{{ detail.joinDate }}</strong>
+    </article>
+    <article>
+      <span>Base Salary</span>
+      <strong>{{ detail.baseSalary }}</strong>
+    </article>
+  </mat-card>
+
+  <section class="attendance-detail__stats">
+    <mat-card class="attendance-detail-stat" *ngFor="let card of summaryCards" [class]="'attendance-detail-stat attendance-detail-stat--' + card.tone">
+      <span>{{ card.label }}</span>
+      <strong>{{ card.value }}</strong>
+    </mat-card>
+  </section>
+
+  <div class="attendance-detail__view-toggle">
+    <button type="button" [class.attendance-detail__view-toggle--active]="viewMode === 'calendar'" (click)="setViewMode('calendar')">
+      <mat-icon>calendar_month</mat-icon>
+      Calendar View
+    </button>
+    <button type="button" [class.attendance-detail__view-toggle--active]="viewMode === 'list'" (click)="setViewMode('list')">
+      <mat-icon>format_list_bulleted</mat-icon>
+      List View
+    </button>
+  </div>
+
+  <section class="attendance-detail__content">
+    <mat-card class="attendance-detail-panel attendance-detail-panel--events">
+      <div class="attendance-detail-panel__header">
+        <div>
+          <h2>All Attendance Events</h2>
+          <p>{{ viewMode === 'list' ? 'Chronological biometric log for the selected employee.' : 'Daily attendance cards for the selected period.' }}</p>
+        </div>
+      </div>
+
+      <div class="attendance-event-list" *ngIf="viewMode === 'list'; else calendarView">
+        <article class="attendance-event-card" *ngFor="let event of activityEvents; trackBy: trackById" [class]="'attendance-event-card attendance-event-card--' + event.tone">
+          <span class="attendance-event-card__icon">
+            <mat-icon>{{ event.title === 'Check In' ? 'login' : event.title === 'Check Out' ? 'logout' : 'event_note' }}</mat-icon>
+          </span>
+          <div>
+            <strong>{{ event.title }}</strong>
+            <small>{{ event.timestamp }}</small>
+          </div>
+          <span class="attendance-event-card__tag">{{ event.tone }}</span>
+        </article>
+      </div>
+
+      <ng-template #calendarView>
+        <div class="attendance-calendar-grid">
+          <article class="attendance-calendar-card" *ngFor="let day of calendarCards">
+            <div class="attendance-calendar-card__head">
+              <strong>{{ day.dateLabel }}</strong>
+              <span class="attendance-status-pill" [class]="'attendance-status-pill attendance-status-pill--' + day.status">
+                {{ getStatusLabel(day.status) }}
+              </span>
+            </div>
+            <div class="attendance-calendar-card__meta">
+              <span>In: {{ day.checkIn }}</span>
+              <span>Out: {{ day.checkOut }}</span>
+              <span>Hours: {{ day.hours }}</span>
+              <span>OT: {{ day.overtime }}</span>
+            </div>
+          </article>
+        </div>
+      </ng-template>
+    </mat-card>
+
+    <div class="attendance-detail__side">
+      <mat-card class="attendance-detail-panel">
+        <div class="attendance-detail-panel__header attendance-detail-panel__header--stacked">
+          <div>
+            <h2>Daily Summary</h2>
+            <p>Recent day-wise attendance snapshots.</p>
+          </div>
+        </div>
+
+        <div class="attendance-summary-list">
+          <article class="attendance-summary-card" *ngFor="let day of calendarCards">
+            <div class="attendance-summary-card__head">
+              <strong>{{ day.dateLabel }}</strong>
+              <span class="attendance-status-pill" [class]="'attendance-status-pill attendance-status-pill--' + day.status">
+                {{ getStatusLabel(day.status) }}
+              </span>
+            </div>
+            <small>In: {{ day.checkIn }} | Out: {{ day.checkOut }}</small>
+            <small>Hours: {{ day.hours }} | OT: {{ day.overtime }}</small>
+          </article>
+        </div>
+      </mat-card>
+
+      <mat-card class="attendance-detail-panel">
+        <div class="attendance-detail-panel__header attendance-detail-panel__header--stacked">
+          <div>
+            <h2>Leave Requests</h2>
+            <p>Latest attendance-linked leave requests.</p>
+          </div>
+        </div>
+
+        <div class="attendance-request-list" *ngIf="leaveRequests.length; else noLeaveRequests">
+          <article class="attendance-request-card" *ngFor="let request of leaveRequests; trackBy: trackById">
+            <div>
+              <strong>{{ request.title }}</strong>
+              <small>{{ request.dateLabel }}</small>
+              <p>{{ request.duration }} • {{ request.subtitle }}</p>
+            </div>
+            <span class="attendance-status-pill" [class]="'attendance-status-pill attendance-status-pill--' + request.status">
+              {{ getApprovalLabel(request.status) }}
+            </span>
+          </article>
+        </div>
+
+        <ng-template #noLeaveRequests>
+          <div class="attendance-empty-card">
+            <mat-icon>event_busy</mat-icon>
+            <span>No leave requests</span>
+          </div>
+        </ng-template>
+      </mat-card>
+
+      <mat-card class="attendance-detail-panel">
+        <div class="attendance-detail-panel__header attendance-detail-panel__header--stacked">
+          <div>
+            <h2>Permissions</h2>
+            <p>Short-duration requests and approvals.</p>
+          </div>
+        </div>
+
+        <div class="attendance-request-list" *ngIf="permissions.length; else noPermissions">
+          <article class="attendance-request-card" *ngFor="let request of permissions; trackBy: trackById">
+            <div>
+              <strong>{{ request.title }}</strong>
+              <small>{{ request.dateLabel }}</small>
+              <p>{{ request.duration }} • {{ request.subtitle }}</p>
+            </div>
+            <span class="attendance-status-pill" [class]="'attendance-status-pill attendance-status-pill--' + request.status">
+              {{ getApprovalLabel(request.status) }}
+            </span>
+          </article>
+        </div>
+
+        <ng-template #noPermissions>
+          <div class="attendance-empty-card">
+            <mat-icon>verified_user</mat-icon>
+            <span>No permission records</span>
+          </div>
+        </ng-template>
+      </mat-card>
+
+      <mat-card class="attendance-detail-panel">
+        <div class="attendance-detail-panel__header attendance-detail-panel__header--stacked">
+          <div>
+            <h2>Leave Balance</h2>
+            <p>Snapshot ready for API integration.</p>
+          </div>
+        </div>
+
+        <div class="attendance-balance-list">
+          <article class="attendance-balance-item" *ngFor="let item of leaveBalance">
+            <span>{{ item.label }}</span>
+            <strong [class]="'attendance-balance-item__value attendance-balance-item__value--' + item.tone">{{ item.value }}</strong>
+          </article>
+        </div>
+      </mat-card>
+    </div>
+  </section>
+</section>

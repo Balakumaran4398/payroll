@@ -4,13 +4,13 @@ import { MainLayoutComponent } from './core/layout/main-layout/main-layout.compo
 import { RoleGuard } from './core/guards/role.guard';
 import { AuthGuard } from './core/guards/auth.guard';
 
+const loadAuthModule = () =>
+  import('./features/auth/auth.module').then((m) => m.AuthModule);
+
 const routes: Routes = [
   {
     path: 'auth',
-    children: [
-      { path: 'login', redirectTo: '/', pathMatch: 'full' },
-      { path: '', redirectTo: '/', pathMatch: 'full' },
-    ],
+    loadChildren: loadAuthModule,
   },
   {
     path: 'app',
@@ -111,8 +111,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    loadChildren: () =>
-      import('./features/auth/auth.module').then((m) => m.AuthModule),
+    loadChildren: loadAuthModule,
   },
   { path: '**', redirectTo: '' },
 ];

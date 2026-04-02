@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../../../core/services/api.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Employee } from '../../../employee/employee.types';
+import { TokenStorageService } from 'src/app/core/services/token-storage.service';
 
 type AttendanceState = 'present' | 'absent' | 'late' | 'half-day' | 'leave' | 'holiday' | 'weekend' | 'upcoming';
 type ActionTone = 'blue' | 'purple' | 'orange' | 'teal';
@@ -176,12 +177,14 @@ interface TeamMember {
 })
 export class CompanyDashboardComponent implements OnInit {
   private readonly dashboardRoute = '/app/dashboard';
-
+  userid: number;
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
-    private router: Router
-  ) { }
+    private router: Router, private tokenStorage: TokenStorageService
+  ) {
+    this.userid = tokenStorage.getID();
+  }
 
   readonly today = new Date();
   readonly heroDate = new Intl.DateTimeFormat('en-US', {
@@ -670,7 +673,7 @@ export class CompanyDashboardComponent implements OnInit {
   }
 
   private loadEmployeeContext(): void {
-    this.apiService.getEmployeeList().subscribe({
+    this.apiService.getEmployeeList(this.userid).subscribe({
       next: (employees: Employee[] = []) => {
         if (!Array.isArray(employees) || !employees.length) {
           this.managerImageUrl = this.buildFallbackAvatar(this.managerName);

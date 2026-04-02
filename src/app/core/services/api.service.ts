@@ -8,8 +8,8 @@ import { AuthService } from './auth.service';
     providedIn: 'root',
 })
 export class ApiService {
-    private baseUrl = 'http://192.168.1.105:8081/api/v1';
-    // private baseUrl = 'http://192.168.70.100:8585/dsr/api/v1';
+    // private baseUrl = 'http://192.168.1.105:8081/api/v1';
+    private baseUrl = 'http://192.168.70.100:8585/dsr/api/v1';
     // private baseUrl = 'https://crm.ridsys.in:8080/dsr/api/v1';
     private employeeListCache: any[] | null = null;
     private employeeListRequest$: Observable<any> | null = null;
@@ -46,7 +46,7 @@ export class ApiService {
     }
 
     // Employee APIs
-    getEmployeeList(forceRefresh = false): Observable<any> {
+    getEmployeeList_1(forceRefresh = false, employee_id: number): Observable<any> {
         if (!forceRefresh && this.employeeListCache) {
             return of(this.employeeListCache);
         }
@@ -55,7 +55,22 @@ export class ApiService {
             return this.employeeListRequest$;
         }
 
-        const url = this.getRoleBasedUrl('user/all');
+        const url = this.getRoleBasedUrl('user/all?employee_id=' + employee_id);
+        this.employeeListRequest$ = this.http.get<any[]>(url, { headers: this.getHeaders() }).pipe(
+            tap((data) => {
+                this.employeeListCache = data || [];
+            }),
+            finalize(() => {
+                this.employeeListRequest$ = null;
+            }),
+            shareReplay(1)
+        );
+
+        return this.employeeListRequest$;
+    }
+
+    getEmployeeList(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('user/all?employee_id=' + employee_id);
         this.employeeListRequest$ = this.http.get<any[]>(url, { headers: this.getHeaders() }).pipe(
             tap((data) => {
                 this.employeeListCache = data || [];
@@ -101,10 +116,10 @@ export class ApiService {
         return this.http.get(url, { headers: this.getHeaders() });
     }
 
-    getEmployeeDetails(id: number): Observable<any> {
-        const url = this.getRoleBasedUrl(`getemployeedetails/${id}`);
-        return this.http.get(url, { headers: this.getHeaders() });
-    }
+    // getEmployeeDetails(id: number): Observable<any> {
+    //     const url = this.getRoleBasedUrl(`getemployeedetails/${id}`);
+    //     return this.http.get(url, { headers: this.getHeaders() });
+    // }
     getDeleteEmployee(employee_id: number, username: string): Observable<any> {
         const url = this.getRoleBasedUrl('user/delete?employee_id=' + employee_id + '&username=' + username);
         return this.http.delete(url, { headers: this.getHeaders() });
@@ -311,7 +326,7 @@ export class ApiService {
     }
 
 
-    //  Payroll 
+    //  Payroll  - CTC & payslip
 
     CreateSalaryDetails(requestbody: any): Observable<any> {
         const url = this.getRoleBasedUrl('payroll/updatesalarysetting');
@@ -324,7 +339,43 @@ export class ApiService {
         return this.http.get(url, { headers: this.getHeaders() });
     }
 
+    updateemployeectcdetail(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/updateemployeectcdetail');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+    updateemployeesalarydetails(requestbody: any): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/updateemployeesalarydetails');
+        return this.http.post(url, requestbody, {
+            headers: this.getHeaders()
+        });
+    }
+    getemployeectcdetails(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/getemployeectcdetails?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    getworkingdaydetailsforpayslip(employee_id: number, month: string, year: number): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/getworkingdaydetailsforpayslip?employee_id=' + employee_id + '&month=' + month + '&year=' + year);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    getemployeesalarydetails(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/getemployeesalarydetails?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
 
+    getallpayslipdata(employee_id: number): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/getallpayslipdata?employee_id=' + employee_id);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    getcalculatepayroll(createdby: any): Observable<any> {
+        const url = this.getRoleBasedUrl(`payroll/calculatepayroll?createdby=` + createdby);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
+    getallsalarydetails(month: string, year: number, companyid: number): Observable<any> {
+        const url = this.getRoleBasedUrl('payroll/getallsalarydetails?month=' + month + '&year=' + year + '&companyid=' + companyid);
+        return this.http.get(url, { headers: this.getHeaders() });
+    }
 
     // Reports APIs
     getReports(): Observable<any> {
